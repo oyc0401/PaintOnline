@@ -382,7 +382,7 @@ body {
 .shape-size{
 	width:18px;
 	height:24px;
-	margin-right:-4px;
+	margin-right:1px;
 	background-repeat: no-repeat;
 	background-image: url("../../images/shape-size.svg");
 	background-position: center;
