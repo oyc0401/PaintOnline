@@ -16,7 +16,8 @@
 	--help-window-resizer-color: #aaaaaa;
 	--canvas-area-background-color: #7b7b7b;
 	--canvas-area-border-color: #808080;
-	--window-background-color: #ffffff;
+	--window-background-color: #F5F6F7;
+	--window-status-bar-color: #F0F0F0;
 	--window-text-color: #000000;
 	--menu-background-color: #ffffff;
 	--menu-text-color: #000000;
@@ -368,21 +369,22 @@ body {
 	background-position: calc(-16px * (var(--icon-index) * 2 + 1)) -16px;
 }
 
-.cursor_position{
-	width:24px;
+.cursor-position{
+	width:18px;
 	height:24px;
-	margin-right:-4px;
+	
+	margin-right:1px;
 	background-repeat: no-repeat;
-	background-image: url("../../images/cursor_position.svg");
+	background-image: url("../../images/cursor-position.svg");
 	background-position: center;
 }
 
-.shape_size{
-	width:24px;
+.shape-size{
+	width:18px;
 	height:24px;
 	margin-right:-4px;
 	background-repeat: no-repeat;
-	background-image: url("../../images/shape_size.svg");
+	background-image: url("../../images/shape-size.svg");
 	background-position: center;
 }
 
@@ -420,9 +422,16 @@ body {
 	background: var(--window-background-color);
 	color: var(--window-text-color);
 }
+
+.status-area{
+	border-top: 1px solid #D7D7D7;
+	background: var(--window-status-bar-color);
+	padding-bottom:1px;
+}
 .status-field {
 	height: 1.5rem;
 	line-height: 1.5rem;
+	font-size:12px;
 }
 .status-text {
 	padding-left: 8px;
