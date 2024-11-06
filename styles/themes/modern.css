@@ -377,6 +377,15 @@ body {
 	background-position: center;
 }
 
+.shape_size{
+	width:24px;
+	height:24px;
+	margin-right:-4px;
+	background-repeat: no-repeat;
+	background-image: url("../../images/shape_size.svg");
+	background-position: center;
+}
+
 .tool-options {
 	/* the layout currently depends on the exact pixel width (specifically the brush tool options) */
 	border: 1px solid rgba(0, 0, 0, 0.24);

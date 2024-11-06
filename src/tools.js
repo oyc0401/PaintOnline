@@ -275,6 +275,7 @@ const tools = [
 			this.preview_canvas = make_canvas(main_canvas.width, main_canvas.height);
 
 			// End prior selection, drawing it to the canvas
+			
 			deselect();
 		},
 		paint(_ctx, _x, _y) {
@@ -336,7 +337,8 @@ const tools = [
 			ctx_dest.putImageData(id_dest, rect_x, rect_y);
 		},
 		pointerup() {
-			$status_size.text("");
+			//$status_size.text("");
+			
 			this.preview_canvas.width = 1;
 			this.preview_canvas.height = 1;
 
@@ -1433,7 +1435,7 @@ const tools = [
 			// (and is afraid of the number zero)
 			const signed_width = x - this.points[0].x || 1;
 			const signed_height = y - this.points[0].y || 1;
-			$status_size.text(`${signed_width}x${signed_height}`);
+			$status_size.text(`${signed_width} x ${signed_height}px`);
 			// I don't know how helpful this is, might be more useful to show the number of points:
 			// $status_size.text(`${this.points.length} / 4 points`);
 		},
@@ -1775,7 +1777,7 @@ const tools = [
 			}
 			const signed_width = x_max - x_min || 1;
 			const signed_height = y_max - y_min || 1;
-			$status_size.text(`${signed_width}x${signed_height}`);
+			$status_size.text(`${signed_width} x ${signed_height}px`);
 		},
 		reset() {
 			$status_size.text("");
@@ -2042,10 +2044,10 @@ tools.forEach((tool) => {
 			rect_height =
 				~~Math.min(main_canvas.height, Math.max(drag_start_y, pointer.y + 1)) -
 				rect_y;
-			$status_size.text(`${rect_width}x${rect_height}`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
+			$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 		};
 		tool.pointerup = () => {
-			$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
+			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 			canvas_handles.show();
 			tool.selectBox(rect_x, rect_y, rect_width, rect_height);
 		};
@@ -2126,10 +2128,10 @@ tools.forEach((tool) => {
 			);
 			const signed_width = pointer.x - pointer_start.x || 1;
 			const signed_height = pointer.y - pointer_start.y || 1;
-			$status_size.text(`${signed_width}x${signed_height}`);
+			$status_size.text(`${signed_width} x ${signed_height}px`);
 		};
 		tool.pointerup = () => {
-			$status_size.text(""); // also handles canceling with two mouse buttons or escape key
+			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key
 			if (!tool.shape_canvas) {
 				return;
 			}

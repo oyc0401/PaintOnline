@@ -438,14 +438,12 @@ if (get_direction() === "rtl") {
 // #region Status Bar
 const $status_area = $(E("div")).addClass("status-area").appendTo($V);
 window.$status_area = $status_area;
-const $status_text = /** @type {JQuery<HTMLDivElement> & {default: ()=> void}} */($(E("div")).addClass("status-text status-field inset-shallow")
-																																									//.appendTo($status_area)
-																																								 );
-const $cursor_position_icon = $(E("div")).addClass("cursor_position").appendTo($status_area);
 
-window.$status_text = $status_text;
+const $status_position_icon = $(E("div")).addClass("cursor_position").appendTo($status_area);
 const $status_position = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
 window.$status_position = $status_position;
+
+const $$status_size_icon = $(E("div")).addClass("shape_size").appendTo($status_area);
 const $status_size = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
 window.$status_size = $status_size;
 
@@ -557,10 +555,6 @@ if ($news_indicator.text().includes("Bubblegum")) {
 }
 // #endregion
 
-$status_text.default = () => {
-	$status_text.text(localize("For Help, click Help Topics on the Help Menu."));
-};
-$status_text.default();
 
 // #endregion
 
@@ -585,10 +579,9 @@ if (menu_bar_outside_frame) {
 
 $(menu_bar.element).on("info", (event) => {
 	// @ts-ignore
-	$status_text.text(event.detail?.description ?? "");
 });
 $(menu_bar.element).on("default-info", () => {
-	$status_text.default();
+
 });
 
 // Hidden in a menu, these GIFs are not as obtrusive even though they can't be dismissed
@@ -1392,7 +1385,7 @@ function canvas_pointer_move(e) {
 }
 $canvas.on("pointermove", (e) => {
 	pointer = to_canvas_coords(e);
-	$status_position.text(`${pointer.x},${pointer.y}`);
+	$status_position.text(`${pointer.x}, ${pointer.y} px`);
 });
 $canvas.on("pointerenter", (e) => {
 	pointer_over_canvas = true;
@@ -1522,6 +1515,8 @@ $G.on("pointermove", (event) => {
 
 // #region Primary Canvas Interaction (continued)
 $canvas.on("pointerdown", (e) => {
+	//oyc0401
+	$status_size.text("");
 	update_canvas_rect();
 
 	// Quick Undo when there are multiple pointers (i.e. for touch)

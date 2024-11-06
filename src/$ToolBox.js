@@ -21,7 +21,7 @@ function $ToolBox(tools, is_extras) {
 	let showing_tooltips = false;
 	$tools.on("pointerleave", () => {
 		showing_tooltips = false;
-		$status_text.default();
+		
 	});
 
 	const $buttons = $($.map(tools, (tool, i) => {
@@ -70,7 +70,6 @@ function $ToolBox(tools, is_extras) {
 		$b.on("pointerenter", () => {
 			const show_tooltip = () => {
 				showing_tooltips = true;
-				$status_text.text(tool.description);
 			};
 			if (showing_tooltips) {
 				show_tooltip();

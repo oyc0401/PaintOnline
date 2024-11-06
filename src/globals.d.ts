@@ -261,7 +261,6 @@ declare const $colorbox: JQuery<HTMLDivElement> & I$Component & I$ColorBox;
 declare const $status_area: JQuery<HTMLDivElement>;
 declare const $status_position: JQuery<HTMLDivElement>;
 declare const $status_size: JQuery<HTMLDivElement>;
-declare const $status_text: JQuery<HTMLDivElement> & { default: () => void };
 declare const $toolbox: JQuery<HTMLDivElement> & I$Component & I$ToolBox;
 declare const canvas_handles: Handles;
 declare const clipboardData: DataTransfer | null; // old IE?
@@ -381,7 +380,6 @@ interface Window {
 	$status_area: JQuery<HTMLDivElement>;
 	$status_position: JQuery<HTMLDivElement>;
 	$status_size: JQuery<HTMLDivElement>;
-	$status_text: JQuery<HTMLDivElement> & { default: () => void };
 	$toolbox: JQuery<HTMLDivElement> & I$Component & I$ToolBox;
 	canvas_handles: Handles;
 	clipboardData: DataTransfer | null; // old IE?

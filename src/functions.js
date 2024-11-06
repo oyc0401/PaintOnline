@@ -840,13 +840,12 @@ async function load_image_from_uri(uri) {
 		const uri_to_try = uris_to_try[index_to_try];
 		try {
 			if (is_download) {
-				$status_text.text("Downloading picture...");
+			
 			}
 
 			const show_progress = ({ loaded, total }) => {
 				if (is_download) {
-					$status_text.text(`Downloading picture... (${Math.round(loaded / total * 100)}%)`);
-				}
+					}
 			};
 
 			if (is_download) {
@@ -905,7 +904,7 @@ async function load_image_from_uri(uri) {
 			const blob = await response_to_read.blob();
 			if (is_download) {
 				console.log("Download complete.");
-				$status_text.text("Download complete.");
+				
 			}
 			// @TODO: use headers to detect HTML, since a doctype is not guaranteed
 			// @TODO: fall back to WayBack Machine still for decode errors,
@@ -927,7 +926,7 @@ async function load_image_from_uri(uri) {
 		}
 	}
 	if (is_download) {
-		$status_text.text("Failed to download picture.");
+		
 	}
 	const error = new Error(`failed to fetch image from any of ${uris_to_try.length} URI(s):\n  ${fails.map((fail) =>
 		(fail.statusText ? `${fail.status} ${fail.statusText} ` : "") + fail.url + (fail.error ? `\n    ${fail.error}` : "")
