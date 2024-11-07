@@ -10,11 +10,15 @@
   ],
   "type": "module",
   "module": "index.js",
-  "main": "src/electron-main.js",
+  "scripts": {
+    "build": "node merge.js",
+    "start": "npm run build && node index.js"
+  },
   "dependencies": {
-    "espree": "^10.3.0",
     "@types/node": "^20.9.1",
+    "espree": "^10.3.0",
     "express": "^4.18.2",
+    "jquery": "^3.7.1",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
@@ -31,6 +35,8 @@
     "onchange": "^7.1.0",
     "os-gui": "0.7.3",
     "rtlcss": "^4.1.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
   }
 }

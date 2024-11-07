@@ -14,6 +14,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(3000, () => {
-  console.log("Express server initialized");
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Express server initialized on port " + (process.env.PORT || 3000));
 });

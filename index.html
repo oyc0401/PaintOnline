@@ -75,75 +75,11 @@
 </head>
 
 <body>
-	<div id="about-paint" style="display: none">
-		<div id="about-paint-header">
-			<img src="images/icons/128x128.png" width="128" height="128" id="about-paint-icon" alt="" />
-			<div id="about-paint-beside-icon">
-				<h1 id="jspaint-project-name">JS Paint</h1>
-				<div id="jspaint-version" title="About time to increment the version number, don't you think?">
-					Version 1.0.0+
-				</div>
-				<div id="jspaint-update-status-area" hidden>
-					<!-- perhaps this can be merged with the container now that it's the only child -->
-					<div id="maybe-outdated-line">
-						<div id="outdated" hidden>
-							<div class="on-official-host">
-								There's a new version of JS&nbsp;Paint.
-								<a id="refresh-to-update" href=".">Refresh</a> to get it.
-							</div>
-							<div class="on-third-party-host">
-								This instance of JS&nbsp;Paint is outdated compared to
-								<a href="https://jspaint.app" target="_blank">jspaint.app</a>.
-							</div>
-							<div class="on-dev-host">
-								This version of JS&nbsp;Paint is outdated compared to
-								<a href="https://jspaint.app" target="_blank">jspaint.app</a>.
-							</div>
-						</div>
-						<div id="checking-for-updates" hidden>
-							Checking for updates...
-						</div>
-						<div id="failed-to-check-if-outdated" hidden>
-							Couldn't check for updates.
-							<span class="navigator-offline">You're offline.</span>
-							<span class="navigator-online">JS&nbsp;Paint may be outdated.</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- @#: What's New? -->
-			<button id="view-project-news">What's&nbsp;New?</button>
-		</div>
-
-		<!-- <p>JS Paint is a web-based MS Paint remake by <a href="https://isaiahodhner.io/">Isaiah Odhner</a>.</p> -->
-		<!-- @#: Isaiah Odhner -->
-		<p>MS Paint remake by <a href="https://isaiahodhner.io/" target="_blank">Isaiah&nbsp;Odhner</a></p>
-		<!-- <p>Read about the project and extra features on <a href="https://github.com/1j01/jspaint#readme">the readme</a>.</p> -->
-		<!-- <p>Request features and report bugs <a href="https://github.com/1j01/jspaint/issues">on GitHub</a>
-			or <a href="mailto:isaiahodhner@gmail.com?subject=JS%20Paint">by email</a>.</p> -->
-		<p>
-			Feedback:
-			<a href="https://github.com/1j01/jspaint/issues" target="_blank">GitHub</a>
-			or <a href="mailto:isaiahodhner@gmail.com?subject=JS%20Paint">E-mail</a>
-			or <a href="https://discord.gg/jxQBK3k8tx" target="_blank">Discord</a>
-		</p>
-		<!-- <p>Support the project at <a href="https://www.paypal.me/IsaiahOdhner"
-			target="_blank">paypal.me/IsaiahOdhner</a>.</p> -->
-		<p>Donate: <a href="https://www.paypal.me/IsaiahOdhner" target="_blank">paypal.me/IsaiahOdhner</a></p>
-		<p>
-			<a href="about.html" target="_blank">Homepage</a>
-			&middot;
-			<a href="https://github.com/1j01/jspaint/blob/master/LICENSE.txt" target="_blank">MIT License</a>
-			&middot;
-			<a href="privacy.html" target="_blank">Privacy Policy</a>
-		</p>
-	</div>
-	
 	<!-- Note: no CDNs, even with fallback, as the fallback is too complicated to handle with CSP. -->
-	<script src="lib/jquery-3.4.1.min.js"></script>
-	<script src="lib/gif.js/gif.js"></script>
+	<!-- <script src="lib/jquery-3.4.1.min.js"></script>
+	<script src="lib/gif.js/gif.js"></script> -->
 	<!-- pako is used by UPNG.js and UTIF.js -->
-	<script src="lib/pako-2.0.3.min.js"></script>
+	<!-- <script src="lib/pako-2.0.3.min.js"></script>
 	<script src="lib/UPNG.js"></script>
 	<script src="lib/UTIF.js"></script>
 	<script src="lib/bmp.js"></script>
@@ -156,12 +92,17 @@
 	<script src="lib/os-gui/parse-theme.js"></script>
 	<script src="lib/os-gui/$Window.js"></script>
 	<script src="lib/os-gui/MenuBar.js"></script>
-	<script src="lib/imagetracer_v1.2.5.js"></script>
+	<script src="lib/imagetracer_v1.2.5.js"></script> -->
 
+	<script src="dist/bundle.js"></script>
+	
 	<!-- must not be async/deferred, as it uses document.write(); and must come before other app code which uses localization functions -->
 	<!-- (also depends on msgbox.js and thus os-gui.js, but not initially) -->
-	<script src="src/app-localization.js"></script>
+	<!-- <script src="src/app-localization.js"></script> -->
 
+
+
+	
 	<!-- Scripts that are not yet transitioned to ES Modules are marked as "defer"
 	so that the ES Modules (which are implicitly deferred) can still export globals to be consumed by the non-module scripts,
 	which helps with progressively converting the codebase to ES Modules. -->
@@ -202,16 +143,7 @@
 
 	<noscript>
 		<h1><img src="images/icons/32x32.png" width="32" height="32" alt="" /> JS Paint</h1>
-
 		<p>This application requires JavaScript to run.</p>
-
-		<p>
-			Assuming this is the official instance of jspaint,
-			at <a href="https://jspaint.app">https://jspaint.app</a>,
-			you can safely enable JavaScript.
-		</p>
-
-		<p>You can also check out <a href="https://github.com/1j01/jspaint">the source code and project info</a>.</p>
 	</noscript>
 
 	<svg style="position: absolute; pointer-events: none; bottom: 100%;">
