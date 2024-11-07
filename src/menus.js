@@ -2,8 +2,7 @@
 /* global tool_transparent_mode:writable, palette:writable */
 /* global $canvas_area, $colorbox, $status_area, $toolbox, available_languages, get_iso_language_name, get_language, get_language_emoji, get_language_endonym, localize, magnification, main_canvas, menu_bar, MENU_DIVIDER, redos, selection, set_language, show_grid, show_thumbnail, systemHooks, undos */
 // import { available_languages, get_iso_language_name, get_language, get_language_emoji, get_language_endonym, localize, set_language } from "./app-localization.js";
-import { show_edit_colors_window } from "./edit-colors.js";
-import { palette_formats } from "./file-format-data.js";
+
 import {
 	are_you_sure,
 	change_url_param,
@@ -36,9 +35,8 @@ import {
 	undo,
 	view_bitmap,
 } from "./functions.js";
-import { $G, get_rgba_from_color, is_discord_embed } from "./helpers.js";
+import { $G, is_discord_embed } from "./helpers.js";
 import { show_imgur_uploader } from "./imgur.js";
-import { manage_storage } from "./manage-storage.js";
 import { showMessageBox } from "./msgbox.js";
 import { get_theme, set_theme } from "./theme.js";
 
@@ -239,42 +237,6 @@ const menus = {
 				});
 			},
 			description: localize("Uploads the active document to Imgur"),
-		},
-		MENU_DIVIDER,
-		{
-			label: localize("Manage Storage"),
-			speech_recognition: [
-				"manage storage",
-				"show storage",
-				"open storage window",
-				"manage sessions",
-				"show sessions",
-				"show local sessions",
-				"local sessions",
-				"storage manager",
-				"show storage manager",
-				"open storage manager",
-				"show autosaves",
-				"show saves",
-				"show saved documents",
-				"show saved files",
-				"show saved pictures",
-				"show saved images",
-				"show local storage",
-				"autosaves",
-				"autosave",
-				"saved documents",
-				"saved files",
-				"saved pictures",
-				"saved images",
-				"local storage",
-			],
-			action: () => {
-				manage_storage();
-			},
-			description: localize(
-				"Manages storage of previously created or opened pictures.",
-			),
 		},
 		MENU_DIVIDER,
 		{

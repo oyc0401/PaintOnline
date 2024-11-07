@@ -6,7 +6,6 @@ import { $DialogWindow } from "./$ToolWindow.js";
 // import { localize } from "./app-localization.js";
 import { change_url_param, get_uris, load_image_from_uri, open_from_image_info, redo, reset_file, show_error_message, show_resource_load_error_message, undo, undoable, update_title } from "./functions.js";
 import { $G, debounce, get_help_folder_icon, image_data_match, is_discord_embed, make_canvas, to_canvas_coords } from "./helpers.js";
-import { storage_quota_exceeded } from "./manage-storage.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
 
@@ -124,13 +123,13 @@ class LocalSession {
 			localStore.set(ls_key, main_canvas.toDataURL("image/png"), (err) => {
 				if (err) {
 					// @ts-ignore (quotaExceeded is added by storage.js)
-					if (err.quotaExceeded) {
-						storage_quota_exceeded();
-					} else {
-						// e.g. localStorage is disabled
-						// (or there's some other error?)
-						// @TODO: show warning with "Don't tell me again" type option
-					}
+					// if (err.quotaExceeded) {
+					// 	storage_quota_exceeded();
+					// } else {
+					// 	// e.g. localStorage is disabled
+					// 	// (or there's some other error?)
+					// 	// @TODO: show warning with "Don't tell me again" type option
+					// }
 				}
 			});
 		};
