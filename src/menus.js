@@ -40,7 +40,6 @@ import {
 	undo,
 	view_bitmap,
 } from "./functions.js";
-import { show_help } from "./help.js";
 import { $G, get_rgba_from_color, is_discord_embed } from "./helpers.js";
 import { show_imgur_uploader } from "./imgur.js";
 import { manage_storage } from "./manage-storage.js";
