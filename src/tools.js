@@ -625,13 +625,13 @@ const tools = [
 
 			if (this.mask_canvas) {
 				this.render_from_mask(ctx, true);
-				if (transparency) {
-					// animate for gradient
-					// TODO: is rAF needed? update_helper_layer uses rAF
-					requestAnimationFrame(() => {
-						update_helper_layer();
-					});
-				}
+				// if (transparency) {
+				// 	// animate for gradient
+				// 	// TODO: is rAF needed? update_helper_layer uses rAF
+				// 	requestAnimationFrame(() => {
+				// 		update_helper_layer();
+				// 	});
+				// }
 			}
 
 			ctx.fillStyle = selected_colors.background;
@@ -686,25 +686,27 @@ const tools = [
 			if (previewing || !transparency) {
 				/** @type {string | CanvasPattern | CanvasGradient} */
 				let color = selected_colors.background;
+				
 				if (transparency) {
-					const t = performance.now() / 2000;
-					// @TODO: DRY
-					// animated rainbow effect representing transparency,
-					// in lieu of any good way to draw temporary transparency in the current setup
-					// 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
-					const n = 6;
-					const h = ctx.canvas.height;
-					const y = (t % 1) * -h * (n - 1);
-					const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
-					gradient.addColorStop(0 / n, "red");
-					gradient.addColorStop(1 / n, "gold");
-					gradient.addColorStop(2 / n, "#00d90b");
-					gradient.addColorStop(3 / n, "#2e64d9");
-					gradient.addColorStop(4 / n, "#8f2ed9");
-					// last two same as the first two so it can seamlessly wrap
-					gradient.addColorStop(5 / n, "red");
-					gradient.addColorStop(6 / n, "gold");
-					color = gradient;
+					color = 'rgba(255, 0, 0, 0.3)';
+					// const t = performance.now() / 2000;
+					// // @TODO: DRY
+					// // animated rainbow effect representing transparency,
+					// // in lieu of any good way to draw temporary transparency in the current setup
+					// // 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
+					// const n = 6;
+					// const h = ctx.canvas.height;
+					// const y = (t % 1) * -h * (n - 1);
+					// const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
+					// gradient.addColorStop(0 / n, "red");
+					// gradient.addColorStop(1 / n, "gold");
+					// gradient.addColorStop(2 / n, "#00d90b");
+					// gradient.addColorStop(3 / n, "#2e64d9");
+					// gradient.addColorStop(4 / n, "#8f2ed9");
+					// // last two same as the first two so it can seamlessly wrap
+					// gradient.addColorStop(5 / n, "red");
+					// gradient.addColorStop(6 / n, "gold");
+					// color = gradient;
 				}
 				const mask_fill_canvas = make_canvas(this.mask_canvas);
 				replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
@@ -2223,32 +2225,36 @@ tools.forEach((tool) => {
 			// or other values
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
+			// const translucent = get_rgba_from_color(color)[3] < 253;
 			const translucent = get_rgba_from_color(color)[3] < 253;
+		
 			if (translucent && previewing) {
-				const t = performance.now() / 2000;
-				// @TODO: DRY
-				// animated rainbow effect representing transparency,
-				// in lieu of any good way to draw temporary transparency in the current setup
-				// 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
-				const n = 6;
-				const h = ctx.canvas.height;
-				const y = (t % 1) * -h * (n - 1);
-				const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
-				gradient.addColorStop(0 / n, "red");
-				gradient.addColorStop(1 / n, "gold");
-				gradient.addColorStop(2 / n, "#00d90b");
-				gradient.addColorStop(3 / n, "#2e64d9");
-				gradient.addColorStop(4 / n, "#8f2ed9");
-				// last two same as the first two so it can seamlessly wrap
-				gradient.addColorStop(5 / n, "red");
-				gradient.addColorStop(6 / n, "gold");
-				color = gradient;
+				color = 'rgba(255, 0, 0, 0.3)';
+				// const t = performance.now() / 2000;
+				// // @TODO: DRY
+				// // animated rainbow effect representing transparency,
+				// // in lieu of any good way to draw temporary transparency in the current setup
+				// // 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
+				// const n = 6;
+				// const h = ctx.canvas.height;
+				// const y = (t % 1) * -h * (n - 1);
+				// const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
+				// gradient.addColorStop(0 / n, "red");
+				// gradient.addColorStop(1 / n, "gold");
+				// gradient.addColorStop(2 / n, "#00d90b");
+				// gradient.addColorStop(3 / n, "#2e64d9");
+				// gradient.addColorStop(4 / n, "#8f2ed9");
+				// // last two same as the first two so it can seamlessly wrap
+				// gradient.addColorStop(5 / n, "red");
+				// gradient.addColorStop(6 / n, "gold");
+				// color = gradient;
 			}
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
 			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			ctx.drawImage(mask_fill_canvas, 0, 0);
-			return translucent;
+			return true;
+			// return translucent;
 		};
 		tool.drawPreviewUnderGrid = (
 			ctx,
@@ -2368,25 +2374,27 @@ tools.forEach((tool) => {
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
 			const translucent = get_rgba_from_color(color)[3] < 253;
+			
 			if (translucent && previewing) {
-				const t = performance.now() / 2000;
-				// @TODO: DRY
-				// animated rainbow effect representing transparency,
-				// in lieu of any good way to draw temporary transparency in the current setup
-				// 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
-				const n = 6;
-				const h = ctx.canvas.height;
-				const y = (t % 1) * -h * (n - 1);
-				const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
-				gradient.addColorStop(0 / n, "red");
-				gradient.addColorStop(1 / n, "gold");
-				gradient.addColorStop(2 / n, "#00d90b");
-				gradient.addColorStop(3 / n, "#2e64d9");
-				gradient.addColorStop(4 / n, "#8f2ed9");
-				// last two same as the first two so it can seamlessly wrap
-				gradient.addColorStop(5 / n, "red");
-				gradient.addColorStop(6 / n, "gold");
-				color = gradient;
+				color = 'rgba(255, 0, 0, 0.3)';
+				// const t = performance.now() / 2000;
+				// // @TODO: DRY
+				// // animated rainbow effect representing transparency,
+				// // in lieu of any good way to draw temporary transparency in the current setup
+				// // 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
+				// const n = 6;
+				// const h = ctx.canvas.height;
+				// const y = (t % 1) * -h * (n - 1);
+				// const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
+				// gradient.addColorStop(0 / n, "red");
+				// gradient.addColorStop(1 / n, "gold");
+				// gradient.addColorStop(2 / n, "#00d90b");
+				// gradient.addColorStop(3 / n, "#2e64d9");
+				// gradient.addColorStop(4 / n, "#8f2ed9");
+				// // last two same as the first two so it can seamlessly wrap
+				// gradient.addColorStop(5 / n, "red");
+				// gradient.addColorStop(6 / n, "gold");
+				// color = gradient;
 			}
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
@@ -2404,7 +2412,8 @@ tools.forEach((tool) => {
 			}
 			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			ctx.drawImage(mask_fill_canvas, 0, 0);
-			return translucent;
+			// return translucent;
+			return true;
 		};
 		tool.drawPreviewUnderGrid = (
 			ctx,

@@ -17,7 +17,8 @@ const default_palette = [
 	"rgb(0,64,128)", //
 	"rgb(64,0,255)", //
 	"rgb(128,64,0)", //
-	"rgb(128,64,0,0)", // tranparent
+	"rgb(128,64,0,0.1)", // tranparent
+	"rgb(128,64,0,0.2)", // tranparent
 	
 	"rgb(255,255,255)", // White
 	"rgb(192,192,192)", // Light Gray
@@ -33,7 +34,8 @@ const default_palette = [
 	"rgb(128,128,255)", //
 	"rgb(255,0,128)", //
 	"rgb(255,128,64)", //
-	//"rgb(128,64,0,0)", // tranparent
+	"rgb(128,64,0,0.3)", // tranparent
+	"rgb(128,64,0,0)", // tranparent
 ];
 const monochrome_palette_as_colors = [
 	"rgb(0,0,0)",

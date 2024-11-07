@@ -39,9 +39,7 @@ class OnCanvasObject {
 			width: magnification * this.width,
 			height: magnification * this.height,
 		});
-		console.log('??')
 		if (updateStatus) {
-			console.log('!!')
 			$status_position.text(`${this.x}, ${this.y}px`);
 			$status_size.text(`${this.width} x ${this.height}px`);
 		}

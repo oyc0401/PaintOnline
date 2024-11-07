@@ -160,6 +160,7 @@ let helper_layer_update_queued = false;
 let info_for_updating_pointer;
 /** @param {{ clientX: number, clientY: number }} [e] */
 function update_helper_layer(e) {
+	console.log('helper',e)
 	// e should be passed for pointer events, but not scroll or resize events
 	// e may be a synthetic event without clientX/Y, so ignore that (using isFinite)
 	// e may also be a timestamp from requestAnimationFrame callback; ignore that
