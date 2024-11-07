@@ -2077,11 +2077,17 @@ tools.forEach((tool) => {
 			}
 		};
 		tool.render_from_mask = (ctx, previewing) => {
-			// could be private
-			ctx.save();
-			ctx.globalCompositeOperation = "destination-out";
-			ctx.drawImage(tool.mask_canvas, 0, 0);
-			ctx.restore();
+
+			// 덮어쓰기, 기본값 false
+			const 덮어쓰기모드 = true;
+			if(!덮어쓰기모드){
+				// could be private
+				ctx.save();
+				ctx.globalCompositeOperation = "destination-out";
+				ctx.drawImage(tool.mask_canvas, 0, 0);
+				ctx.restore();
+			}
+			
 
 			/** @type {string | CanvasGradient | CanvasPattern} */
 			let color = stroke_color;
