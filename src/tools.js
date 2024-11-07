@@ -275,7 +275,7 @@ const tools = [
 			this.preview_canvas = make_canvas(main_canvas.width, main_canvas.height);
 
 			// End prior selection, drawing it to the canvas
-			
+
 			deselect();
 		},
 		paint(_ctx, _x, _y) {
@@ -338,7 +338,7 @@ const tools = [
 		},
 		pointerup() {
 			//$status_size.text("");
-			
+
 			this.preview_canvas.width = 1;
 			this.preview_canvas.height = 1;
 
@@ -514,7 +514,7 @@ const tools = [
 	{
 		id: TOOL_ERASER,
 		name: localize("Eraser/Color Eraser"),
-		speech_recognition: [		],
+		speech_recognition: [],
 		help_icon: "p_erase.gif",
 		description: localize(
 			"Erases a portion of the picture, using the selected eraser shape.",
@@ -605,12 +605,14 @@ const tools = [
 			if (previewing || !transparency) {
 				/** @type {string | CanvasPattern | CanvasGradient} */
 				let color = selected_colors.background;
-				// console.log(previewing, transparency,color)
+				//console.log(previewing, transparency,color)
 
-				if (transparency) {
-					color = 'rgba(255, 0, 0, 0.3)';
+				const translucent = get_rgba_from_color(color)[3] < 1;
+
+				if (transparency && translucent) {
+					color = "rgba(255, 0, 0, 0.3)";
 				}
-				
+
 				const mask_fill_canvas = make_canvas(this.mask_canvas);
 				replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 				ctx.drawImage(mask_fill_canvas, 0, 0);
@@ -706,8 +708,7 @@ const tools = [
 	{
 		id: TOOL_FILL,
 		name: localize("Fill With Color"),
-		speech_recognition: [
-		],
+		speech_recognition: [],
 		help_icon: "p_paint.gif",
 		description: "Fills an area with the selected drawing color.",
 		cursor: ["fill-bucket", [8, 22], "crosshair"],
@@ -740,8 +741,7 @@ const tools = [
 	{
 		id: TOOL_PICK_COLOR,
 		name: localize("Pick Color"),
-		speech_recognition: [
-		],
+		speech_recognition: [],
 		help_icon: "p_eye.gif",
 		description: localize("Picks up a color from the picture for drawing."),
 		cursor: ["eye-dropper", [9, 22], "crosshair"],
@@ -779,8 +779,7 @@ const tools = [
 	{
 		id: TOOL_MAGNIFIER,
 		name: localize("Magnifier"),
-		speech_recognition: [
-		],
+		speech_recognition: [],
 		help_icon: "p_zoom.gif",
 		description: localize("Changes the magnification."),
 		cursor: ["magnifier", [16, 16], "zoom-in"], // overridden below
@@ -908,8 +907,8 @@ const tools = [
 			const prev_magnification = magnification;
 			const prospective_magnification = this.getProspectiveMagnification();
 
-			console.log('마그네틱',prospective_magnification)
-			set_magnification(magnification+1);
+			console.log("마그네틱", prospective_magnification);
+			set_magnification(magnification + 1);
 
 			if (magnification > prev_magnification) {
 				// (new) viewport size in document coords
@@ -937,8 +936,7 @@ const tools = [
 	{
 		id: TOOL_PENCIL,
 		name: localize("Pencil"),
-		speech_recognition: [
-		],
+		speech_recognition: [],
 		help_icon: "p_pencil.gif",
 		description: localize("Draws a free-form line one pixel wide."),
 		cursor: ["pencil", [13, 23], "crosshair"],
@@ -950,8 +948,7 @@ const tools = [
 	{
 		id: TOOL_BRUSH,
 		name: localize("Brush"),
-		speech_recognition: [
-		],
+		speech_recognition: [],
 		help_icon: "p_brush.gif",
 		description: localize(
 			"Draws using a brush with the selected shape and size.",
@@ -966,8 +963,7 @@ const tools = [
 	{
 		id: TOOL_AIRBRUSH,
 		name: localize("Airbrush"),
-		speech_recognition: [
-		],
+		speech_recognition: [],
 		help_icon: "p_airb.gif",
 		description: localize("Draws using an airbrush of the selected size."),
 		cursor: ["airbrush", [7, 22], "crosshair"],
@@ -1959,11 +1955,11 @@ tools.forEach((tool) => {
 			// the canvas API is just genuinely not reliable for exact color values
 			// const translucent = get_rgba_from_color(color)[3] < 253;
 			// const translucent = get_rgba_from_color(color)[3] < 1;
-		
+
 			// if (translucent) {
 			// 	color = 'rgba(255, 0, 0, 0.3)';
 			// }
-			
+
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
 			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
@@ -2077,17 +2073,15 @@ tools.forEach((tool) => {
 			}
 		};
 		tool.render_from_mask = (ctx, previewing) => {
-
 			// 덮어쓰기, 기본값 false
 			const 덮어쓰기모드 = true;
-			if(!덮어쓰기모드){
+			if (!덮어쓰기모드) {
 				// could be private
 				ctx.save();
 				ctx.globalCompositeOperation = "destination-out";
 				ctx.drawImage(tool.mask_canvas, 0, 0);
 				ctx.restore();
 			}
-			
 
 			/** @type {string | CanvasGradient | CanvasPattern} */
 			let color = stroke_color;
@@ -2096,7 +2090,7 @@ tools.forEach((tool) => {
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
 			// const translucent = get_rgba_from_color(color)[3] < 1;
-			
+
 			// if (translucent) {
 			// 	color = 'rgba(255, 0, 0, 0.3)';
 			// }
