@@ -410,54 +410,7 @@ const tools = [
 	{
 		id: TOOL_SELECT,
 		name: localize("Select"),
-		speech_recognition: [
-			// formulaic combinations
-			"select",
-			"rectangle select",
-			"rectangular select",
-			"box select",
-			"square select",
-			"drag select",
-			"select rectangle",
-			"select by rectangle",
-			"select rectangular region",
-			"select rectangular area",
-			"rectangular region select",
-			"rectangular area select",
-			"selection",
-			"rectangle selection",
-			"rectangular selection",
-			"box selection",
-			"square selection",
-			"rectangular region selection",
-			"rectangular area selection",
-			"selector",
-			"rectangle selector",
-			"rectangular selector",
-			"box selector",
-			"square selector",
-			"drag selector",
-			"rectangular region selector",
-			"rectangular area selector",
-			// misc
-			"make selection",
-			"make a selection",
-			"select a rectangle",
-			"select a box",
-			"select a rectangular region",
-			"select a rectangular area",
-			"selection box",
-			"part of image",
-			"part of picture",
-			"part of canvas",
-			"part of the image",
-			"part of the picture",
-			"part of the canvas",
-			"create selection",
-			"create a selection",
-			"selection maker",
-			"selection box maker",
-		],
+		speech_recognition: [],
 		help_icon: "p_sel.gif",
 		description: localize(
 			"Selects a rectangular part of the picture to move, copy, or edit.",
@@ -561,34 +514,7 @@ const tools = [
 	{
 		id: TOOL_ERASER,
 		name: localize("Eraser/Color Eraser"),
-		speech_recognition: [
-			"erase",
-			"eraser",
-			"rubber",
-			"wiper",
-			"clearer",
-			"mark remover",
-			"obliterator",
-			"expunger",
-			"color eraser",
-			"color replacer",
-			"replace color",
-			"replace colors",
-			"erasing",
-			"erasing tool",
-			"color erasing",
-			"color replacing",
-			"replacing color",
-			"replacing colors",
-			"wiping tool",
-			"rubbing tool",
-			"clearing tool",
-			"mark removing tool",
-			"removal tool",
-			"obliterating tool",
-			"obliteration tool",
-			"expunging tool",
-		],
+		speech_recognition: [		],
 		help_icon: "p_erase.gif",
 		description: localize(
 			"Erases a portion of the picture, using the selected eraser shape.",
@@ -625,13 +551,6 @@ const tools = [
 
 			if (this.mask_canvas) {
 				this.render_from_mask(ctx, true);
-				// if (transparency) {
-				// 	// animate for gradient
-				// 	// TODO: is rAF needed? update_helper_layer uses rAF
-				// 	requestAnimationFrame(() => {
-				// 		update_helper_layer();
-				// 	});
-				// }
 			}
 
 			ctx.fillStyle = selected_colors.background;
@@ -689,24 +608,6 @@ const tools = [
 				
 				if (transparency) {
 					color = 'rgba(255, 0, 0, 0.3)';
-					// const t = performance.now() / 2000;
-					// // @TODO: DRY
-					// // animated rainbow effect representing transparency,
-					// // in lieu of any good way to draw temporary transparency in the current setup
-					// // 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
-					// const n = 6;
-					// const h = ctx.canvas.height;
-					// const y = (t % 1) * -h * (n - 1);
-					// const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
-					// gradient.addColorStop(0 / n, "red");
-					// gradient.addColorStop(1 / n, "gold");
-					// gradient.addColorStop(2 / n, "#00d90b");
-					// gradient.addColorStop(3 / n, "#2e64d9");
-					// gradient.addColorStop(4 / n, "#8f2ed9");
-					// // last two same as the first two so it can seamlessly wrap
-					// gradient.addColorStop(5 / n, "red");
-					// gradient.addColorStop(6 / n, "gold");
-					// color = gradient;
 				}
 				const mask_fill_canvas = make_canvas(this.mask_canvas);
 				replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
@@ -804,41 +705,6 @@ const tools = [
 		id: TOOL_FILL,
 		name: localize("Fill With Color"),
 		speech_recognition: [
-			"fill with color",
-			"flood fill",
-			"fill",
-			"flood filling",
-			"flood-filling",
-			"floodfilling",
-			"floodfill",
-			"fill area with color",
-			"flood fill area",
-			"fill area",
-			"color area",
-			"area fill",
-			"area filling",
-			"filling area",
-			"fill region with color",
-			"flood fill region",
-			"fill region",
-			"color region",
-			"region fill",
-			"region filling",
-			"filling region",
-			"fill bucket",
-			"paint bucket",
-			"paint can",
-			"dump",
-			"splash",
-			"paintbucket",
-			"bucket",
-			"dumping",
-			"paint dumping",
-			"paint dumper",
-			"dumper",
-			"dump bucket",
-			"color filler",
-			"filler",
 		],
 		help_icon: "p_paint.gif",
 		description: "Fills an area with the selected drawing color.",
@@ -873,75 +739,6 @@ const tools = [
 		id: TOOL_PICK_COLOR,
 		name: localize("Pick Color"),
 		speech_recognition: [
-			"pick color",
-			"select color",
-			"color select",
-			"color selector",
-			"color picker",
-			"pick a color",
-			"color picking",
-			"color choosing",
-			"color selecting",
-			"color chooser",
-			"color lift",
-			"color lifter",
-			"color lifting",
-			"lift color",
-			"eyedropper",
-			"eye dropper",
-			"eye-dropper",
-			"pipette",
-			"Pasteur pipette",
-			"dropper",
-			"eye drop",
-			"eye-drop",
-			"eyedrop",
-			"suck up color",
-			"absorb color",
-			"choose color from image",
-			"choose color from picture",
-			"choose color from canvas",
-			"select color from image",
-			"select color from picture",
-			"select color from canvas",
-			"choose color from the image",
-			"choose color from the picture",
-			"choose color from the canvas",
-			"select color from the image",
-			"select color from the picture",
-			"select color from the canvas",
-			"choose a color from the image",
-			"choose a color from the picture",
-			"choose a color from the canvas",
-			"select a color from the image",
-			"select a color from the picture",
-			"select a color from the canvas",
-			"choose a color from image",
-			"choose a color from picture",
-			"choose a color from canvas",
-			"select a color from image",
-			"select a color from picture",
-			"select a color from canvas",
-			"pick color from canvas",
-			"pick color from document",
-			"pick color from page",
-			"pick color from image",
-			"pick color from picture",
-			"pick color from the canvas",
-			"pick color from the document",
-			"pick color from the page",
-			"pick color from the image",
-			"pick color from the picture",
-			"pick a color from canvas",
-			"pick a color from document",
-			"pick a color from page",
-			"pick a color from image",
-			"pick a color from picture",
-			"pick a color from the canvas",
-			"pick a color from the document",
-			"pick a color from the page",
-			"pick a color from the image",
-			"pick a color from the picture",
 		],
 		help_icon: "p_eye.gif",
 		description: localize("Picks up a color from the picture for drawing."),
@@ -981,27 +778,6 @@ const tools = [
 		id: TOOL_MAGNIFIER,
 		name: localize("Magnifier"),
 		speech_recognition: [
-			"magnifier",
-			"magnifying glass",
-			"loupe",
-			"hand lens",
-			"hand glass",
-			"eyeglass",
-			"eye glass",
-			"lens",
-			"simple microscope",
-			"microscope",
-			"glass",
-			"spyglass",
-			"telescope",
-			"magnification",
-			"zoom",
-			"zoom in",
-			"zoom out",
-			"zoomer",
-			"magnifying",
-			"zooming",
-			"enlarging tool",
 		],
 		help_icon: "p_zoom.gif",
 		description: localize("Changes the magnification."),
@@ -1130,7 +906,7 @@ const tools = [
 			const prev_magnification = magnification;
 			const prospective_magnification = this.getProspectiveMagnification();
 
-			console.log(prospective_magnification)
+			console.log('마그네틱',prospective_magnification)
 			set_magnification(magnification+1);
 
 			if (magnification > prev_magnification) {
@@ -1156,21 +932,10 @@ const tools = [
 		},
 		$options: $choose_magnification,
 	},
-
-	
 	{
 		id: TOOL_PENCIL,
 		name: localize("Pencil"),
 		speech_recognition: [
-			"pencil",
-			"lead",
-			"graphite",
-			"pen",
-			"pixel",
-			"pixel art",
-			"penciling",
-			"penning",
-			"pixeling",
 		],
 		help_icon: "p_pencil.gif",
 		description: localize("Draws a free-form line one pixel wide."),
@@ -1184,17 +949,6 @@ const tools = [
 		id: TOOL_BRUSH,
 		name: localize("Brush"),
 		speech_recognition: [
-			"brush",
-			"paint brush",
-			"paintbrush",
-			// "paint", // could also be the paint bucket tool; might be too general, matching saying "MS Paint" / "JS Paint"
-			"paint tool", // could also be the paint bucket tool
-			"painting tool",
-			"brushing paint tool",
-			"paint brushing tool",
-			"brushing",
-			// @TODO: specific brush shapes:
-			// "calligraphy", "nib", "slanted brush", "square brush", "circle brush", "circular brush",
 		],
 		help_icon: "p_brush.gif",
 		description: localize(
@@ -1211,30 +965,6 @@ const tools = [
 		id: TOOL_AIRBRUSH,
 		name: localize("Airbrush"),
 		speech_recognition: [
-			"air brush",
-			"airbrush",
-			"aerograph",
-			"airbrushing",
-			"air brushing",
-			"spray paint",
-			"spraypaint",
-			"paint spray",
-			"spray painting",
-			"spraypainting",
-			"spray paint can",
-			"spraypaint can",
-			"spraycan",
-			"spray-can",
-			"spray can",
-			"graffiti",
-			"scatter",
-			"splatter",
-			"scattering",
-			"splattering",
-			"aerosol",
-			"aerosol can",
-			"throwie",
-			"flamethrower",
 		],
 		help_icon: "p_airb.gif",
 		description: localize("Draws using an airbrush of the selected size."),
@@ -2226,29 +1956,12 @@ tools.forEach((tool) => {
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
 			// const translucent = get_rgba_from_color(color)[3] < 253;
-			const translucent = get_rgba_from_color(color)[3] < 253;
+			const translucent = get_rgba_from_color(color)[3] < 1;
 		
-			if (translucent && previewing) {
+			if (translucent) {
 				color = 'rgba(255, 0, 0, 0.3)';
-				// const t = performance.now() / 2000;
-				// // @TODO: DRY
-				// // animated rainbow effect representing transparency,
-				// // in lieu of any good way to draw temporary transparency in the current setup
-				// // 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
-				// const n = 6;
-				// const h = ctx.canvas.height;
-				// const y = (t % 1) * -h * (n - 1);
-				// const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
-				// gradient.addColorStop(0 / n, "red");
-				// gradient.addColorStop(1 / n, "gold");
-				// gradient.addColorStop(2 / n, "#00d90b");
-				// gradient.addColorStop(3 / n, "#2e64d9");
-				// gradient.addColorStop(4 / n, "#8f2ed9");
-				// // last two same as the first two so it can seamlessly wrap
-				// gradient.addColorStop(5 / n, "red");
-				// gradient.addColorStop(6 / n, "gold");
-				// color = gradient;
 			}
+			
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
 			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
@@ -2334,24 +2047,25 @@ tools.forEach((tool) => {
 				pointer.y,
 				(x, y) => {
 					for (const point of circumference_points) {
+						tool.mask_canvas.ctx.fillStyle = "white";
 						tool.mask_canvas.ctx.fillRect(x + point.x, y + point.y, 1, 1);
 					}
 				},
 			);
-			stamp_brush_canvas(
-				tool.mask_canvas.ctx,
-				pointer_previous.x,
-				pointer_previous.y,
-				brush.shape,
-				brush.size,
-			);
-			stamp_brush_canvas(
-				tool.mask_canvas.ctx,
-				pointer.x,
-				pointer.y,
-				brush.shape,
-				brush.size,
-			);
+			// stamp_brush_canvas(
+			// 	tool.mask_canvas.ctx,
+			// 	pointer_previous.x,
+			// 	pointer_previous.y,
+			// 	brush.shape,
+			// 	brush.size,
+			// );
+			// stamp_brush_canvas(
+			// 	tool.mask_canvas.ctx,
+			// 	pointer.x,
+			// 	pointer.y,
+			// 	brush.shape,
+			// 	brush.size,
+			// );
 		};
 
 		tool.cancel = () => {
@@ -2373,28 +2087,10 @@ tools.forEach((tool) => {
 			// or other values
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
-			const translucent = get_rgba_from_color(color)[3] < 253;
+			const translucent = get_rgba_from_color(color)[3] < 1;
 			
-			if (translucent && previewing) {
+			if (translucent) {
 				color = 'rgba(255, 0, 0, 0.3)';
-				// const t = performance.now() / 2000;
-				// // @TODO: DRY
-				// // animated rainbow effect representing transparency,
-				// // in lieu of any good way to draw temporary transparency in the current setup
-				// // 5 distinct colors, 5 distinct gradients, 7 color stops, 6 gradients
-				// const n = 6;
-				// const h = ctx.canvas.height;
-				// const y = (t % 1) * -h * (n - 1);
-				// const gradient = ctx.createLinearGradient(0, y, 0, y + h * n);
-				// gradient.addColorStop(0 / n, "red");
-				// gradient.addColorStop(1 / n, "gold");
-				// gradient.addColorStop(2 / n, "#00d90b");
-				// gradient.addColorStop(3 / n, "#2e64d9");
-				// gradient.addColorStop(4 / n, "#8f2ed9");
-				// // last two same as the first two so it can seamlessly wrap
-				// gradient.addColorStop(5 / n, "red");
-				// gradient.addColorStop(6 / n, "gold");
-				// color = gradient;
 			}
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
