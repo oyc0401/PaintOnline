@@ -3243,6 +3243,11 @@ function image_attributes() {
 		transparency = (transparency_option == "transparent");
 		monochrome = (colors_option == "monochrome");
 
+		// added oyc0401
+		if(transparency_option == "transparent"){
+			selected_colors.background = 'transparent'
+		}
+
 		if (monochrome != was_monochrome) {
 			if (selection) {
 				// want to detect monochrome based on selection + canvas
