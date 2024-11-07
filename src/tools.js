@@ -605,10 +605,12 @@ const tools = [
 			if (previewing || !transparency) {
 				/** @type {string | CanvasPattern | CanvasGradient} */
 				let color = selected_colors.background;
-				
+				// console.log(previewing, transparency,color)
+
 				if (transparency) {
 					color = 'rgba(255, 0, 0, 0.3)';
 				}
+				
 				const mask_fill_canvas = make_canvas(this.mask_canvas);
 				replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 				ctx.drawImage(mask_fill_canvas, 0, 0);
@@ -1956,11 +1958,11 @@ tools.forEach((tool) => {
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
 			// const translucent = get_rgba_from_color(color)[3] < 253;
-			const translucent = get_rgba_from_color(color)[3] < 1;
+			// const translucent = get_rgba_from_color(color)[3] < 1;
 		
-			if (translucent) {
-				color = 'rgba(255, 0, 0, 0.3)';
-			}
+			// if (translucent) {
+			// 	color = 'rgba(255, 0, 0, 0.3)';
+			// }
 			
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
@@ -2087,11 +2089,11 @@ tools.forEach((tool) => {
 			// or other values
 			// even with privacy.resistFingerprinting set to false
 			// the canvas API is just genuinely not reliable for exact color values
-			const translucent = get_rgba_from_color(color)[3] < 1;
+			// const translucent = get_rgba_from_color(color)[3] < 1;
 			
-			if (translucent) {
-				color = 'rgba(255, 0, 0, 0.3)';
-			}
+			// if (translucent) {
+			// 	color = 'rgba(255, 0, 0, 0.3)';
+			// }
 			// @TODO: perf: keep this canvas around too
 			const mask_fill_canvas = make_canvas(tool.mask_canvas);
 			if (previewing && tool.dynamic_preview_cursor) {
