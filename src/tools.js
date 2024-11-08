@@ -602,21 +602,18 @@ const tools = [
 			ctx.drawImage(this.mask_canvas, 0, 0);
 			ctx.restore();
 
-			if (previewing || !transparency) {
-				/** @type {string | CanvasPattern | CanvasGradient} */
-				let color = selected_colors.background;
-				//console.log(previewing, transparency,color)
+			/** @type {string | CanvasPattern | CanvasGradient} */
+			let color = selected_colors.background;
 
-				const translucent = get_rgba_from_color(color)[3] < 1;
+			const translucent = get_rgba_from_color(color)[3] < 1;
 
-				if (transparency && translucent) {
-					color = "rgba(255, 0, 0, 0.3)";
-				}
-
-				const mask_fill_canvas = make_canvas(this.mask_canvas);
-				replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-				ctx.drawImage(mask_fill_canvas, 0, 0);
+			if (translucent) {
+					color = previewing ? "rgba(255, 0, 0, 0.3)" : selected_colors.background;
 			}
+			
+			const mask_fill_canvas = make_canvas(this.mask_canvas);
+			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
+			ctx.drawImage(mask_fill_canvas, 0, 0);
 		},
 		pointerup() {
 			if (!this.mask_canvas) {
