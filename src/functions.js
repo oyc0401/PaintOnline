@@ -414,139 +414,6 @@ function set_magnification(new_scale, anchor_point) {
 	$G.trigger("magnification-changed"); // updates custom zoom window
 }
 
-/** @type {OSGUI$Window} */
-let $custom_zoom_window;
-
-let dev_custom_zoom = false;
-try {
-	dev_custom_zoom = localStorage.dev_custom_zoom === "true";
-} catch (_error) { /* ignore */ }
-if (dev_custom_zoom) {
-	$(() => {
-		show_custom_zoom_window();
-		$custom_zoom_window.css({
-			left: 80,
-			top: 50,
-			opacity: 0.5,
-		});
-	});
-}
-
-function show_custom_zoom_window() {
-	if ($custom_zoom_window) {
-		$custom_zoom_window.close();
-	}
-	const $w = $DialogWindow(localize("Custom Zoom"));
-	$custom_zoom_window = $w;
-	$w.addClass("custom-zoom-window");
-
-	$w.$main.append(`<div class='current-zoom'>${localize("Current zoom:")} <bdi>${magnification * 100}%</bdi></div>`);
-	// update when zoom changes
-	$G.on("magnification-changed", () => {
-		$w.$main.find(".current-zoom bdi").text(`${magnification * 100}%`);
-	});
-
-	const $fieldset = $(E("fieldset")).appendTo($w.$main);
-	$fieldset.append(`
-		<legend>${localize("Zoom to")}</legend>
-		<div class="fieldset-body">
-			<div class="radio-field"><input type="radio" name="custom-zoom-radio" id="zoom-option-1" aria-keyshortcuts="Alt+1 1" value="1"/><label for="zoom-option-1">${render_access_key("&100%")}</label></div>
-			<div class="radio-field"><input type="radio" name="custom-zoom-radio" id="zoom-option-2" aria-keyshortcuts="Alt+2 2" value="2"/><label for="zoom-option-2">${render_access_key("&200%")}</label></div>
-			<div class="radio-field"><input type="radio" name="custom-zoom-radio" id="zoom-option-4" aria-keyshortcuts="Alt+4 4" value="4"/><label for="zoom-option-4">${render_access_key("&400%")}</label></div>
-			<div class="radio-field"><input type="radio" name="custom-zoom-radio" id="zoom-option-6" aria-keyshortcuts="Alt+6 6" value="6"/><label for="zoom-option-6">${render_access_key("&600%")}</label></div>
-			<div class="radio-field"><input type="radio" name="custom-zoom-radio" id="zoom-option-8" aria-keyshortcuts="Alt+8 8" value="8"/><label for="zoom-option-8">${render_access_key("&800%")}</label></div>
-			<div class="radio-field"><input type="radio" name="custom-zoom-radio" id="zoom-option-really-custom" value="really-custom"/><label for="zoom-option-really-custom"><input type="number" min="10" max="1000" name="really-custom-zoom-input" class="inset-deep no-spinner" value=""/>%</label></div>
-		</div>
-	`);
-	let is_custom = true;
-	$fieldset.find("input[type=radio]").get().forEach((/** @type {HTMLInputElement} */ el) => {
-		if (parseFloat(el.value) === magnification) {
-			el.checked = true;
-			el.focus();
-			is_custom = false;
-		}
-	});
-	const $really_custom_radio_option = $fieldset.find("input[value='really-custom']");
-	const $really_custom_input = /** @type {JQuery<HTMLInputElement>}*/($fieldset.find("input[name='really-custom-zoom-input']"));
-
-	$really_custom_input.closest("label").on("click", (event) => {
-		$really_custom_radio_option.prop("checked", true);
-		// If the user clicks on the input, let it get focus naturally, placing the caret where you click.
-		// If the user clicks outside it on the label, focus the input and select the text.
-		if ($(event.target).closest("input").length === 0) {
-			// Why does focusing this input programmatically not lead to the input
-			// being focused ultimately after the click?
-			// I'm working around this by using requestAnimationFrame (setTimeout would lead to a flicker).
-			// What am I working around, though? Is it my os-gui.js library? It has code to focus the
-			// last focused control in a window. I didn't see that code in the debugger, but I could've missed it.
-			// Debugging without time travel is hard. Maybe I should attack this problem with time travel, using replay.io.
-			requestAnimationFrame(() => {
-				$really_custom_input[0].focus();
-				$really_custom_input[0].select();
-			});
-			// Maybe this would all be a little simpler if I made the label point to the input.
-			// I want the label to have a larger click target, but maybe I can do that with CSS.
-		}
-	});
-
-	if (is_custom) {
-		$really_custom_input.val(magnification * 100);
-		$really_custom_radio_option.prop("checked", true);
-		$really_custom_input.select();
-	}
-
-	$really_custom_radio_option.on("keydown", (event) => {
-		if (event.key.match(/^[0-9.]$/)) {
-			// Can't set number input to invalid number "." or even "0.",
-			// but if we don't prevent the default keydown behavior of typing the letter,
-			// we can actually change the focus before the letter is typed!
-			// $really_custom_input.val(event.key === "." ? "0." : event.key);
-			// $really_custom_input.focus(); // should move caret to end
-			// event.preventDefault();
-			$really_custom_input.val("").focus();
-		}
-	});
-
-	// If you tab to the number input and type, it should select the radio button
-	// so that your input is actually used.
-	$really_custom_input.on("input", () => {
-		$really_custom_radio_option.prop("checked", true);
-	});
-
-	$fieldset.find("label").css({ display: "block" });
-
-	$w.$Button(localize("OK"), () => {
-		let option_val = String($fieldset.find("input[name='custom-zoom-radio']:checked").val());
-		let mag;
-		if (option_val === "really-custom") {
-			option_val = $really_custom_input.val();
-			if (`${option_val}`.match(/\dx$/)) { // ...you can't actually type an x; oh well...
-				mag = parseFloat(option_val);
-			} else if (`${option_val}`.match(/\d%?$/)) {
-				mag = parseFloat(option_val) / 100;
-			}
-			if (isNaN(mag)) {
-				please_enter_a_number();
-				return;
-			}
-		} else {
-			mag = parseFloat(option_val);
-		}
-
-		set_magnification(mag);
-
-		$w.close();
-	}, { type: "submit" });
-	$w.$Button(localize("Cancel"), () => {
-		$w.close();
-	});
-
-	$w.center();
-
-	handle_keyshortcuts($w);
-}
-
-
 function toggle_grid() {
 	show_grid = !show_grid;
 	// $G.trigger("option-changed");
@@ -4203,7 +4070,7 @@ export {
 	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect, detect_monochrome,
 	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_load_from_url, file_new, file_open, file_print, file_save,
 	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node, make_monochrome_palette, make_monochrome_pattern, make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
-	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, render_history_as_gif, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_custom_zoom_window, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_news, show_resource_load_error_message, switch_to_polychrome_palette, toggle_grid,
+	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, render_history_as_gif, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_news, show_resource_load_error_message, switch_to_polychrome_palette, toggle_grid,
 	toggle_thumbnail, try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
 };

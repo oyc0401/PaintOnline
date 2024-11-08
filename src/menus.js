@@ -28,8 +28,6 @@ import {
 	select_all,
 	set_magnification,
 	show_about_paint,
-	show_custom_zoom_window,
-	show_news,
 	toggle_grid,
 	toggle_thumbnail,
 	undo,
@@ -1104,23 +1102,6 @@ const menus = {
 						// round to an integer percent for the View > Zoom > Custom... dialog, which shows non-integers as invalid
 						mag = Math.floor(100 * mag) / 100;
 						set_magnification(mag);
-					},
-				},
-				{
-					label: `${localize("C&ustom")}...`,
-					description: localize("Zooms the picture."),
-					speech_recognition: [
-						"zoom custom",
-						"custom zoom",
-						"set custom zoom",
-						"set custom zoom level",
-						"zoom to custom level",
-						"zoom to custom",
-						"zoom level",
-						"set zoom level",
-					],
-					action: () => {
-						show_custom_zoom_window();
 					},
 				},
 				MENU_DIVIDER,

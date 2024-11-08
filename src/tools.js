@@ -608,9 +608,11 @@ const tools = [
 			const translucent = get_rgba_from_color(color)[3] < 1;
 
 			if (translucent) {
-					color = previewing ? "rgba(255, 0, 0, 0.3)" : selected_colors.background;
+				color = previewing
+					? "rgba(255, 0, 0, 0.3)"
+					: selected_colors.background;
 			}
-			
+
 			const mask_fill_canvas = make_canvas(this.mask_canvas);
 			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			ctx.drawImage(mask_fill_canvas, 0, 0);
@@ -780,11 +782,42 @@ const tools = [
 		help_icon: "p_zoom.gif",
 		description: localize("Changes the magnification."),
 		cursor: ["magnifier", [16, 16], "zoom-in"], // overridden below
-		deselect: true,
+		deselect: false,
 
-		getProspectiveMagnification: () =>
-			magnification === 1 ? return_to_magnification : 1,
+		getProspectiveMagnification: (button = 1) => {
+			const nextZoom = {
+				0.125: 0.25,
+				0.25: 0.5,
+				0.5: 1,
+				1: 2,
+				2: 3,
+				3: 4,
+				4: 5,
+				5: 6,
+				6: 7,
+				7: 8,
+				8: 8,
+			};
 
+			const nextout = {
+				8: 7,
+				7: 6,
+				6: 5,
+				5: 4,
+				4: 3,
+				3: 2,
+				2: 1,
+				1: 0.5,
+				0.5: 0.125,
+				0.125: 0.125,
+			};
+
+			if (button == 2) {
+				return nextout[magnification];
+			}
+
+			return nextZoom[magnification];
+		},
 		drawPreviewAboveGrid(
 			ctx,
 			x,
@@ -802,6 +835,7 @@ const tools = [
 			}
 			const prospective_magnification = this.getProspectiveMagnification();
 
+			//console.log("scale:", scale);
 			// hacky place to put this but whatever
 			// use specific zoom-in/zoom-out as fallback,
 			// even though the custom cursor image is less descriptive
@@ -902,18 +936,23 @@ const tools = [
 		},
 		pointerdown(_ctx, x, y) {
 			const prev_magnification = magnification;
-			const prospective_magnification = this.getProspectiveMagnification();
+			const prospective_magnification =
+				this.getProspectiveMagnification(button);
 
-			console.log("마그네틱", prospective_magnification);
-			set_magnification(magnification + 1);
+			//console.log("예정 배율:", prospective_magnification);
+			
+			set_magnification(prospective_magnification);
 
+			//console.log("이전배율:", prev_magnification);
+			
 			if (magnification > prev_magnification) {
+			
 				// (new) viewport size in document coords
 				const w = $canvas_area.width() / magnification;
 				const h = $canvas_area.height() / magnification;
-
+				
 				$canvas_area.scrollLeft(
-					((x - w / 2) * magnification) / prev_magnification,
+					((x - w / 2) * magnification),
 				);
 				// Nevermind, canvas, isn't aligned to the right in RTL layout!
 				// if (get_direction() === "rtl") {
@@ -923,8 +962,10 @@ const tools = [
 				// 	$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
 				// }
 				$canvas_area.scrollTop(
-					((y - h / 2) * magnification) / prev_magnification,
+					((y - h / 2) * magnification),
 				);
+
+				//console.log("스크롤 이동",((x - w / 2) * magnification),((y - h / 2) * magnification));
 				$canvas_area.trigger("scroll");
 			}
 		},

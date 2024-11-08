@@ -738,7 +738,7 @@ interface Tool {
 	/** Used by Polygon tool */
 	updateStatus?(): void,
 	/** Used by Magnifier tool */
-	getProspectiveMagnification?(): number,
+	getProspectiveMagnification?(button?: number): number,
 
 	/** Used by several tools */
 	mask_canvas?: PixelCanvas,
