@@ -3,7 +3,7 @@ import path from 'path';
 
 // 결합할 파일 경로들을 순서대로 배열에 추가
 const files = [
-  'lib/jquery-3.4.1.min.js',
+ // 'lib/jquery-3.4.1.min.js',
   'lib/gif.js/gif.js',
   'lib/pako-2.0.3.min.js',
   'lib/UPNG.js',

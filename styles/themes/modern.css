@@ -371,7 +371,7 @@ body {
 
 .cursor-position{
 	width:18px;
-	height:24px;
+	height:23px;
 	
 	margin-right:1px;
 	background-repeat: no-repeat;
@@ -380,9 +380,8 @@ body {
 }
 
 .shape-size{
-	width:18px;
-	height:24px;
-	margin-right:1px;
+	width:19px;
+	height:23px;
 	background-repeat: no-repeat;
 	background-image: url("../../images/shape-size.svg");
 	background-position: center;
@@ -423,19 +422,80 @@ body {
 	color: var(--window-text-color);
 }
 
+.status-coordinates {
+	flex: 0 0 153px;
+	min-width: 0px;
+	padding-left: 3px;
+}
+
 .status-area{
 	border-top: 1px solid #D7D7D7;
 	background: var(--window-status-bar-color);
 	padding-bottom:1px;
+	padding-top:1px;
 }
 .status-field {
-	height: 1.5rem;
-	line-height: 1.5rem;
+	height: 23px;
+	line-height: 23px;
 	font-size:12px;
 }
 .status-text {
 	padding-left: 8px;
 }
+
+.status-divider{
+	padding-left:1px;
+	margin-right:2px;
+	background:#D7D7D7;
+	height:23px;
+}
+
+.status-divider.start{
+	margin-left:2px;
+}
+
+.status-divider.end{
+	margin-left:0px;
+	margin-right:0px;
+}
+
+.status-spacer{
+	flex:1;
+}
+
+
+/* zoom */
+.zoom-box{
+	display:flex;
+	flex-direction:row;
+	width:185px;
+	padding-left: 9px;
+	padding-right:3px;
+	justify-content:end;
+}
+
+.zoom-text{
+padding-right:7px;
+	width:40px;
+	 text-align: right;
+}
+
+.slider-area{
+	width:85px;
+	padding-left:10px;
+	padding-right:11px;
+}
+.zoom-button{
+	width:16px;
+	height:16px;
+	background:green;
+}
+
+
+
+
+
+
 
 body,
 .canvas-area {

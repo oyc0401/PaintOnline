@@ -441,13 +441,67 @@ if (get_direction() === "rtl") {
 const $status_area = $(E("div")).addClass("status-area").appendTo($V);
 window.$status_area = $status_area;
 
-const $status_position_icon = $(E("div")).addClass("cursor-position").appendTo($status_area);
+// 위치
+$(E("div")).addClass("cursor-position").appendTo($status_area);
 const $status_position = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
 window.$status_position = $status_position;
+$(E("div")).addClass("status-divider start").appendTo($status_area);
 
-const $$status_size_icon = $(E("div")).addClass("shape-size").appendTo($status_area);
+
+// 사각형 크기
+$(E("div")).addClass("shape-size").appendTo($status_area);
 const $status_size = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
 window.$status_size = $status_size;
+$(E("div")).addClass("status-divider").appendTo($status_area);
+
+// 화면 크기
+$(E("div")).addClass("shape-size").appendTo($status_area);
+const $window_Status = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
+window.$window_Status = $window_Status;
+$(E("div")).addClass("status-divider").appendTo($status_area);
+
+// 파일 용량
+$(E("div")).addClass("shape-size").appendTo($status_area);
+const $file_status = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
+window.$file_status = $file_status;
+$(E("div")).addClass("status-divider").appendTo($status_area);
+
+// 빈공간
+const $statusSpacer = $(E("div")).addClass("status-spacer").appendTo($status_area);
+$(E("div")).addClass("status-divider end").appendTo($status_area);
+
+// 슬라이더 div 생성
+const $zoomBox=$(E("div")).addClass("zoom-box").appendTo($status_area);
+
+const $zoomText = $(E("div")).addClass("zoom-text status-field").text('100%').appendTo($zoomBox);
+
+const decreaseButton = $(E("div")).addClass('zoom-button').text("-").appendTo($zoomBox);
+const sliderArea = $(E("div")).addClass("slider-area").appendTo($zoomBox);
+const zoomSlider = $(E("div")).appendTo(sliderArea);
+const increaseButton = $(E("div")).addClass('zoom-button').text("+").appendTo($zoomBox);
+$(E("div")).addClass("status-divider end").appendTo($status_area);
+
+
+
+// 슬라이더 초기화
+zoomSlider.slider({
+		min: 0,
+		max: 100,
+		value: 50
+});
+
+// "-" 버튼 클릭 시 슬라이더 값 감소
+decreaseButton.on("click", function() {
+		const currentValue = zoomSlider.slider("value");
+		zoomSlider.slider("value", Math.max(currentValue - 1, 0)); // 최소값 0 이하로 내려가지 않도록 설정
+});
+
+// "+" 버튼 클릭 시 슬라이더 값 증가
+increaseButton.on("click", function() {
+		const currentValue = zoomSlider.slider("value");
+		zoomSlider.slider("value", Math.min(currentValue + 1, 100)); // 최대값 100을 넘지 않도록 설정
+});
+
 
 // #endregion
 
@@ -476,6 +530,7 @@ $(menu_bar.element).on("info", (event) => {
 $(menu_bar.element).on("default-info", () => {
 
 });
+
 
 // #endregion
 
