@@ -14,7 +14,7 @@
 	--window-frame-inactive-color: #9396a5;
 	--window-titlebar-text-color: #ffffff;
 	--help-window-resizer-color: #aaaaaa;
-	--canvas-area-background-color: #7b7b7b;
+	--canvas-area-background-color: #D5DEEC;
 	--canvas-area-border-color: #808080;
 	--window-background-color: #F5F6F7;
 	--window-status-bar-color: #F0F0F0;
@@ -72,11 +72,12 @@ body {
 	box-shadow: 0 0 0 1px white;
 }
 .canvas-area .handle {
-	background: #000080;
+	background: white;
+	border: solid black 1px;
 }
 .canvas-area .useless-handle {
-	background: #fff;
-	box-shadow: 1px 1px 0 #000080 inset;
+	background: transparent;
+	border:none;
 }
 .resize-ghost {
 	outline: 1px dotted #ccc;
