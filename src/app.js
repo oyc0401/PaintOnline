@@ -455,13 +455,13 @@ window.$status_size = $status_size;
 $(E("div")).addClass("status-divider").appendTo($status_area);
 
 // 화면 크기
-$(E("div")).addClass("shape-size").appendTo($status_area);
+$(E("div")).addClass("screen-size").appendTo($status_area);
 const $window_Status = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
 window.$window_Status = $window_Status;
 $(E("div")).addClass("status-divider").appendTo($status_area);
 
 // 파일 용량
-$(E("div")).addClass("shape-size").appendTo($status_area);
+$(E("div")).addClass("save-icon").appendTo($status_area);
 const $file_status = $(E("div")).addClass("status-coordinates status-field inset-shallow").appendTo($status_area);
 window.$file_status = $file_status;
 $(E("div")).addClass("status-divider").appendTo($status_area);
@@ -475,35 +475,74 @@ const $zoomBox=$(E("div")).addClass("zoom-box").appendTo($status_area);
 
 const $zoomText = $(E("div")).addClass("zoom-text status-field").text('100%').appendTo($zoomBox);
 
-const decreaseButton = $(E("div")).addClass('zoom-button').text("-").appendTo($zoomBox);
+const $decreaseButton = $(E("div")).addClass('zoom-button zoom-out').appendTo($zoomBox);
+
+const $leftSlider = $(E("div")).addClass('added-slider left').appendTo($zoomBox);
+const $leftSliderContent = $(E("div")).addClass('added-slider-content left').appendTo($leftSlider);
 const sliderArea = $(E("div")).addClass("slider-area").appendTo($zoomBox);
 const zoomSlider = $(E("div")).appendTo(sliderArea);
-const increaseButton = $(E("div")).addClass('zoom-button').text("+").appendTo($zoomBox);
+const $rightSlider = $(E("div")).addClass('added-slider right').appendTo($zoomBox);
+const $rightSliderContent = $(E("div")).addClass('added-slider-content right').appendTo($rightSlider);
+
+const $increaseButton = $(E("div")).addClass('zoom-button zoom-in').appendTo($zoomBox);
+
 $(E("div")).addClass("status-divider end").appendTo($status_area);
 
-
-
-// 슬라이더 초기화
-zoomSlider.slider({
-		min: 0,
-		max: 100,
-		value: 50
-});
+const values = [0, 2,4,8,10,11,12,13,14,15,16];
 
 // "-" 버튼 클릭 시 슬라이더 값 감소
-decreaseButton.on("click", function() {
+$decreaseButton.on("click", function() {
 		const currentValue = zoomSlider.slider("value");
-		zoomSlider.slider("value", Math.max(currentValue - 1, 0)); // 최소값 0 이하로 내려가지 않도록 설정
+		const currentIndex = values.indexOf(currentValue);
+
+		// 현재 값이 배열 내 첫 번째 값이 아니라면, 이전 값으로 이동
+		if (currentIndex > 0) {
+				zoomSlider.slider("value", values[currentIndex - 1]);
+		}
 });
 
 // "+" 버튼 클릭 시 슬라이더 값 증가
-increaseButton.on("click", function() {
+$increaseButton.on("click", function() {
 		const currentValue = zoomSlider.slider("value");
-		zoomSlider.slider("value", Math.min(currentValue + 1, 100)); // 최대값 100을 넘지 않도록 설정
+		const currentIndex = values.indexOf(currentValue);
+
+		// 현재 값이 배열 내 마지막 값이 아니라면, 다음 값으로 이동
+		if (currentIndex < values.length - 1) {
+				zoomSlider.slider("value", values[currentIndex + 1]);
+		}
 });
 
+// 슬라이더 초기화
+zoomSlider.slider({
+	min: 0,
+	max: 16,
+	value: 8,   // 슬라이더의 초기 위치 (가운데)
+	step: 1,     // 한 번에 이동하는 값
+	create: function() {
+		// 슬라이더 생성 시 SVG 핸들을 추가
+		const svgHandle = `
+			<svg width="10" height="17" viewBox="0 0 10 17">
+				<polygon points="0,0 10,0 10,13 5,17 0,13" fill="#0078D7"></polygon>
+			</svg>
+		`;
+		$(this).find('.ui-slider-handle').html(svgHandle).addClass('custom-handle');
+	},
+	slide: function(event, ui) {
+		
+		let sliderValue = ui.value;
+
+		if ( values.includes(sliderValue)) {
+					return true;  // 걸림
+			} else {
+					return false; // 통과
+			}
+	},
+	
+});
 
 // #endregion
+
+
 
 // #region Menu Bar
 let menu_bar_outside_frame = false;
