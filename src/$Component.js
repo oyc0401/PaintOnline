@@ -1,3 +1,4 @@
+console.log('JS 실행:','$Component.js')
 // @ts-check
 /* global $bottom, $canvas, $left, $right, $top, get_direction */
 

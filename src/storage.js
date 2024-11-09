@@ -1,3 +1,4 @@
+console.log('JS 실행:','storage.js')
 // @ts-check
 
 // @TODO: maybe replace this module with localforage or similar

@@ -1,3 +1,4 @@
+console.log('JS 실행:','theme.js')
 // @ts-check
 const default_theme = "modern.css"//"classic.css";
 const theme_storage_key = "jspaint theme";

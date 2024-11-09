@@ -1,3 +1,4 @@
+console.log('JS 실행:','msgbox.js')
 // @ts-check
 /* global localize */
 

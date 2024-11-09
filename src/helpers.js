@@ -3,6 +3,7 @@
 /* global AccessKeys, main_canvas */
 /* eslint-disable @stylistic/space-unary-ops */
 
+console.log('JS 실행:','helpers.js')
 const TAU =
 	//                //////|//////                //
 	//            /////     |     /////            //

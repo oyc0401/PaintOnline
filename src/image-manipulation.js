@@ -1,3 +1,4 @@
+console.log('JS 실행:','image-manipulation.js')
 // @ts-check
 // eslint-disable-next-line no-unused-vars
 /* global saved:writable, brush_size:writable, pencil_size:writable, stroke_size:writable */

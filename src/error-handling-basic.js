@@ -1,3 +1,4 @@
+console.log('JS 실행:','error-handling-basic.js')
 /* eslint-disable no-useless-concat */
 /* eslint-disable no-alert */
 

@@ -1,3 +1,4 @@
+console.log('JS 실행:','test-news.js')
 // /*
 // Automated checks to catch errors before publishing a news update:
 // - The <time> element's datetime attribute is set to the date of the update.

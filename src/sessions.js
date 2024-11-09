@@ -1,3 +1,4 @@
+console.log('JS 실행:','session.js')
 // @ts-check
 // eslint-disable-next-line no-unused-vars
 /* global file_name:writable */

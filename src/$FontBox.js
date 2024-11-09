@@ -1,3 +1,4 @@
+console.log('JS 실행:','$FontBox.js')
 // @ts-check
 /* global localize, text_tool_font */
 import { $ToolWindow } from "./$ToolWindow.js";

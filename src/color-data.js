@@ -1,3 +1,4 @@
+console.log('JS 실행:','color-data.js')
 // @ts-check
 
 import { make_stripe_pattern } from "./functions.js";

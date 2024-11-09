@@ -1,3 +1,4 @@
+console.log('JS 실행:','discord-activity-client.js')
 // @ts-check
 
 import { save_as_prompt } from "./functions.js";

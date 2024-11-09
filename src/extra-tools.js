@@ -1,3 +1,4 @@
+console.log('JS 실행:','extra-tools.js')
 // @ts-nocheck
 /* global airbrush_size, brush_canvas, brush_ctx, brush_shape, brush_size, stroke_color */
 

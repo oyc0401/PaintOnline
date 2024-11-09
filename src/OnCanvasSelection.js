@@ -1,3 +1,4 @@
+console.log('JS 실행:','OnCanvasSelection.js')
 // @ts-check
 /* global $canvas_area, $status_position, $status_size, main_canvas, main_ctx, selected_colors, tool_transparent_mode, transparency */
 import { Handles } from "./Handles.js";

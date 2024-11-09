@@ -1,3 +1,4 @@
+console.log('JS 실행:','$ColorBox.js')
 // @ts-check
 /* global $bottom, $left, $right, button, get_direction, localize, palette, selected_colors */
 import { $Component } from "./$Component.js";

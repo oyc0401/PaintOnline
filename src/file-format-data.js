@@ -1,3 +1,4 @@
+console.log('JS 실행:','file-format-data.js')
 // @ts-check
 /* global get_direction, localize */
 

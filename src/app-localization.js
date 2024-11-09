@@ -1,3 +1,4 @@
+console.log('JS 실행:','app-localization.js');
 // @ts-check
 /* global $G, AccessKeys, are_you_sure, exit_fullscreen_if_ios, show_error_message, showMessageBox */
 

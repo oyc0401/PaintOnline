@@ -1,3 +1,4 @@
+console.log('JS 실행:','eye-gaze-mode.js')
 // @ts-check
 // eslint-disable-next-line no-unused-vars
 /* global pointers:writable */

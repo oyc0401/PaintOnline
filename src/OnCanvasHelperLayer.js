@@ -1,3 +1,4 @@
+console.log('JS 실행:','OnCanvasHelpLayer.js')
 // @ts-check
 
 import { OnCanvasObject } from "./OnCanvasObject.js";

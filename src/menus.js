@@ -1,3 +1,4 @@
+console.log('JS 실행:','menus.js')
 // @ts-check
 /* global tool_transparent_mode:writable, palette:writable */
 /* global $canvas_area, $colorbox, $status_area, $toolbox, available_languages, get_iso_language_name, get_language, get_language_emoji, get_language_endonym, localize, magnification, main_canvas, menu_bar, MENU_DIVIDER, redos, selection, set_language, show_grid, show_thumbnail, systemHooks, undos */

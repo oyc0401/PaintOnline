@@ -1,3 +1,4 @@
+console.log('JS 실행:','error-handling-enhanced.js')
 // @ts-check
 /* global localize */
 

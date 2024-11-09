@@ -1,3 +1,4 @@
+console.log('JS 실행:','OnCanvasTextBox.js')
 // @ts-check
 /* global $canvas_area, $status_position, $status_size, magnification, main_canvas, selected_colors, text_tool_font, tool_transparent_mode */
 import { $FontBox } from "./$FontBox.js";

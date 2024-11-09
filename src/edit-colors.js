@@ -1,3 +1,4 @@
+console.log('JS 실행:','edit-colors.js')
 // @ts-check
 /* global palette:writable */
 /* global $colorbox, localize, main_ctx, monochrome, selected_colors, selection */

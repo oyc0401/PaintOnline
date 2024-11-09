@@ -1,3 +1,4 @@
+console.log('JS 실행:','repack-spritesheets.js')
 // @ts-check
 /* global localize */
 

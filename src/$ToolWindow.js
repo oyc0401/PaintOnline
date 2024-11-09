@@ -1,3 +1,4 @@
+console.log('JS 실행:','$ToolWindow.js')
 // @ts-check
 /* global $Window */
 
