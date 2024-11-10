@@ -1,4 +1,7 @@
 console.log('JS 실행:','theme.js')
+
+import $ from 'jquery'
+
 // @ts-check
 const default_theme = "modern.css"//"classic.css";
 const theme_storage_key = "jspaint theme";

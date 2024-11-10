@@ -8,7 +8,7 @@ import { $DialogWindow } from "./$ToolWindow.js";
 import { basic_colors, custom_colors } from "./color-data.js";
 import { show_error_message } from "./functions.js";
 import { $G,  get_rgba_from_color, make_canvas, render_access_key, rgb_to_hsl } from "./helpers.js";
-
+import $ from 'jquery'
 // @TODO:
 // - Persist custom colors list across reloads? It's not very persistent in real Windows...
 // - maybe use https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/Grid_Role

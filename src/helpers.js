@@ -2,6 +2,7 @@
 
 /* global AccessKeys, main_canvas */
 /* eslint-disable @stylistic/space-unary-ops */
+import $ from "jquery";
 
 console.log('JS 실행:','helpers.js')
 const TAU =

@@ -5,6 +5,8 @@ console.log('JS 실행:','functions.js')
 /* global $canvas, $canvas_area, $colorbox, $status_text, $toolbox, $Window, AccessKeys, applyCSSProperties, decodeBMP, default_canvas_height, default_canvas_width, default_magnification, default_tool, enable_palette_loading_from_indexed_images, encodeBMP, localize, main_canvas, main_ctx, monochrome_palette, my_canvas_height, my_canvas_width, new_local_session, parseThemeFileString, pointer_active, pointers, polychrome_palette, redos, systemHooks, text_tool_font, update_fill_and_stroke_colors_and_lineWidth, UPNG, UTIF */
 import UPNG from '../lib/UPNG.js'
 import pdfjs from '../lib/pdf.js/build/pdf.js'
+import AnyPalette from '../lib/anypalette-0.6.0.js';
+import $ from 'jquery'
 
 import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";

@@ -1,11 +1,12 @@
 console.log('JS 실행:','file-format-data.js')
-//const AnyPalette = require('../lib/anypalette-0.6.0.js');
-import AnyPalette from '../lib/anypalette-0.6.0.js';
+
+
 // @ts-check
 /* global get_direction, localize */
 
 // import { get_direction, localize } from "./app-localization.js";
 
+import AnyPalette from '../lib/anypalette-0.6.0.js';
 /** @type {ImageFileFormat[]} */
 let image_formats = [];
 // const ext_to_image_formats = {}; // there can be multiple with the same extension, e.g. different bit depth BMP files
@@ -116,6 +117,7 @@ const image_format_categories = (image_formats) => {
 
 /** @type {PaletteFileFormat[]} */
 const palette_formats = [];
+console.log('AnyPalette:',AnyPalette)
 for (const [format_id, format] of Object.entries(AnyPalette.formats)) {
 	if (format.write) {
 		const inside_parens = format.fileExtensions.map((extension) => `*.${extension}`).join(";");

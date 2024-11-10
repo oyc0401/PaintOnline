@@ -6,7 +6,7 @@ import { $Component } from "./$Component.js";
 import { select_tool, select_tools } from "./functions.js";
 import { $G, E, make_css_cursor } from "./helpers.js";
 import { get_theme } from "./theme.js";
-
+import $ from "jquery";
 
 let theme_dev_blob_url;
 

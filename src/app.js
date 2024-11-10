@@ -7,6 +7,7 @@ console.log('JS 실행:','app.js')
 import { $ColorBox } from "./$ColorBox.js";
 import { $ToolBox } from "./$ToolBox.js";
 import { Handles } from "./Handles.js";
+import $ from 'jquery'
 // import { get_direction, localize } from "./app-localization.js";
 import { default_palette, get_winter_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";

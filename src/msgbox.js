@@ -10,6 +10,7 @@ console.log('JS 실행:','msgbox.js')
 // or, couldn't we just provide the default in a wrapper function, similar to how 98.js.org does it?
 
 import { make_window_supporting_scale } from "./$ToolWindow.js";
+import $ from 'jquery'
 // import { localize } from "./app-localization.js";
 
 const exports = {};

@@ -4,7 +4,7 @@ console.log('JS 실행:','$FontBox.js')
 import { $ToolWindow } from "./$ToolWindow.js";
 // import { localize } from "./app-localization.js";
 import { $G, E } from "./helpers.js";
-
+import $ from "jquery";
 const eachFont = async (callback, afterAllCallback) => {
 	function localFontAccessUnavailable() {
 		FontDetective.each(callback);
