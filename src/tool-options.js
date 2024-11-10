@@ -4,7 +4,6 @@ console.log('JS 실행:','tool-options.js')
 import { set_magnification } from "./functions.js";
 import { $G, E, make_canvas } from "./helpers.js";
 import { render_brush, replace_colors_with_swatch, stamp_brush_canvas } from "./image-manipulation.js";
-import { get_theme } from "./theme.js";
 import $ from "jquery";
 
 const ChooserCanvas = (
@@ -74,7 +73,7 @@ const ChooserDiv = (
 
 	// @TODO: single listener for all divs
 	const on_zoom_etc = () => {
-		const modern = get_theme() === "modern.css" || get_theme() === "modern-dark.css" || get_theme() === "bubblegum.css";
+		const modern = true;
 		const use_svg = modern ?
 			// only use raster when screen pixels line up with image pixels exactly
 			(window.devicePixelRatio !== 1) :

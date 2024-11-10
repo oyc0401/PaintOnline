@@ -2,12 +2,14 @@ console.log('JS 실행:','app.js')
 	// @ts-check
 // eslint-disable-next-line no-unused-vars
 /* global airbrush_size:writable, brush_shape:writable, brush_size:writable, button:writable, ctrl:writable, eraser_size:writable, fill_color:writable, pick_color_slot:writable, history_node_to_cancel_to:writable, MenuBar:writable, my_canvas_height:writable, my_canvas_width:writable, palette:writable, pencil_size:writable, pointer:writable, pointer_active:writable, pointer_buttons:writable, pointer_over_canvas:writable, pointer_previous:writable, pointer_start:writable, pointer_type:writable, pointers:writable, reverse:writable, shift:writable, stroke_color:writable, stroke_size:writable, update_helper_layer_on_pointermove_active:writable */
-/* global AccessKeys, current_history_node, default_airbrush_size, default_brush_shape, default_brush_size, default_canvas_height, default_canvas_width, default_eraser_size, default_magnification, default_pencil_size, default_stroke_size, enable_fs_access_api, file_name, get_direction, localize, magnification, main_canvas, main_ctx, return_to_tools, selected_colors, selected_tool, selected_tools, selection, systemHooks, textbox, transparency */
+/* global current_history_node, default_airbrush_size, default_brush_shape, default_brush_size, default_canvas_height, default_canvas_width, default_eraser_size, default_magnification, default_pencil_size, default_stroke_size, enable_fs_access_api, file_name, get_direction, localize, magnification, main_canvas, main_ctx, return_to_tools, selected_colors, selected_tool, selected_tools, selection, systemHooks, textbox, transparency */
 
 import { $ColorBox } from "./$ColorBox.js";
 import { $ToolBox } from "./$ToolBox.js";
 import { Handles } from "./Handles.js";
-import $ from 'jquery'
+import $ from 'jquery';
+import {MenuBar} from '../lib/os-gui/MenuBar.js';
+
 // import { get_direction, localize } from "./app-localization.js";
 import { default_palette, get_winter_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
@@ -71,7 +73,7 @@ import { init_webgl_stuff, rotate } from "./image-manipulation.js";
 import { menus } from "./menus.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
-import { get_theme, set_theme } from "./theme.js";
+
 import {
 	TOOL_AIRBRUSH,
 	TOOL_BRUSH,
@@ -723,19 +725,19 @@ $increaseButton.on("click", function () {
 
 // #endregion
 
-// #region Menu Bar
+// // #region Menu Bar
 let menu_bar_outside_frame = false;
-if (frameElement) {
-	try {
-		if (parent.MenuBar) {
-			// @ts-ignore
-			MenuBar = parent.MenuBar;
-			menu_bar_outside_frame = true;
-		}
-	} catch (_error) {
-		/* ignore */
-	}
-}
+// if (frameElement) {
+// 	try {
+// 		if (parent.MenuBar) {
+// 			// @ts-ignore
+// 			MenuBar = parent.MenuBar;
+// 			menu_bar_outside_frame = true;
+// 		}
+// 	} catch (_error) {
+// 		/* ignore */
+// 	}
+// }
 const menu_bar = MenuBar(menus);
 window.menu_bar = menu_bar;
 if (menu_bar_outside_frame) {
@@ -1359,13 +1361,8 @@ if (window.initial_system_file_handle) {
 // #region Palette Updating From Theme
 
 const update_palette_from_theme = () => {
-	if (get_theme() === "winter.css") {
-		palette = get_winter_palette();
-		$colorbox.rebuild_palette();
-	} else {
 		palette = default_palette;
 		$colorbox.rebuild_palette();
-	}
 };
 
 $G.on("theme-load", update_palette_from_theme);
@@ -1826,22 +1823,7 @@ $G.on("fullscreenchange webkitfullscreenchange", () => {
 
 // #region Testing Helpers
 // Note: this is defined here so the app is loaded when this is defined.
-window.api_for_cypress_tests = {
-	reset_for_next_test() {
-		selected_colors.foreground = "#000";
-		selected_colors.background = "#fff";
-		brush_shape = default_brush_shape;
-		brush_size = default_brush_size;
-		eraser_size = default_eraser_size;
-		airbrush_size = default_airbrush_size;
-		pencil_size = default_pencil_size;
-		stroke_size = default_stroke_size;
-		clear();
-	},
-	selected_colors,
-	set_theme,
-	$,
-};
+
 // #endregion
 
 init_webgl_stuff();

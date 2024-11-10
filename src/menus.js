@@ -26,6 +26,7 @@ import {
 	view_bitmap,
 } from "./functions.js";
 import { $G} from "./helpers.js";
+import {MENU_DIVIDER} from'../lib/os-gui/MenuBar.js'
 
 const looksLikeChrome = !!(
 	window.chrome &&

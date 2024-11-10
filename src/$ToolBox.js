@@ -5,7 +5,6 @@ import { $Component } from "./$Component.js";
 // import { get_direction, localize } from "./app-localization.js";
 import { select_tool, select_tools } from "./functions.js";
 import { $G, E, make_css_cursor } from "./helpers.js";
-import { get_theme } from "./theme.js";
 import $ from "jquery";
 
 let theme_dev_blob_url;
@@ -37,7 +36,7 @@ function $ToolBox(tools, is_extras) {
 		const update_css = () => {
 			const use_svg = !theme_dev_blob_url && (
 				(
-					get_theme() === "modern.css" || get_theme() === "modern-dark.css" ?
+					true ?
 						// only use raster when screen pixels line up with image pixels exactly
 						(window.devicePixelRatio !== 1) :
 						// with nearest neighbor scaling, favor raster at larger integer sizes as well, for retro look
