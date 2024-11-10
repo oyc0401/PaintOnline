@@ -13,7 +13,7 @@ import { OnCanvasTextBox } from "./OnCanvasTextBox.js";
 // import { localize } from "./app-localization.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
-import { $G, E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_discord_embed, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
+import { $G, E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
 import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_monochrome, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
 import { show_imgur_uploader } from "./imgur.js";
 import { showMessageBox } from "./msgbox.js";
@@ -120,7 +120,7 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 		}
 	}
 	let query_string = location.search;
-	// The Discord Activity needs to preserve the query string, so it's exempt from this.
+	
 	if (!query_string.includes("frame_id")) {
 		// Omit query string for theoretical backwards compatibility with old URLs.
 		// TODO: what were these URLs? do they really still work? are they still relevant? probably not...
@@ -1112,11 +1112,6 @@ function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true
 }
 
 function file_print() {
-	if (is_discord_embed) {
-		// closest localized string: "Could not start print job."
-		show_error_message(localize("Printing is not supported in the Discord Activity."));
-		return;
-	}
 	print();
 }
 
@@ -1243,7 +1238,7 @@ function show_error_message(message, error) {
 		let error_string = e.stack;
 		if (!error_string) {
 			error_string = error.toString();
-			// Discord API throws plain objects.
+			
 			if (error_string === "[object Object]") {
 				try {
 					error_string = JSON.stringify(error, null, 2);
@@ -1469,16 +1464,6 @@ function show_about_paint() {
 	$about_paint_window.css({ left: -innerWidth, top: -innerHeight });
 	$about_paint_window.center();
 
-	if (is_discord_embed) {
-		// No checking for updates in the Discord Activity for now at least.
-		// It's sandboxed, so it can't fetch the news without some extra server logic to proxy it,
-		// and since there will be one official version of the Discord Activity,
-		// the user isn't responsible for updating it.
-
-		// Might be cute to say "This product is licensed to <Discord User>",
-		// since we have the API for that.
-		return;
-	}
 
 	$("#checking-for-updates").removeAttr("hidden");
 

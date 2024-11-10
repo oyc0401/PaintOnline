@@ -6,7 +6,7 @@ console.log('JS 실행:','session.js')
 import { $DialogWindow } from "./$ToolWindow.js";
 // import { localize } from "./app-localization.js";
 import { change_url_param, get_uris, load_image_from_uri, open_from_image_info, redo, reset_file, show_error_message, show_resource_load_error_message, undo, undoable, update_title } from "./functions.js";
-import { $G, debounce, get_help_folder_icon, image_data_match, is_discord_embed, make_canvas, to_canvas_coords } from "./helpers.js";
+import { $G, debounce, get_help_folder_icon, image_data_match, make_canvas, to_canvas_coords } from "./helpers.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
 
@@ -938,7 +938,7 @@ const update_session_from_location_hash = () => {
 		} else {
 			// @TODO: Ask if you want to save before starting a new session
 			end_current_session();
-			let online_session_implementation = is_discord_embed ? "RESTSession" : "FirebaseSession";
+			let online_session_implementation = false ? "RESTSession" : "FirebaseSession";
 			try {
 				online_session_implementation = localStorage["online_session_implementation"] || online_session_implementation;
 			} catch (_error) {
@@ -1012,42 +1012,10 @@ const new_local_session = () => {
 // Probably in app.js so as to handle the possibility of sessions.js failing to load.
 
 
-if (is_discord_embed) {
-	// I'm using top level await WITHIN the discord-activity-client.js module,
-	// but not here due to lack of support in the current browser version used for Cypress tests.
-	// This async IIFE could be eliminated if Cypress was updated.
-	(async () => {
-		const { /*Discord,*/ discordSdk, newAuth, guildMember, handleExternalLinks, discordActivitySystemHooks } = await import("./discord-activity-client.js");
-		// const { Events } = Discord;
 
-		log("Discord SDK", discordSdk);
-		log("New Auth:", newAuth);
-		log("Guild Member", guildMember);
+log("Initializing with location hash:", location.hash);
+update_session_from_location_hash();
 
-		// Handle external links
-		handleExternalLinks();
-
-		// Start session for the Discord Activity instance
-		// (Would channelId be better?)
-		log(`Starting session for Discord Activity instance ${discordSdk.instanceId}`);
-		change_url_param("session", `discord-activity-${discordSdk.instanceId}`);
-
-		// Apply system hooks
-		Object.assign(window.systemHooks, discordActivitySystemHooks);
-
-		// // Fetch
-		// const participants = await discordSdk.commands.getInstanceConnectedParticipants();
-		// console.log("Initial participants", participants);
-
-		// // Subscribe
-		// discordSdk.subscribe(Events.ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE, updateParticipants);
-		// // Unsubscribe
-		// discordSdk.unsubscribe(Events.ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE, updateParticipants);
-	})();
-} else {
-	log("Initializing with location hash:", location.hash);
-	update_session_from_location_hash();
-}
 
 // function updateParticipants(participants) {
 // 	// Do something really cool

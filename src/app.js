@@ -67,7 +67,6 @@ import {
 	TAU,
 	get_file_extension,
 	get_help_folder_icon,
-	is_discord_embed,
 	make_canvas,
 	to_canvas_coords,
 } from "./helpers.js";
@@ -1260,8 +1259,7 @@ $G.on("cut copy paste", (e) => {
 			};
 			if (
 				!navigator.clipboard ||
-				!navigator.clipboard.write ||
-				is_discord_embed
+				!navigator.clipboard.write
 			) {
 				return do_sync_clipboard_copy_or_cut();
 			}

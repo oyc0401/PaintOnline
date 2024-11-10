@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>JS Paint</title>
+
+		<!-- This should mirror CSP in electron-main.js, except maybe for firebase stuff. -->
+		<!-- Firebase stuff is somewhat speculative, as the quota is exceeded as I'm adding this. -->
+		<!-- Lax img-src is needed for speech recognition, e.g. interpret_command("draw a cat")[0].exec(); -->
+		<!-- connect-src needs data:/blob: for loading images via fetch, including from local storage. -->
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="
+		default-src 'self';
+		script-src 'self' https://jspaint.firebaseio.com https://www.youtube.com;
+		frame-src 'self' https://youtube.com https://www.youtube.com;
+		style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+		img-src 'self' data: blob: http: https:;
+		font-src 'self' https://fonts.gstatic.com;
+		connect-src * data: blob: https://jspaint.firebaseio.com wss://jspaint.firebaseio.com;
+	"
+		/>
+
+		<link
+			href="data:text/css;base64,Cmh0bWwsIGJvZHksIC5qc3BhaW50IHsKCXdpZHRoOiAxMDAlOwoJaGVpZ2h0OiAxMDAlOwoJbWFyZ2luOiAwOwoJcGFkZGluZzogMDsKCWJvcmRlcjogMDsKCW92ZXJmbG93OiBoaWRkZW47Cn0KCi5jYW52YXMtYXJlYSwKLm1haW4tY2FudmFzIHsKCXBvc2l0aW9uOiBmaXhlZDsKCWxlZnQ6IDA7Cgl0b3A6IDA7CgltYXgtd2lkdGg6IDEwMCU7Cgl3aWR0aDogYXV0byAhaW1wb3J0YW50OwoJaGVpZ2h0OiBhdXRvICFpbXBvcnRhbnQ7Cglib3JkZXI6IDAgIWltcG9ydGFudDsKfQoKLndpbmRvdywKLmNhbnZhcy1hcmVhIC5oYW5kbGUsCi5jYW52YXMtYXJlYSAuZ3JhYi1yZWdpb24sCi5zdGF0dXMtYXJlYSwKLm1lbnVzLAouY29tcG9uZW50LWFyZWEsCi5zZWxlY3Rpb24sCi50ZXh0Ym94LAouaGVscGVyLWxheWVyLApidXR0b24sCi50cmFja3ktbW91c2UtaG92ZXItaGFsbywKLnRyYWNreS1tb3VzZS1kd2VsbC1pbmRpY2F0b3IgewoJZGlzcGxheTogbm9uZSAhaW1wb3J0YW50Owp9CgoqIHsKCWJhY2tncm91bmQ6IHRyYW5zcGFyZW50ICFpbXBvcnRhbnQ7Cn0K"
+			rel="stylesheet"
+			type="text/css"
+			media="print"
+		/>
+		<!-- <link href="lib/os-gui/build/windows-98.css" rel="stylesheet" type="text/css"> -->
+		<!-- <link href="lib/os-gui/build/windows-default.css" rel="stylesheet" type="text/css" title="Windows Default"> -->
+		<!-- <link href="lib/os-gui/build/peggys-pastels.css" rel="alternate stylesheet" type="text/css" title="Peggy's Pastels"> -->
+		<!--
+		@TODO: bring these styles into OS-GUI.
+		This is a custom build of 98.css https://github.com/jdan/98.css
+		for checkboxes, radio buttons, sliders, and fieldsets,
+		excluding e.g. scrollbars, buttons, and windows (already in OS-GUI),
+		and integrating with the theme CSS vars used by OS-GUI,
+		and with some RTLCSS tweaks.
+		Text inputs and dropdowns are styled in classic.css, but should also be included in OS-GUI at some point.
+		This is not an @import in classic.css because it needs RTLCSS and I'm not applying RTLCSS to themes yet.
+		So I added .not-for-modern logic to theme.js to exclude these styles depending on the theme.
+	-->
+
+		<link rel="apple-touch-icon" href="/assets/apple-icon-180x180-D0zW2IYP.png" />
+		<!-- Chrome will pick the largest image for some reason, instead of the most appropriate one. -->
+		<!-- <link rel="icon" type="image/png" sizes="192x192" href="images/icons/192x192.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="images/icons/32x32.png">
+		<link rel="icon" type="image/png" sizes="96x96" href="images/icons/96x96.png"> -->
+		<!-- <link rel="icon" type="image/png" sizes="16x16" href="images/icons/16x16.png"> -->
+		<link rel="shortcut icon" href="/assets/favicon-Dqc3y7HU.ico" />
+		<link
+			rel="mask-icon"
+			href="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%3e%3cpath%20fill-rule='evenodd'%20d='M2%200v3.774L1.5%203C1.155%202.466%200%204%200%204.5c0%20.235.065.427.269.5l.876.311L1%205.5l1%201V8H1c-.5%200-1%200-1%20.5V10c0%20.5.5.5%201%20.5V15c0%20.366.601%201%201%201h14V3.5L12.5%200zm1%201h9v3h3v11H9v-4.5c.5%200%201%200%201-.5V8.5C10%208%209.5%208%209%208h-.5l2-2-.273-.258L11.5%205c.505-.294-1.095-2.19-1.5-1.5l-.734%201.25L9%204.5l-2%202V2.7h-.333L7%201.5c.139-.5-2.139-.5-2%200l.333%201.2H5V7L3%205z'/%3e%3c/svg%3e"
+			color="red"
+		/>
+		<link rel="manifest" href="/assets/manifest-CnBhvQm-.webmanifest" />
+		<meta name="msapplication-TileColor" content="#008080" />
+		<meta
+			name="msapplication-TileImage"
+			content="images/icons/ms-icon-144x144.png"
+		/>
+		<meta name="theme-color" content="#000080" />
+
+		<meta name="viewport" content="width=device-width, user-scalable=no" />
+
+		<meta
+			name="description"
+			content="Classic MS Paint in the browser, with extra features"
+		/>
+		<meta property="og:image:width" content="279" />
+		<meta property="og:image:height" content="279" />
+		<meta
+			property="og:description"
+			content="Classic MS Paint in the browser, with extra features."
+		/>
+		<meta property="og:title" content="JS Paint" />
+		<meta property="og:url" content="https://jspaint.app" />
+		<meta
+			property="og:image"
+			content="https://jspaint.app/images/icons/og-image-279x279.jpg"
+		/>
+		<meta name="twitter:title" content="JS Paint" />
+		<meta
+			name="twitter:description"
+			content="Classic MS Paint in the browser, with extra features"
+		/>
+		<meta
+			name="twitter:image"
+			content="https://jspaint.app/images/meta/twitter-card-plz-no-crop.png"
+		/>
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@isaiahodhner" />
+		<meta name="twitter:creator" content="@isaiahodhner" />
+
+		<script src="src/error-handling-basic.js"></script>
+		<script type="module" crossorigin src="/assets/main-NCOCRsKv.js"></script>
+		<link rel="stylesheet" crossorigin href="/assets/main-xCk1j7HO.css">
+	</head>
+
+	<body>
+		<!-- Note: no CDNs, even with fallback, as the fallback is too complicated to handle with CSP. -->
+		<!-- pako is used by UPNG.js and UTIF.js -->
+
+		<!-- <script type="module" src="dist/bundle_lib.js"></script> -->
+
+	
+
+		<!-- must not be async/deferred, as it uses document.write(); and must come before other app code which uses localization functions -->
+		<!-- (also depends on msgbox.js and thus os-gui.js, but not initially) -->
+
+		
+		
+
+		<!-- Scripts that are not yet transitioned to ES Modules are marked as "defer"
+	so that the ES Modules (which are implicitly deferred) can still export globals to be consumed by the non-module scripts,
+	which helps with progressively converting the codebase to ES Modules. -->
+
+		<!-- After show_error_message, showMessageBox, make_window_supporting_scale, and localize are defined,
+	set up better global error handling. -->
+
+		<!--<script type="module" src="src/extra-tools.js"></script>-->
+		<!-- <script type="module" src="src/manage-storage.js"></script> -->
+		<script defer src="src/app-state.js"></script>
+
+		<noscript>
+			<h1>
+				<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC+UlEQVR42sWXvU8iURTFLw0hgdbCGIjEWJBYUkFDLKiMiZV/gWtnQUnjbIPQ0C+xodwaK2IMFoAFBYXRTQhgNGJIUL4NkBB3zoXHDswAgyJ7CHnDvI/zm/vu3BkMNEWBQOCDlii/32/QOm+YNgEAPp9vKebhcBgAmn66AE5OTmhzc5MeHh4oEolQp9NZGGAYBZWnLoDj42OKRqOjvs8AuFwuSqVSKghdACaTaazv6emJ27W1Nd0AWOvm5kYFoQsAEz0eD+3u7tLV1RXl83kyGo0LA0DxeJxub29HELoBrFYrHR0djQCgjY0NXQCTEVTKIMwm92YSAKGLxWKUTqfnAghDkSvPz8+a47a2tsgAo52dHdrf31dBCQCEsF6vUygU4t/39/fc2u32qebyfA6zgCgWi9xi63q9HrcMIMzQDqPAEDh3eHjIVxmUFz2VT/6Uv5L8zWQyZDabVQAAxRwsLKS8YwREu93m+Q6HQx1yUTRwBV6vlwf+lgfOAxDml5eXVCgUOFpakUICYi4gnE7n+F0wvh2SbLTH5y/kgZMAEMZCwaCJ1td/sfHd3R3nihijHKeEgFQAA0kf7CINLAExCwDmp3Ln2VmAzs/PGWKWuRJiCoAaQpI/e/SDLijCpxOJBI9KJDxsfn2d4GNJGvRZLJaZ5joANCJBpTGAr5jrAhjUht44En+IzTyef1FY1Fw3wNxVhkKNcLvdtL29rVkbFgaAOW5BcSWNRoOazSY/hHD89tag9/cG1Wo1Nq9Wq/yYnlYflgYAo1KpNBNA6Es5MAnQ7XapUqmsHgBmQslkcnQMQyEYCy0NQAlhs9no8fFxOOkPt6XS4Pe0q186wGQCdrtten19/XT4FwLAYsgBmOM9AO3LywuPQdldGYBIwlarNYJAFMSb8rcBoLgAoN+vyFlvoFwux/0rA5gVgX6/T9lsdnU5AHMRAVELvh0AWwAhAniXK5fLY+V4ZRH4L1twcHDADxYBgAgotwAFSSsJ9WrOCwlrqX/RtfQXCkYHNCuTjusAAAAASUVORK5CYII=" width="32" height="32" alt="" /> JS
+				Paint
+			</h1>
+			<p>This application requires JavaScript to run.</p>
+		</noscript>
+
+		<svg style="position: absolute; pointer-events: none; bottom: 100%">
+			<defs>
+				<filter id="disabled-inset-filter" x="0" y="0" width="1px" height="1px">
+					<feColorMatrix
+						in="SourceGraphic"
+						type="matrix"
+						values="
+					1 0 0 0 0
+					0 1 0 0 0
+					0 0 1 0 0
+					-1000 -1000 -1000 1 0
+				"
+						result="black-parts-isolated"
+					/>
+					<feFlood result="shadow-color" flood-color="var(--ButtonShadow)" />
+					<feFlood result="hilight-color" flood-color="var(--ButtonHilight)" />
+					<feOffset in="black-parts-isolated" dx="1" dy="1" result="offset" />
+					<feComposite
+						in="hilight-color"
+						in2="offset"
+						operator="in"
+						result="hilight-colored-offset"
+					/>
+					<feComposite
+						in="shadow-color"
+						in2="black-parts-isolated"
+						operator="in"
+						result="shadow-colored"
+					/>
+					<feMerge>
+						<feMergeNode in="hilight-colored-offset" />
+						<feMergeNode in="shadow-colored" />
+					</feMerge>
+				</filter>
+				<filter
+					id="disabled-inset-filter-2"
+					x="0"
+					y="0"
+					width="1px"
+					height="1px"
+				>
+					<feColorMatrix
+						in="SourceGraphic"
+						type="matrix"
+						values="
+					1 0 0 0 0
+					0 1 0 0 0
+					0 0 1 0 0
+					-1 -1 -0 1 0
+				"
+						result="black-and-blue-parts-isolated"
+					/>
+					<feFlood result="shadow-color" flood-color="var(--ButtonShadow)" />
+					<feFlood result="hilight-color" flood-color="var(--ButtonHilight)" />
+					<feOffset
+						in="black-and-blue-parts-isolated"
+						dx="1"
+						dy="1"
+						result="offset"
+					/>
+					<feComposite
+						in="hilight-color"
+						in2="offset"
+						operator="in"
+						result="hilight-colored-offset"
+					/>
+					<feComposite
+						in="shadow-color"
+						in2="black-and-blue-parts-isolated"
+						operator="in"
+						result="shadow-colored"
+					/>
+					<feMerge>
+						<feMergeNode in="hilight-colored-offset" />
+						<feMergeNode in="shadow-colored" />
+					</feMerge>
+				</filter>
+			</defs>
+		</svg>
+	</body>
+</html>
