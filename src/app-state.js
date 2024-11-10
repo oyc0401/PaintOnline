@@ -13,7 +13,6 @@ console.log('JS 실행:','app-state.js')
 // const { get_tool_by_id, make_monochrome_palette, make_history_node, default_palette, make_canvas, TOOL_PENCIL } = window;
 
 
-
 const default_magnification = 1;
 
 /** @type {Tool} */
@@ -34,11 +33,9 @@ let return_to_magnification = 4;
 /** @type {PixelCanvas} */
 const main_canvas = window.make_canvas();
 main_canvas.classList.add("main-canvas");
-window.main_canvas = main_canvas;
 
 /** @type {PixelContext} */
 const main_ctx = main_canvas.ctx;
-window.main_ctx = main_ctx;
 
 /** @type {(string | CanvasPattern)[]} */
 let palette = window.default_palette;
@@ -95,7 +92,6 @@ let pick_color_slot = "background";
 let selected_tool = default_tool;
 /** @type {Tool[]} */
 let selected_tools = [selected_tool];
-window.selected_tools = selected_tools;
 
 /** @type {Tool[]} */
 let return_to_tools = [selected_tool];
@@ -184,3 +180,71 @@ let update_helper_layer_on_pointermove_active = false;
 /** works in client coordinates, NOT canvas coordinates
  * @type {{ x: number, y: number, pointerId: number, pointerType: string, isPrimary: boolean }[]} */
 let pointers = [];
+
+
+const state = {};
+
+state.my_canvas_width = my_canvas_width;
+state.my_canvas_height = my_canvas_height;
+state.aliasing = aliasing;
+state.transparency = transparency;
+state.monochrome = monochrome;
+state.magnification = magnification;
+state.return_to_magnification = return_to_magnification;
+state.main_canvas = main_canvas;
+state.main_ctx = main_ctx;
+state.palette = palette;
+state.polychrome_palette = polychrome_palette;
+state.monochrome_palette = monochrome_palette;
+state.enable_palette_loading_from_indexed_images = enable_palette_loading_from_indexed_images;
+state.enable_fs_access_api = enable_fs_access_api;
+state.brush_shape = brush_shape;
+state.brush_size = brush_size;
+state.eraser_size = eraser_size;
+state.airbrush_size = airbrush_size;
+state.pencil_size = pencil_size;
+state.stroke_size = stroke_size;
+state.tool_transparent_mode = tool_transparent_mode;
+state.stroke_color = stroke_color;
+state.fill_color = fill_color;
+state.pick_color_slot = pick_color_slot;
+state.selected_tool = selected_tool;
+state.selected_tools = selected_tools;
+state.return_to_tools = return_to_tools;
+state.selected_colors = selected_colors;
+state.selection = selection;
+state.textbox = textbox;
+state.helper_layer = helper_layer;
+state.$thumbnail_window = $thumbnail_window;
+state.thumbnail_canvas = thumbnail_canvas;
+state.show_grid = show_grid;
+state.show_thumbnail = show_thumbnail;
+state.text_tool_font = text_tool_font;
+state.root_history_node = root_history_node;
+state.current_history_node = current_history_node;
+state.history_node_to_cancel_to = history_node_to_cancel_to;
+state.undos = undos;
+state.redos = redos;
+state.file_name = file_name;
+state.file_format = file_format;
+state.system_file_handle = system_file_handle;
+state.saved = saved;
+state.pointer = pointer;
+state.pointer_start = pointer_start;
+state.pointer_previous = pointer_previous;
+state.pointer_active = pointer_active;
+state.pointer_type = pointer_type;
+state.pointer_buttons = pointer_buttons;
+state.reverse = reverse;
+state.ctrl = ctrl;
+state.shift = shift;
+state.button = button;
+state.pointer_over_canvas = pointer_over_canvas;
+state.update_helper_layer_on_pointermove_active = update_helper_layer_on_pointermove_active;
+state.pointers = pointers;
+
+Object.keys(state).forEach(key => {
+		window[key] = state[key];
+});
+
+export {state};
