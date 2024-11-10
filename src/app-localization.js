@@ -1087,6 +1087,8 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 			const modulePath = `../localization/${language}/localizations.js`;
 			try {
 				const localizationModule = await import(modulePath);
+				
+				console.log('언어 불러오기',language,localizationModule)
 				// 모듈을 가져오고 필요한 작업 수행
 				return localizationModule.default;
 			} catch (error) {
@@ -1096,6 +1098,7 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 
 		loadLocalization(language).then((localization) => {
 			// 로드된 localizations을 사용
+			console.log('로컬',localization)
 		});
 		
 		// const src = `localization/${language}/localizations.js`;

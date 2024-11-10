@@ -21,12 +21,32 @@ app.use('/help', express.static(path.join(__dirname, 'help')));
 
 // app.use(express.static('localization'));
 
+
+// // 여러 언어별 경로 매핑
+// const languages = ['ko', 'en', 'fr', 'de'];
+
+// // 각 언어 경로에 대해 동일한 index.html 반환
+// languages.forEach(lang => {
+//   app.get(`/${lang}`, (req, res) => {
+//     console.log(`페이지 열기: ${lang}`);
+//     res.sendFile(path.resolve(__dirname, 'dist/index.html'));
+//   });
+// });
+
+
+
 // 메인 페이지
 app.get('/', (req, res) => {
-  console.log('??')
+  console.log('페이지 열기')
   res.sendFile(path.resolve(__dirname, 'dist/index.html'));
 });
+
+
 
 app.listen(process.env.PORT || 3000, () => {
   console.log("Express server initialized on port " + (process.env.PORT || 3000));
 });
+
+
+
+
