@@ -12,6 +12,8 @@ console.log('JS 실행:','app-state.js')
 // Causes TypeScript errors
 // const { get_tool_by_id, make_monochrome_palette, make_history_node, default_palette, make_canvas, TOOL_PENCIL } = window;
 
+
+
 const default_magnification = 1;
 
 /** @type {Tool} */
@@ -32,8 +34,11 @@ let return_to_magnification = 4;
 /** @type {PixelCanvas} */
 const main_canvas = window.make_canvas();
 main_canvas.classList.add("main-canvas");
+window.main_canvas = main_canvas;
+
 /** @type {PixelContext} */
 const main_ctx = main_canvas.ctx;
+window.main_ctx = main_ctx;
 
 /** @type {(string | CanvasPattern)[]} */
 let palette = window.default_palette;
@@ -90,6 +95,8 @@ let pick_color_slot = "background";
 let selected_tool = default_tool;
 /** @type {Tool[]} */
 let selected_tools = [selected_tool];
+window.selected_tools = selected_tools;
+
 /** @type {Tool[]} */
 let return_to_tools = [selected_tool];
 

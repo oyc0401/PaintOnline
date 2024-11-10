@@ -47,8 +47,11 @@ console.log('JS 실행:','app-localization.js');
 		return interpolate(find_localization(english_text), interpolations);
 	}
 
+	// const path = window.location.pathname;
+	// const accepted_languages = path.split('/')[1] || 'en'; // 기본 언어 설정
+	
 	const language_storage_key = "jspaint language";
-	// @ts-ignore
+	//@ts-ignore
 	const accepted_languages = Array.from(navigator.languages || [navigator.language || navigator.userLanguage]);
 	try {
 		if (localStorage[language_storage_key]) {

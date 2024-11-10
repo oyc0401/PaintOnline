@@ -6,38 +6,26 @@ console.log('JS 실행:','menus.js')
 
 import {
 	are_you_sure,
-	change_url_param,
 	choose_file_to_paste,
 	clear,
 	delete_selection,
-	deselect,
 	edit_copy,
 	edit_cut,
 	edit_paste,
-	file_load_from_url,
 	file_new,
 	file_open,
-	file_print,
 	file_save,
 	file_save_as,
 	image_attributes,
-	image_flip_and_rotate,
-	image_invert_colors,
 	redo,
-	sanity_check_blob,
 	save_selection_to_file,
 	select_all,
 	set_magnification,
 	show_about_paint,
-	toggle_grid,
-	toggle_thumbnail,
 	undo,
 	view_bitmap,
 } from "./functions.js";
 import { $G} from "./helpers.js";
-import { show_imgur_uploader } from "./imgur.js";
-import { showMessageBox } from "./msgbox.js";
-import { get_theme, set_theme } from "./theme.js";
 
 const looksLikeChrome = !!(
 	window.chrome &&
@@ -52,15 +40,7 @@ const menus = {
 		{
 			label: localize("&New"),
 			...shortcut(window.is_electron_app ? "Ctrl+N" : "Ctrl+Alt+N"), // Ctrl+N opens a new browser window
-			speech_recognition: [
-				"new",
-				"new file",
-				"new document",
-				"create new document",
-				"create a new document",
-				"start new document",
-				"start a new document",
-			],
+			speech_recognition: [],
 			action: () => {
 				file_new();
 			},
@@ -69,26 +49,7 @@ const menus = {
 		{
 			label: localize("&Open"),
 			...shortcut("Ctrl+O"),
-			speech_recognition: [
-				"open",
-				"open document",
-				"open file",
-				"open an image file",
-				"open a document",
-				"open a file",
-				"load document",
-				"load a document",
-				"load an image file",
-				"load an image",
-				"show file picker",
-				"show file chooser",
-				"show file browser",
-				"show finder",
-				"browser for file",
-				"browse for a file",
-				"browse for an image",
-				"browse for an image file",
-			],
+			speech_recognition: [],
 			action: () => {
 				file_open();
 			},
@@ -97,30 +58,7 @@ const menus = {
 		{
 			label: localize("&Save"),
 			...shortcut("Ctrl+S"),
-			speech_recognition: [
-				"save",
-				"save document",
-				"save file",
-				"save image",
-				"save picture",
-				"save image file",
-				// "save a document", "save a file", "save an image", "save an image file", // too "save as"-like
-				"save the document",
-				"save the file",
-				"save the image",
-				"save the image file",
-
-				"download",
-				"download document",
-				"download file",
-				"download image",
-				"download picture",
-				"download image file",
-				"download the document",
-				"download the file",
-				"download the image",
-				"download the image file",
-			],
+			speech_recognition: [],
 			action: () => {
 				file_save();
 			},
@@ -131,196 +69,11 @@ const menus = {
 			// in mspaint, no shortcut is listed; it supports F12 (but in a browser that opens the dev tools)
 			// it doesn't support Ctrl+Shift+S but that's a good & common modern shortcut
 			...shortcut("Ctrl+Shift+S"),
-			speech_recognition: [
-				// this is ridiculous
-				// this would be really simple in JSGF format
-				"save as",
-				"save as a new file",
-				"save as a new picture",
-				"save as a new image",
-				"save a new file",
-				"save new file",
-				"save a new document",
-				"save a new image file",
-				"save a new image",
-				"save a new picture",
-				"save as a copy",
-				"save a copy",
-				"save as copy",
-				"save under a new name",
-				"save with a new name",
-				"save document as a copy",
-				"save document copy",
-				"save document as copy",
-				"save document under a new name",
-				"save document with a new name",
-				"save image as a copy",
-				"save image copy",
-				"save image as copy",
-				"save image under a new name",
-				"save image with a new name",
-				"save file as a copy",
-				"save file copy",
-				"save file as copy",
-				"save file under a new name",
-				"save file with a new name",
-				"save image file as a copy",
-				"save image file copy",
-				"save image file as copy",
-				"save image file under a new name",
-				"save image file with a new name",
-			],
+			speech_recognition: [],
 			action: () => {
 				file_save_as();
 			},
 			description: localize("Saves the active document with a new name."),
-		},
-		MENU_DIVIDER,
-		{
-			label: localize("&Load From URL"),
-			// shortcut: "", // no shortcut: Ctrl+L is taken, and you can paste a URL with Ctrl+V, so it's not really needed
-			speech_recognition: [
-				"load from url",
-				"load from a url",
-				"load from address",
-				"load from an address",
-				"load from a web address",
-				// this is ridiculous
-				// this would be really simple in JSGF format
-				"load an image from a URL",
-				"load an image from an address",
-				"load an image from a web address",
-				"load image from a URL",
-				"load image from an address",
-				"load image from a web address",
-				"load an image from URL",
-				"load an image from address",
-				"load an image from web address",
-				"load image from URL",
-				"load image from address",
-				"load image from web address",
-
-				"load an picture from a URL",
-				"load an picture from an address",
-				"load an picture from a web address",
-				"load picture from a URL",
-				"load picture from an address",
-				"load picture from a web address",
-				"load an picture from URL",
-				"load an picture from address",
-				"load an picture from web address",
-				"load picture from URL",
-				"load picture from address",
-				"load picture from web address",
-			],
-			action: () => {
-				file_load_from_url();
-			},
-			description: localize("Opens an image from the web."),
-		},
-		{
-			label: localize("&Upload To Imgur"),
-			speech_recognition: [
-				"upload to imgur",
-				"upload image to imgur",
-				"upload picture to imgur",
-			],
-			action: () => {
-				// include the selection in the saved image
-				deselect();
-
-				main_canvas.toBlob((blob) => {
-					sanity_check_blob(blob, () => {
-						show_imgur_uploader(blob);
-					});
-				});
-			},
-			description: localize("Uploads the active document to Imgur"),
-		},
-		MENU_DIVIDER,
-		{
-			label: localize("Print Pre&view"),
-			speech_recognition: [
-				"preview print",
-				"print preview",
-				"show print preview",
-				"show preview of print",
-			],
-			action: () => {
-				file_print();
-			},
-			description: localize(
-				"Prints the active document and sets printing options.",
-			),
-			//description: localize("Displays full pages."),
-		},
-		{
-			label: localize("Page Se&tup"),
-			speech_recognition: [
-				"setup page for print",
-				"setup page for printing",
-				"set-up page for print",
-				"set-up page for printing",
-				"set up page for print",
-				"set up page for printing",
-				"page setup",
-				"printing setup",
-				"page set-up",
-				"printing set-up",
-				"page set up",
-				"printing set up",
-			],
-			action: () => {
-				file_print();
-			},
-			description: localize(
-				"Prints the active document and sets printing options.",
-			),
-			//description: localize("Changes the page layout."),
-		},
-		{
-			label: localize("&Print"),
-			...shortcut("Ctrl+P"), // relies on browser's print shortcut being Ctrl+P
-			speech_recognition: [
-				"print",
-				"send to printer",
-				"show print dialog",
-				"print page",
-				"print image",
-				"print picture",
-				"print drawing",
-				"print out page",
-				"print out image",
-				"print out picture",
-				"print out drawing",
-				"print out the page",
-				"print out the image",
-				"print out the picture",
-				"print out the drawing",
-
-				"send page to printer",
-				"send image to printer",
-				"send picture to printer",
-				"send drawing to printer",
-				"send page to the printer",
-				"send image to the printer",
-				"send picture to the printer",
-				"send drawing to the printer",
-				"send the page to the printer",
-				"send the image to the printer",
-				"send the picture to the printer",
-				"send the drawing to the printer",
-				"send the page to printer",
-				"send the image to printer",
-				"send the picture to printer",
-				"send the drawing to printer",
-			],
-			action: () => {
-				file_print();
-			},
-			description: localize(
-				"Prints the active document and sets printing options.",
-			),
 		},
 		MENU_DIVIDER,
 		{
@@ -341,25 +94,7 @@ const menus = {
 		},
 		{
 			label: localize("&About Paint"),
-			speech_recognition: [
-				"about paint",
-				"about js paint",
-				"about jspaint",
-				"show about window",
-				"open about window",
-				"about window",
-				"app info",
-				"about the app",
-				"app information",
-				"information about the app",
-				"application info",
-				"about the application",
-				"application information",
-				"information about the application",
-				"who made this",
-				"who did this",
-				"who did this xd",
-			],
+			speech_recognition: [],
 			action: () => {
 				show_about_paint();
 			},
@@ -368,19 +103,9 @@ const menus = {
 		},
 		MENU_DIVIDER,
 		{
-			label: localize("Recent File"),
-			enabled: false, // @TODO for desktop app
-			description: localize(""),
-		},
-		MENU_DIVIDER,
-		{
 			label: localize("E&xit"),
 			...shortcut(window.is_electron_app ? "Alt+F4" : ""), // Alt+F4 closes the browser window (in most window managers)
-			speech_recognition: [
-				"exit application",
-				"exit paint",
-				"close paint window",
-			],
+			speech_recognition:[],
 			action: () => {
 				are_you_sure(() => {
 					// Note: For a Chrome PWA, window.close() is allowed only if there is only one history entry.
@@ -424,7 +149,7 @@ const menus = {
 		{
 			label: localize("&Undo"),
 			...shortcut("Ctrl+Z"),
-			speech_recognition: ["undo", "undo that"],
+			speech_recognition: [],
 			enabled: () => undos.length >= 1,
 			action: () => {
 				undo();
@@ -434,7 +159,7 @@ const menus = {
 		{
 			label: localize("&Repeat"),
 			...shortcut("F4"), // also supported: Ctrl+Shift+Z, Ctrl+Y
-			speech_recognition: ["repeat", "redo"],
+			speech_recognition: [],
 			enabled: () => redos.length >= 1,
 			action: () => {
 				redo();
@@ -445,14 +170,7 @@ const menus = {
 		{
 			label: localize("Cu&t"),
 			...shortcut("Ctrl+X"),
-			speech_recognition: [
-				"cut",
-				"cut selection",
-				"cut selection to clipboard",
-				"cut the selection",
-				"cut the selection to clipboard",
-				"cut the selection to the clipboard",
-			],
+			speech_recognition: [],
 			enabled: () =>
 				// @TODO: support cutting text with this menu item as well (e.g. for the text tool)
 				!!selection,
@@ -464,14 +182,7 @@ const menus = {
 		{
 			label: localize("&Copy"),
 			...shortcut("Ctrl+C"),
-			speech_recognition: [
-				"copy",
-				"copy selection",
-				"copy selection to clipboard",
-				"copy the selection",
-				"copy the selection to clipboard",
-				"copy the selection to the clipboard",
-			],
+			speech_recognition:[],
 			enabled: () =>
 				// @TODO: support copying text with this menu item as well (e.g. for the text tool)
 				!!selection,
@@ -485,15 +196,7 @@ const menus = {
 		{
 			label: localize("&Paste"),
 			...shortcut("Ctrl+V"),
-			speech_recognition: [
-				"paste",
-				"paste from clipboard",
-				"paste from the clipboard",
-				"insert clipboard",
-				"insert clipboard contents",
-				"insert the contents of the clipboard",
-				"paste what's on the clipboard",
-			],
+			speech_recognition: [],
 			enabled: () =>
 				// @TODO: disable if nothing in clipboard or wrong type (if we can access that)
 				true,
@@ -505,16 +208,7 @@ const menus = {
 		{
 			label: localize("C&lear Selection"),
 			...shortcut("Del"),
-			speech_recognition: [
-				"delete",
-				"clear selection",
-				"delete selection",
-				"delete selected",
-				"delete selected area",
-				"clear selected area",
-				"erase selected",
-				"erase selected area",
-			],
+			speech_recognition: [],
 			enabled: () => !!selection,
 			action: () => {
 				delete_selection();
@@ -524,20 +218,7 @@ const menus = {
 		{
 			label: localize("Select &All"),
 			...shortcut("Ctrl+A"),
-			speech_recognition: [
-				"select all",
-				"select everything",
-				"select the whole image",
-				"select the whole picture",
-				"select the whole drawing",
-				"select the whole canvas",
-				"select the whole document",
-				"select the entire image",
-				"select the entire picture",
-				"select the entire drawing",
-				"select the entire canvas",
-				"select the entire document",
-			],
+			speech_recognition:[],
 			action: () => {
 				select_all();
 			},
@@ -546,32 +227,7 @@ const menus = {
 		MENU_DIVIDER,
 		{
 			label: `${localize("C&opy To")}...`,
-			speech_recognition: [
-				"copy to file",
-				"copy selection to file",
-				"copy selection to a file",
-				"save selection",
-				"save selection as file",
-				"save selection as image",
-				"save selection as picture",
-				"save selection as image file",
-				"save selection as document",
-				"save selection as a file",
-				"save selection as a image",
-				"save selection as a picture",
-				"save selection as a image file",
-				"save selection as a document",
-				"save selection to file",
-				"save selection to image",
-				"save selection to picture",
-				"save selection to image file",
-				"save selection to document",
-				"save selection to a file",
-				"save selection to a image",
-				"save selection to a picture",
-				"save selection to a image file",
-				"save selection to a document",
-			],
+			speech_recognition: [],
 			enabled: () => !!selection,
 			action: () => {
 				save_selection_to_file();
@@ -580,12 +236,7 @@ const menus = {
 		},
 		{
 			label: `${localize("Paste &From")}...`,
-			speech_recognition: [
-				"paste a file",
-				"paste from a file",
-				"insert a file",
-				"insert an image file",
-			],
+			speech_recognition:[],
 			action: () => {
 				choose_file_to_paste();
 			},
@@ -594,389 +245,66 @@ const menus = {
 	],
 	[localize("&View")]: [
 		{
-			label: localize("&Tool Box"),
-			...shortcut(window.is_electron_app ? "Ctrl+T" : ""), // Ctrl+T opens a new browser tab, Ctrl+Alt+T opens a Terminal in Ubuntu, and Ctrl+Shift+Alt+T feels silly.
-			speech_recognition: [
-				"toggle tool box",
-				"toggle tools box",
-				"toggle toolbox",
-				"toggle tool palette",
-				"toggle tools palette",
-				// @TODO: hide/show
-			],
-			checkbox: {
-				toggle: () => {
-					$toolbox.toggle();
-				},
-				check: () => $toolbox.is(":visible"),
+			label: localize("Zoom To &Window"),
+			speech_recognition: [],
+			description: localize("Zooms the picture to fit within the view."),
+			action: () => {
+				const rect = $canvas_area[0].getBoundingClientRect();
+				const margin = 30; // leave a margin so scrollbars won't appear
+				let mag = Math.min(
+					(rect.width - margin) / main_canvas.width,
+					(rect.height - margin) / main_canvas.height,
+				);
+				// round to an integer percent for the View > Zoom > Custom... dialog, which shows non-integers as invalid
+				mag = Math.floor(100 * mag) / 100;
+				set_magnification(mag);
 			},
-			description: localize("Shows or hides the tool box."),
-		},
-		{
-			label: localize("&Color Box"),
-			...shortcut("Ctrl+L"), // focuses browser address bar, but Firefox and Chrome both allow overriding the default behavior
-			speech_recognition: [
-				"toggle color box",
-				"toggle colors box",
-				"toggle palette",
-				"toggle color palette",
-				"toggle colors palette",
-				// @TODO: hide/show
-			],
-			checkbox: {
-				toggle: () => {
-					$colorbox.toggle();
-				},
-				check: () => $colorbox.is(":visible"),
-			},
-			description: localize("Shows or hides the color box."),
-		},
-		{
-			label: localize("&Status Bar"),
-			speech_recognition: [
-				"toggle status bar",
-				"toggle status text",
-				"toggle status area",
-				"toggle status indicator",
-				// @TODO: hide/show
-			],
-			checkbox: {
-				toggle: () => {
-					$status_area.toggle();
-				},
-				check: () => $status_area.is(":visible"),
-			},
-			description: localize("Shows or hides the status bar."),
-		},
-		{
-			label: localize("T&ext Toolbar"),
-			speech_recognition: [
-				"toggle text toolbar",
-				"toggle font toolbar",
-				"toggle text tool bar",
-				"toggle font tool bar",
-				"toggle font box",
-				"toggle fonts box",
-				"toggle text options box",
-				"toggle text tool options box",
-				"toggle font options box",
-				"toggle font window",
-				"toggle fonts window",
-				"toggle text options window",
-				"toggle text tool options window",
-				"toggle font options window",
-				// @TODO: hide/show
-			],
-			enabled: false, // @TODO: toggle fonts box
-			checkbox: {
-				toggle: () => {
-					// Kind of silly that I haven't implemented this in the 10 years I've been working on this project.
-				},
-				check: () => false,
-			},
-			description: localize("Shows or hides the text toolbar."),
-		},
-		MENU_DIVIDER,
-		{
-			label: localize("&Zoom"),
-			submenu: [
-				{
-					label: localize("&Normal Size"),
-					...shortcut(window.is_electron_app ? "Ctrl+PgUp" : ""), // Ctrl+PageUp cycles thru browser tabs in Chrome & Firefox; can be overridden in Chrome in fullscreen only
-					speech_recognition: [
-						"reset zoom",
-						"zoom to normal size",
-						"zoom to 100%",
-						"set zoom to 100%",
-						"set zoom 100%",
-						"zoom to 1x",
-						"set zoom to 1x",
-						"set zoom 1x",
-						"zoom level to 100%",
-						"set zoom level to 100%",
-						"set zoom level 100%",
-						"zoom level to 1x",
-						"set zoom level to 1x",
-						"set zoom level 1x",
-					],
-					description: localize("Zooms the picture to 100%."),
-					enabled: () => magnification !== 1,
-					action: () => {
-						set_magnification(1);
-					},
-				},
-				{
-					label: localize("&Large Size"),
-					...shortcut(window.is_electron_app ? "Ctrl+PgDn" : ""), // Ctrl+PageDown cycles thru browser tabs in Chrome & Firefox; can be overridden in Chrome in fullscreen only
-					speech_recognition: [
-						"zoom to large size",
-						"zoom to 400%",
-						"set zoom to 400%",
-						"set zoom 400%",
-						"zoom to 4x",
-						"set zoom to 4x",
-						"set zoom 4x",
-						"zoom level to 400%",
-						"set zoom level to 400%",
-						"set zoom level 400%",
-						"zoom level to 4x",
-						"set zoom level to 4x",
-						"set zoom level 4x",
-					],
-					description: localize("Zooms the picture to 400%."),
-					enabled: () => magnification !== 4,
-					action: () => {
-						set_magnification(4);
-					},
-				},
-				{
-					label: localize("Zoom To &Window"),
-					speech_recognition: [
-						"zoom to window",
-						"zoom to view",
-						"zoom to fit",
-						"zoom to fit within window",
-						"zoom to fit within view",
-						"zoom to fit within the window",
-						"zoom to fit within the view",
-						"zoom to fit in window",
-						"zoom to fit in view",
-						"zoom to fit in the window",
-						"zoom to fit in the view",
-						"auto zoom",
-						"fit zoom",
-						"zoom to max",
-						"zoom to maximum",
-						"zoom to max size",
-						"zoom to maximum size",
-						"zoom so canvas fits",
-						"zoom so picture fits",
-						"zoom so image fits",
-						"zoom so document fits",
-						"zoom so whole canvas is visible",
-						"zoom so whole picture is visible",
-						"zoom so whole image is visible",
-						"zoom so whole document is visible",
-						"zoom so the whole canvas is visible",
-						"zoom so the whole picture is visible",
-						"zoom so the whole image is visible",
-						"zoom so the whole document is visible",
-
-						"fit to window",
-						"fit to view",
-						"fit in window",
-						"fit in view",
-						"fit within window",
-						"fit within view",
-						"fit picture to window",
-						"fit picture to view",
-						"fit picture in window",
-						"fit picture in view",
-						"fit picture within window",
-						"fit picture within view",
-						"fit image to window",
-						"fit image to view",
-						"fit image in window",
-						"fit image in view",
-						"fit image within window",
-						"fit image within view",
-						"fit canvas to window",
-						"fit canvas to view",
-						"fit canvas in window",
-						"fit canvas in view",
-						"fit canvas within window",
-						"fit canvas within view",
-						"fit document to window",
-						"fit document to view",
-						"fit document in window",
-						"fit document in view",
-						"fit document within window",
-						"fit document within view",
-					],
-					description: localize("Zooms the picture to fit within the view."),
-					action: () => {
-						const rect = $canvas_area[0].getBoundingClientRect();
-						const margin = 30; // leave a margin so scrollbars won't appear
-						let mag = Math.min(
-							(rect.width - margin) / main_canvas.width,
-							(rect.height - margin) / main_canvas.height,
-						);
-						// round to an integer percent for the View > Zoom > Custom... dialog, which shows non-integers as invalid
-						mag = Math.floor(100 * mag) / 100;
-						set_magnification(mag);
-					},
-				},
-				MENU_DIVIDER,
-				{
-					label: localize("Show &Grid"),
-					...shortcut("Ctrl+G"),
-					speech_recognition: [
-						"toggle show grid",
-						"toggle grid",
-						"toggle gridlines",
-						"toggle grid lines",
-						"toggle grid cells",
-						// @TODO: hide/show
-					],
-					enabled: () => magnification >= 4,
-					checkbox: {
-						toggle: () => {
-							toggle_grid();
-						},
-						check: () => show_grid,
-					},
-					description: localize("Shows or hides the grid."),
-				},
-				{
-					label: localize("Show T&humbnail"),
-					speech_recognition: [
-						"toggle show thumbnail",
-						"toggle thumbnail",
-						"toggle thumbnail view",
-						"toggle thumbnail box",
-						"toggle thumbnail window",
-						"toggle preview",
-						"toggle image preview",
-						"toggle picture preview",
-						"toggle picture in picture",
-						"toggle picture in picture view",
-						"toggle picture in picture box",
-						"toggle picture in picture window",
-						// @TODO: hide/show
-					],
-					checkbox: {
-						toggle: () => {
-							toggle_thumbnail();
-						},
-						check: () => show_thumbnail,
-					},
-					description: localize(
-						"Shows or hides the thumbnail view of the picture.",
-					),
-				},
-			],
 		},
 		{
 			label: localize("&View Bitmap"),
 			...shortcut("Ctrl+F"),
-			speech_recognition: [
-				"view bitmap",
-				"show bitmap",
-				"fullscreen",
-				"full-screen",
-				"full screen",
-				"show picture fullscreen",
-				"show picture full-screen",
-				"show picture full screen",
-				"show image fullscreen",
-				"show image full-screen",
-				"show image full screen",
-				// @TODO: exit fullscreen
-			],
+			speech_recognition: [],
 			action: () => {
 				view_bitmap();
 			},
 			description: localize("Displays the entire picture."),
 		},
+		{
+			label: localize("&Fullscreen"),
+			...shortcut("F11"), // relies on browser's shortcut
+			speech_recognition: [
+				// won't work with speech recognition, needs a user gesture
+			],
+			enabled: () => Boolean(document.fullscreenEnabled || document.webkitFullscreenEnabled),
+			checkbox: {
+				check: () => Boolean(document.fullscreenElement || document.webkitFullscreenElement),
+				toggle: () => {
+					if (document.fullscreenElement || document.webkitFullscreenElement) {
+						if (document.exitFullscreen) {
+							document.exitFullscreen();
+						} else if (document.webkitExitFullscreen) {
+							document.webkitExitFullscreen();
+						}
+					} else {
+						if (document.documentElement.requestFullscreen) {
+							document.documentElement.requestFullscreen();
+						} else if (document.documentElement.webkitRequestFullscreen) {
+							document.documentElement.webkitRequestFullscreen();
+						}
+					}
+					// check() would need to be async or faked with a timeout,
+					// if the menus stayed open. @TODO: make all checkboxes close menus
+					menu_bar.closeMenus();
+				},
+			},
+			description: localize("Makes the application take up the entire screen."),
+		},
 	],
 	[localize("&Image")]: [
-		// @TODO: speech recognition: terms that apply to selection
-		{
-			label: localize("&Flip/Rotate"),
-			...shortcut(
-				window.is_electron_app && !window.electron_is_dev
-					? "Ctrl+R"
-					: "Ctrl+Alt+R",
-			), // Ctrl+R reloads the browser tab (or Electron window in dev mode via electron-debug)
-			speech_recognition: [
-				"flip",
-				"rotate",
-				"flip/rotate",
-				"flip slash rotate",
-				"flip and rotate",
-				"flip or rotate",
-				"flip rotate",
-				// @TODO: parameters to command
-			],
-			action: () => {
-				image_flip_and_rotate();
-			},
-			description: localize("Flips or rotates the picture or a selection."),
-		},
-		// {
-		// 	label: localize("&Stretch/Skew"),
-		// 	...shortcut(window.is_electron_app ? "Ctrl+W" : "Ctrl+Alt+W"), // Ctrl+W closes the browser tab
-		// 	speech_recognition: [
-		// 		"stretch",
-		// 		"scale",
-		// 		"resize image",
-		// 		"skew",
-		// 		"stretch/skew",
-		// 		"stretch slash skew",
-		// 		"stretch and skew",
-		// 		"stretch or skew",
-		// 		"stretch skew",
-		// 		// @TODO: parameters to command
-		// 	],
-		// 	action: () => {
-		// 		image_stretch_and_skew();
-		// 	},
-		// 	description: localize("Stretches or skews the picture or a selection."),
-		// },
-		{
-			label: localize("&Invert Colors"),
-			...shortcut("Ctrl+I"),
-			speech_recognition: [
-				"invert",
-				"invert colors",
-				"invert image",
-				"invert picture",
-				"invert drawing",
-				"invert image colors",
-				"invert picture colors",
-				"invert drawing colors",
-				"invert colors of image",
-				"invert colors of picture",
-				"invert colors of drawing",
-			],
-			action: () => {
-				image_invert_colors();
-			},
-			description: localize(
-				"Inverts the colors of the picture or a selection.",
-			),
-		},
 		{
 			label: `${localize("&Attributes")}...`,
 			...shortcut("Ctrl+E"),
-			speech_recognition: [
-				"attributes",
-				"image attributes",
-				"picture attributes",
-				"image options",
-				"picture options",
-				"dimensions",
-				"image dimensions",
-				"picture dimensions",
-				"resize canvas",
-				"resize document",
-				"resize page", // not resize image/picture because that implies scaling, handled by Stretch/Skew
-				"set image size",
-				"set picture size",
-				"set canvas size",
-				"set document size",
-				"set page size",
-				"image size",
-				"picture size",
-				"canvas size",
-				"document size",
-				"page size",
-				"configure image size",
-				"configure picture size",
-				"configure canvas size",
-				"configure document size",
-				"configure page size",
-			],
+			speech_recognition: [],
 			action: () => {
 				image_attributes();
 			},
@@ -987,14 +315,7 @@ const menus = {
 			...shortcut(
 				window.is_electron_app || !looksLikeChrome ? "Ctrl+Shift+N" : "",
 			), // Ctrl+Shift+N opens incognito window in chrome
-			speech_recognition: [
-				"clear image",
-				"clear canvas",
-				"clear picture",
-				"clear page",
-				"clear drawing",
-				// @TODO: erase?
-			],
+			speech_recognition: [],
 			// (mspaint says "Ctrl+Shft+N")
 			action: () => {
 				if (!selection) {
@@ -1014,19 +335,7 @@ const menus = {
 		},
 		{
 			label: localize("&Draw Opaque"),
-			speech_recognition: [
-				"toggle draw opaque",
-				"toggle transparent selection",
-				"toggle transparent selections",
-				"toggle transparent selection mode",
-				"toggle transparent selections mode",
-				"toggle opaque selection",
-				"toggle opaque selections",
-				"toggle opaque selection mode",
-				"toggle opaque selections mode",
-				// toggle opaque? toggle opacity?
-				// @TODO: hide/show / "draw opaque" / "draw transparent"/translucent?
-			],
+			speech_recognition: [],
 			checkbox: {
 				toggle: () => {
 					tool_transparent_mode = !tool_transparent_mode;
@@ -1040,43 +349,6 @@ const menus = {
 		},
 	],
 };
-
-for (const [top_level_menu_key, menu] of Object.entries(menus)) {
-	const top_level_menu_name = top_level_menu_key.replace(/&/, "");
-	const add_literal_navigation_speech_recognition = (menu, ancestor_names) => {
-		for (const menu_item of menu) {
-			if (menu_item !== MENU_DIVIDER) {
-				const menu_item_name = menu_item.label.replace(/&|\.\.\.|\(|\)/g, "");
-				// console.log(menu_item_name);
-				let menu_item_matchers = [menu_item_name];
-				if (/\//.test(menu_item_name)) {
-					menu_item_matchers = [
-						menu_item_name,
-						menu_item_name.replace(/\//, " "),
-						menu_item_name.replace(/\//, " and "),
-						menu_item_name.replace(/\//, " or "),
-						menu_item_name.replace(/\//, " slash "),
-					];
-				}
-				menu_item_matchers = menu_item_matchers.map((menu_item_matcher) => {
-					return `${ancestor_names} ${menu_item_matcher}`;
-				});
-				menu_item.speech_recognition = (
-					menu_item.speech_recognition || []
-				).concat(menu_item_matchers);
-				// console.log(menu_item_matchers, menu_item.speech_recognition);
-
-				if (menu_item.submenu) {
-					add_literal_navigation_speech_recognition(
-						menu_item.submenu,
-						`${ancestor_names} ${menu_item_name}`,
-					);
-				}
-			}
-		}
-	};
-	add_literal_navigation_speech_recognition(menu, top_level_menu_name);
-}
 
 export { menus };
 

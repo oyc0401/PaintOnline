@@ -15,7 +15,6 @@ import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
 import { $G, E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
 import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_monochrome, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
-import { show_imgur_uploader } from "./imgur.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
 import { TOOL_CURVE, TOOL_FREE_FORM_SELECT, TOOL_POLYGON, TOOL_SELECT, TOOL_TEXT, tools } from "./tools.js";
@@ -419,84 +418,6 @@ function set_magnification(new_scale, anchor_point) {
 	$G.trigger("magnification-changed"); // updates custom zoom window
 }
 
-function toggle_grid() {
-	show_grid = !show_grid;
-	// $G.trigger("option-changed");
-	update_helper_layer();
-}
-
-function toggle_thumbnail() {
-	show_thumbnail = !show_thumbnail;
-	if (!show_thumbnail) {
-		$thumbnail_window.hide();
-	} else {
-		if (!thumbnail_canvas) {
-			thumbnail_canvas = make_canvas(108, 92);
-			thumbnail_canvas.style.width = "100%";
-			thumbnail_canvas.style.height = "100%";
-		}
-		if (!$thumbnail_window) {
-			$thumbnail_window = $Window({
-				title: localize("Thumbnail"),
-				toolWindow: true,
-				resizable: true,
-				innerWidth: thumbnail_canvas.width + 4, // @TODO: should the border of $content be included in the definition of innerWidth/Height?
-				innerHeight: thumbnail_canvas.height + 4,
-				minInnerWidth: 52 + 4,
-				minInnerHeight: 36 + 4,
-				minOuterWidth: 0, // @FIXME: this shouldn't be needed
-				minOuterHeight: 0, // @FIXME: this shouldn't be needed
-			});
-			$thumbnail_window.addClass("thumbnail-window");
-			$thumbnail_window.$content.append(thumbnail_canvas);
-			$thumbnail_window.$content.addClass("inset-deep");
-			$thumbnail_window.$content.css({ marginTop: "1px" }); // @TODO: should this (or equivalent on titlebar) be for all windows?
-			$thumbnail_window.maximize = () => { }; // @TODO: disable maximize with an option
-			// NOTE: I'm not sure some of these fallbacks are relevant anymore,
-			// or if they even work since changing `box` from an array to a string.
-			// Presumably the spec changed, but I don't feel like trying to dig up the history.
-			new ResizeObserver((entries) => {
-				const entry = entries[0];
-				let width, height;
-				if ("devicePixelContentBoxSize" in entry) {
-					// console.log("devicePixelContentBoxSize", entry.devicePixelContentBoxSize);
-					// Firefox seems to support this, although I can't find any documentation that says it should
-					// I can't find an implementation bug or anything.
-					// So I had to disable this case to test the fallback case (in Firefox 94.0)
-					width = entry.devicePixelContentBoxSize[0].inlineSize;
-					height = entry.devicePixelContentBoxSize[0].blockSize;
-				} else if ("contentBoxSize" in entry) {
-					// console.log("contentBoxSize", entry.contentBoxSize);
-					// round() seems to line up with what Firefox does for device pixel alignment, which is great.
-					// In Chrome it's blurry at some zoom levels with round(), ceil(), or floor(), but it (documentedly) supports devicePixelContentBoxSize.
-					// @ts-ignore
-					width = Math.round(entry.contentBoxSize[0].inlineSize * devicePixelRatio);
-					// @ts-ignore
-					height = Math.round(entry.contentBoxSize[0].blockSize * devicePixelRatio);
-				} else {
-					// Safari on iPad doesn't support either of the above as of iOS 15.0.2
-					// @ts-ignore
-					width = Math.round(entry.contentRect.width * devicePixelRatio);
-					// @ts-ignore
-					height = Math.round(entry.contentRect.height * devicePixelRatio);
-				}
-				if (width && height) { // If it's hidden, and then shown, it gets a width and height of 0 briefly on iOS. (This would give IndexSizeError in drawImage.)
-					thumbnail_canvas.width = width;
-					thumbnail_canvas.height = height;
-				}
-				update_helper_layer_immediately(); // updates thumbnail (but also unnecessarily the helper layer)
-			}).observe(thumbnail_canvas, { box: "device-pixel-content-box" });
-		}
-		$thumbnail_window.show();
-		$thumbnail_window.on("close", (e) => {
-			e.preventDefault();
-			$thumbnail_window.hide();
-			show_thumbnail = false;
-		});
-	}
-	// Currently the thumbnail updates with the helper layer. But it's not part of the helper layer, so this is a bit of a misnomer for now.
-	update_helper_layer();
-}
 
 function reset_selected_colors() {
 	selected_colors = {
@@ -970,44 +891,6 @@ async function file_open() {
 	open_from_file(file, fileHandle);
 }
 
-/** @type {OSGUI$Window} */
-let $file_load_from_url_window;
-function file_load_from_url() {
-	if ($file_load_from_url_window) {
-		$file_load_from_url_window.close();
-	}
-	const $w = $DialogWindow().addClass("horizontal-buttons");
-	$file_load_from_url_window = $w;
-	$w.title("Load from URL");
-	// @TODO: URL validation (input has to be in a form (and we don't want the form to submit))
-	$w.$main.html(`
-		<div style="padding: 10px;">
-			<label style="display: block; margin-bottom: 5px;" for="url-input">Paste or type the web address of an image:</label>
-			<input type="url" required value="" id="url-input" class="inset-deep" style="width: 300px;"/></label>
-		</div>
-	`);
-	const $input = $w.$main.find("#url-input");
-	// $w.$Button("Load", () => {
-	$w.$Button(localize("Open"), () => {
-		const uris = get_uris(String($input.val()));
-		if (uris.length > 0) {
-			// @TODO: retry loading if same URL entered
-			// actually, make it change the hash only after loading successfully
-			// (but still load from the hash when necessary)
-			// make sure it doesn't overwrite the old session before switching
-			$w.close();
-			change_url_param("load", uris[0]);
-		} else {
-			show_error_message("Invalid URL. It must include a protocol (https:// or http://)");
-		}
-	}, { type: "submit" });
-	$w.$Button(localize("Cancel"), () => {
-		$w.close();
-	});
-	$w.center();
-	$input[0].focus();
-}
-
 // Native FS API / File Access API allows you to overwrite files, but people are not used to it.
 // So we ask them to confirm it the first time.
 let acknowledged_overwrite_capability = false;
@@ -1453,10 +1336,6 @@ function show_about_paint() {
 		});
 	});
 
-	$("#view-project-news").on("click", () => {
-		show_news();
-	});//.focus();
-
 	// Hack to avoid mis-centering within small screens,
 	// due to dynamic width of window when it abuts the right side of the screen
 	// (due to line wrapping of text content at the right edge of the screen)
@@ -1587,38 +1466,6 @@ function update_css_classes_for_conditional_messages() {
 	}
 }
 
-function show_news() {
-	if ($news_window) {
-		$news_window.close();
-	}
-	$news_window = $Window({
-		title: "Project News",
-		maximizeButton: false,
-		minimizeButton: false,
-		resizable: false,
-	});
-	$news_window.addClass("news-window squish");
-
-
-	// const $latest_entries = $latest_news.find(".news-entry");
-	// const latest_entry = $latest_entries[$latest_entries.length - 1];
-	// window.console?.log("LATEST MEWS:", $latest_news);
-	// window.console?.log("LATEST ENTRY:", latest_entry);
-
-	const $latest_news_style = $latest_news.find("style");
-	$this_version_news.find("style").remove();
-	$latest_news.append($latest_news_style); // in case $this_version_news is $latest_news
-
-	$news_window.$content.append($latest_news.removeAttr("hidden"));
-
-	$news_window.center();
-	$news_window.center(); // @XXX - but it helps tho
-
-	$latest_news.attr("tabIndex", "-1").focus();
-}
-
-
-// @TODO: DRY between these functions and open_from_* functions further?
 
 /**
  * @param {Blob} blob
@@ -1721,115 +1568,6 @@ function paste(img_or_canvas) {
 		}, () => {
 			selection = new OnCanvasSelection(x, y, img_or_canvas.width, img_or_canvas.height, img_or_canvas);
 		});
-	}
-}
-
-function render_history_as_gif() {
-	const $win = $DialogWindow();
-	$win.title("Rendering GIF");
-
-	const $output = $win.$main;
-	const $progress = $(E("progress")).appendTo($output).addClass("inset-deep");
-	const $progress_percent = $(E("span")).appendTo($output).css({
-		width: "2.3em",
-		display: "inline-block",
-		textAlign: "center",
-	});
-	$win.$main.css({ padding: 5 });
-
-	const $cancel = $win.$Button("Cancel", () => {
-		$win.close();
-	}).focus();
-
-	$win.center();
-
-	try {
-		const width = main_canvas.width;
-		const height = main_canvas.height;
-		const gif = new GIF({
-			//workers: Math.min(5, Math.floor(undos.length/50)+1),
-			workerScript: "lib/gif.js/gif.worker.js",
-			width,
-			height,
-		});
-
-		$win.on("close", () => {
-			gif.abort();
-		});
-
-		gif.on("progress", (p) => {
-			$progress.val(p);
-			$progress_percent.text(`${~~(p * 100)}%`);
-		});
-
-		gif.on("finished", (blob) => {
-			$win.title("Rendered GIF");
-			const blob_url = URL.createObjectURL(blob);
-			$output.empty().append(
-				$(E("div")).addClass("inset-deep").append(
-					$(E("img")).attr({
-						src: blob_url,
-						width,
-						height,
-					}).css({
-						display: "block", // prevent margin below due to inline display (vertical-align can also be used)
-					}),
-				).css({
-					overflow: "auto",
-					maxHeight: "70vh",
-					maxWidth: "70vw",
-				})
-			);
-			$win.on("close", () => {
-				// revoking on image load(+error) breaks right click > "Save image as" and "Open image in new tab"
-				URL.revokeObjectURL(blob_url);
-			});
-			$win.$Button("Upload to Imgur", () => {
-				$win.close();
-				sanity_check_blob(blob, () => {
-					show_imgur_uploader(blob);
-				});
-			}).focus();
-			$win.$Button(localize("Save"), () => {
-				$win.close();
-				sanity_check_blob(blob, () => {
-					const suggested_file_name = `${file_name.replace(/\.(bmp|dib|a?png|gif|jpe?g|jpe|jfif|tiff?|webp|raw)$/i, "")} history.gif`;
-					systemHooks.showSaveFileDialog({
-						dialogTitle: localize("Save As"), // localize("Save Animation As"),
-						getBlob: () => blob,
-						defaultFileName: suggested_file_name,
-						defaultPath: typeof system_file_handle === "string" ? `${system_file_handle.replace(/[/\\][^/\\]*/, "")}/${suggested_file_name}` : null,
-						defaultFileFormatID: "image/gif",
-						formats: [{
-							formatID: "image/gif",
-							mimeType: "image/gif",
-							name: localize("Animated GIF (*.gif)").replace(/\s+\([^(]+$/, ""),
-							nameWithExtensions: localize("Animated GIF (*.gif)"),
-							extensions: ["gif"],
-						}],
-					});
-				});
-			});
-			$cancel.appendTo($win.$buttons);
-			$win.center();
-		});
-
-		const gif_canvas = make_canvas(width, height);
-		const frame_history_nodes = [...undos, current_history_node];
-		for (const frame_history_node of frame_history_nodes) {
-			gif_canvas.ctx.clearRect(0, 0, gif_canvas.width, gif_canvas.height);
-			gif_canvas.ctx.putImageData(frame_history_node.image_data, 0, 0);
-			if (frame_history_node.selection_image_data) {
-				const selection_canvas = make_canvas(frame_history_node.selection_image_data);
-				gif_canvas.ctx.drawImage(selection_canvas, frame_history_node.selection_x, frame_history_node.selection_y);
-			}
-			gif.addFrame(gif_canvas, { delay: 200, copy: true });
-		}
-		gif.render();
-
-	} catch (err) {
-		$win.close();
-		show_error_message("Failed to render GIF.", err);
 	}
 }
 
@@ -2859,6 +2597,7 @@ function make_monochrome_pattern(lightness, rgba1 = [0, 0, 0, 255], rgba2 = [255
 	}
 
 	pattern_ctx.putImageData(pattern_image_data, 0, 0);
+
 
 	return main_ctx.createPattern(pattern_canvas, "repeat");
 }
@@ -4058,10 +3797,10 @@ function show_multi_user_setup_dialog(from_current_document) {
 export {
 	$this_version_news,
 	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect, detect_monochrome,
-	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_load_from_url, file_new, file_open, file_print, file_save,
+	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_new, file_open, file_print, file_save,
 	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node, make_monochrome_palette, make_monochrome_pattern, make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
-	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, render_history_as_gif, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_news, show_resource_load_error_message, switch_to_polychrome_palette, toggle_grid,
-	toggle_thumbnail, try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
+	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
+	try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
 };
 // Temporary globals until all dependent code is converted to ES Modules

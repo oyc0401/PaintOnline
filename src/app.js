@@ -11,7 +11,6 @@ import { Handles } from "./Handles.js";
 import { default_palette, get_winter_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
 import {
-	$this_version_news,
 	cancel,
 	change_url_param,
 	clear,
@@ -37,7 +36,6 @@ import {
 	paste,
 	paste_image_from_file,
 	redo,
-	render_history_as_gif,
 	reset_canvas_and_history,
 	reset_file,
 	reset_selected_colors,
@@ -50,9 +48,7 @@ import {
 	set_magnification,
 	show_document_history,
 	show_error_message,
-	show_news,
 	show_resource_load_error_message,
-	toggle_grid,
 	undo,
 	update_canvas_rect,
 	update_disable_aa,
@@ -1103,11 +1099,7 @@ $G.on("keydown", (e) => {
 				redo();
 				break;
 			case "G":
-				if (e.shiftKey) {
-					render_history_as_gif();
-				} else {
-					toggle_grid();
-				}
+				
 				break;
 			case "F":
 				// @ts-ignore (repeat doesn't exist on jQuery.Event, I guess, but this is fine)
