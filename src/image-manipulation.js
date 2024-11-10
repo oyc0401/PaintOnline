@@ -5,7 +5,7 @@ import libtess from '../lib/libtess.min.js';
 /* global saved:writable, brush_size:writable, pencil_size:writable, stroke_size:writable */
 /* global $canvas_area, aliasing, localize, main_canvas, main_ctx, palette, selected_colors, selection, stroke_color, transparency */
 // import { localize } from "./app-localization.js";
-import { cancel, deselect, detect_monochrome, show_error_message, undoable, update_title } from "./functions.js";
+import { cancel, deselect, show_error_message, undoable, update_title } from "./functions.js";
 import { $G, TAU, get_help_folder_icon, get_rgba_from_color, make_canvas, memoize_synchronous_function } from "./helpers.js";
 
 const fill_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
@@ -991,64 +991,6 @@ function invert_rgb(source_ctx, dest_ctx = source_ctx) {
 }
 
 /**
- * Swaps the two colors of a monochrome image.
- * If no destination context is provided, the source context is used as the destination context.
- * If no monochrome information is provided, it is detected from the source context.
- *
- * @param {CanvasRenderingContext2D} source_ctx - The source canvas context.
- * @param {CanvasRenderingContext2D} [dest_ctx=source_ctx] - The destination canvas context.
- * @param {MonochromeInfo} [monochrome_info=detect_monochrome(source_ctx)] - The monochrome information.
- */
-function invert_monochrome(source_ctx, dest_ctx = source_ctx, monochrome_info = detect_monochrome(source_ctx)) {
-	const image_data = source_ctx.getImageData(0, 0, source_ctx.canvas.width, source_ctx.canvas.height);
-	// Note: values in pixel_array may be different on big endian vs little endian machines.
-	// Only rely on equality of values within the array.
-	// pixel_array is a performance optimization, to access whole pixels at a time instead of individual color channels.
-	const pixel_array = new Uint32Array(image_data.data.buffer);
-	if (monochrome_info.presentNonTransparentUint32s.length === 0) {
-		// Fully transparent.
-		// No change, and no need to copy the image to dest canvas to represent that lack of a change.
-		return;
-	}
-	if (monochrome_info.presentNonTransparentUint32s.length === 1) {
-		// Only one non-transparent color present in the image.
-		// Can't use just the information of what colors are in the canvas to invert, need to look at the palette.
-		// We could've done this in a unified way, but whatever!
-		// Personally, I think this is a CHARMINGLY poor solution.
-		// Maybe a little less so now that I added handling for transparency (i.e. Free-Form Select).
-		const color_1 = palette[0];
-		const color_2 = palette[14] || palette[1];
-		const color_1_rgba = get_rgba_from_color(color_1);
-		const present_rgba = monochrome_info.presentNonTransparentRGBAs[0];
-		if (
-			present_rgba[0] === color_1_rgba[0] &&
-			present_rgba[1] === color_1_rgba[1] &&
-			present_rgba[2] === color_1_rgba[2] &&
-			present_rgba[3] === color_1_rgba[3]
-		) {
-			dest_ctx.fillStyle = color_2;
-		} else {
-			dest_ctx.fillStyle = color_1;
-		}
-		if (monochrome_info.monochromeWithTransparency) {
-			dest_ctx.putImageData(image_data, 0, 0);
-			dest_ctx.globalCompositeOperation = "source-in";
-		}
-		dest_ctx.fillRect(0, 0, source_ctx.canvas.width, source_ctx.canvas.height);
-		return;
-	}
-	const [uint32_a, uint32_b] = monochrome_info.presentNonTransparentUint32s;
-	for (let i = 0, len = pixel_array.length; i < len; i += 1) {
-		if (pixel_array[i] === uint32_a) {
-			pixel_array[i] = uint32_b;
-		} else if (pixel_array[i] === uint32_b) {
-			pixel_array[i] = uint32_a;
-		}
-	}
-	dest_ctx.putImageData(image_data, 0, 0);
-}
-
-/**
  * Converts the image to black and white by applying a lightness threshold.
  * @param {CanvasRenderingContext2D} ctx - The 2D rendering context of the canvas.
  * @param {number} threshold - The threshold value between black and white (0 to 1).
@@ -1738,6 +1680,6 @@ export {
 	apply_image_transformation, bresenham_dense_line, bresenham_line, compute_bezier, draw_bezier_curve, draw_bezier_curve_without_pattern_support, draw_ellipse, draw_fill,
 	draw_fill_separately, draw_fill_without_pattern_support, draw_grid, draw_line, draw_line_without_pattern_support, draw_noncontiguous_fill,
 	draw_noncontiguous_fill_separately, draw_noncontiguous_fill_without_pattern_support, draw_quadratic_curve, draw_rounded_rectangle, find_color_globally, flip_horizontal,
-	flip_vertical, get_brush_canvas_size, get_circumference_points_for_brush, invert_monochrome, invert_rgb, render_brush, replace_color_globally, replace_colors_with_swatch, rotate, stamp_brush_canvas, stretch_and_skew, threshold_black_and_white, update_brush_for_drawing_lines
+	flip_vertical, get_brush_canvas_size, get_circumference_points_for_brush, invert_rgb, render_brush, replace_color_globally, replace_colors_with_swatch, rotate, stamp_brush_canvas, stretch_and_skew, threshold_black_and_white, update_brush_for_drawing_lines
 };
 

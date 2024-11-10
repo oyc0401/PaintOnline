@@ -3,7 +3,7 @@ console.log('JS 실행:','app-localization.js');
 /* global $G, AccessKeys, are_you_sure, exit_fullscreen_if_ios, show_error_message, showMessageBox */
 
 // const { are_you_sure, exit_fullscreen_if_ios, show_error_message } = require("./functions.js");
-// const { $G } = require("./helpers.js");
+// import  { $G } from "./helpers.js";
 // const { showMessageBox } = require("./msgbox.js");
 // These globals (at least $G) may not exist yet.
 // const { are_you_sure, exit_fullscreen_if_ios, show_error_message, $G, showMessageBox } = window;

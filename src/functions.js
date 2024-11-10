@@ -14,7 +14,7 @@ import { OnCanvasTextBox } from "./OnCanvasTextBox.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
 import { $G, E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
-import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_monochrome, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
+import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
 import { TOOL_CURVE, TOOL_FREE_FORM_SELECT, TOOL_POLYGON, TOOL_SELECT, TOOL_TEXT, tools } from "./tools.js";
@@ -2277,12 +2277,7 @@ function image_invert_colors() {
 		name: localize("Invert Colors"),
 		icon: get_help_folder_icon("p_invert.png"),
 	}, (_original_canvas, original_ctx, _new_canvas, new_ctx) => {
-		const monochrome_info = monochrome && detect_monochrome(original_ctx);
-		if (monochrome && monochrome_info.isMonochrome) {
-			invert_monochrome(original_ctx, new_ctx, monochrome_info);
-		} else {
-			invert_rgb(original_ctx, new_ctx);
-		}
+		invert_rgb(original_ctx, new_ctx);
 	});
 }
 
@@ -2514,116 +2509,6 @@ function has_any_transparency(ctx) {
 }
 
 /**
- * @param {CanvasRenderingContext2D} ctx
- * @returns {MonochromeInfo}
- */
-function detect_monochrome(ctx) {
-	// Note: Brave browser, and DuckDuckGo Privacy Essentials browser extension
-	// implement a privacy technique known as "farbling", which breaks this code.
-	// (I've implemented workarounds in many places, but not here yet.)
-	// This function currently returns the set of one or two colors if applicable,
-	// and things outside would need to be changed to handle a "near-monochrome" state.
-
-	const id = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-	const pixelArray = new Uint32Array(id.data.buffer); // to access as whole pixels (for greater efficiency & simplicity)
-	// Note: values in pixelArray may be different on big endian vs little endian machines.
-	// Use id.data, which is guaranteed to be in RGBA order, for getting color information.
-	// Only use the Uint32Array for comparing pixel equality (faster than comparing each color component).
-	const colorUint32s = [];
-	const colorRGBAs = [];
-	let anyTransparency = false;
-	for (let i = 0, len = pixelArray.length; i < len; i += 1) {
-		// @TODO: should this threshold not mirror has_any_transparency?
-		// seems to have different notions of "any transparency"
-		// has_any_transparency is "has any pixels not fully opaque"
-		// detect_monochrome's anyTransparency means "has any pixels fully transparent"
-		if (id.data[i * 4 + 3] > 1) {
-			if (!colorUint32s.includes(pixelArray[i])) {
-				if (colorUint32s.length < 2) {
-					colorUint32s.push(pixelArray[i]);
-					colorRGBAs.push(id.data.slice(i * 4, (i + 1) * 4));
-				} else {
-					return { isMonochrome: false };
-				}
-			}
-		} else {
-			anyTransparency = true;
-		}
-	}
-	return {
-		isMonochrome: true,
-		presentNonTransparentRGBAs: colorRGBAs,
-		presentNonTransparentUint32s: colorUint32s,
-		monochromeWithTransparency: anyTransparency,
-	};
-}
-
-/**
- * Creates a dithered pattern using two colors.
- * @param {number} lightness - The approximate fraction of pixels that will use the second(?) color.
- * @param {Uint8ClampedArray | number[]} rgba1 - RGBA color values for the first color.
- * @param {Uint8ClampedArray | number[]} rgba2 - RGBA color values for the second color.
- * @returns {CanvasPattern}
- */
-function make_monochrome_pattern(lightness, rgba1 = [0, 0, 0, 255], rgba2 = [255, 255, 255, 255]) {
-
-	const dither_threshold_table = Array.from({ length: 64 }, (_undefined, p) => {
-		const q = p ^ (p >> 3);
-		return (
-			((p & 4) >> 2) | ((q & 4) >> 1) |
-			((p & 2) << 1) | ((q & 2) << 2) |
-			((p & 1) << 4) | ((q & 1) << 5)
-		) / 64;
-	});
-
-	const pattern_canvas = document.createElement("canvas");
-	const pattern_ctx = pattern_canvas.getContext("2d");
-
-	pattern_canvas.width = 8;
-	pattern_canvas.height = 8;
-
-	const pattern_image_data = main_ctx.createImageData(pattern_canvas.width, pattern_canvas.height);
-
-	for (let x = 0; x < pattern_canvas.width; x += 1) {
-		for (let y = 0; y < pattern_canvas.height; y += 1) {
-			const map_value = dither_threshold_table[(x & 7) + ((y & 7) << 3)];
-			const px_white = lightness > map_value;
-			const index = ((y * pattern_image_data.width) + x) * 4;
-			pattern_image_data.data[index + 0] = px_white ? rgba2[0] : rgba1[0];
-			pattern_image_data.data[index + 1] = px_white ? rgba2[1] : rgba1[1];
-			pattern_image_data.data[index + 2] = px_white ? rgba2[2] : rgba1[2];
-			pattern_image_data.data[index + 3] = (px_white ? rgba2[3] : rgba1[3]) ?? 255; // handling also 3-length arrays (RGB)
-		}
-	}
-
-	pattern_ctx.putImageData(pattern_image_data, 0, 0);
-
-
-	return main_ctx.createPattern(pattern_canvas, "repeat");
-}
-
-/**
- * @param {Uint8ClampedArray | number[]} rgba1
- * @param {Uint8ClampedArray | number[]} rgba2
- * @returns {CanvasPattern[]}
- */
-function make_monochrome_palette(rgba1 = [0, 0, 0, 255], rgba2 = [255, 255, 255, 255]) {
-	const palette = [];
-	const n_colors_per_row = 14;
-	const n_colors = n_colors_per_row * 2;
-	for (let i = 0; i < n_colors_per_row; i++) {
-		let lightness = i / n_colors;
-		palette.push(make_monochrome_pattern(lightness, rgba1, rgba2));
-	}
-	for (let i = 0; i < n_colors_per_row; i++) {
-		let lightness = 1 - i / n_colors;
-		palette.push(make_monochrome_pattern(lightness, rgba1, rgba2));
-	}
-
-	return palette;
-}
-
-/**
  * @param {boolean} reverse
  * @param {string[]} colors
  * @param {number=} stripe_size
@@ -2832,40 +2717,13 @@ function image_attributes() {
 		const colors_option = $colors.find(":checked").val();
 		const unit = String($units.find(":checked").val());
 
-		const was_monochrome = monochrome;
-		let monochrome_info;
-
+		
 		image_attributes.unit = unit;
 		transparency = (transparency_option == "transparent");
-		monochrome = (colors_option == "monochrome");
-
+	
 		// added oyc0401
 		if(transparency_option == "transparent"){
 			selected_colors.background = 'transparent'
-		}
-
-		if (monochrome != was_monochrome) {
-			if (selection) {
-				// want to detect monochrome based on selection + canvas
-				// simplest way to do that is to meld them together
-				meld_selection_into_canvas();
-			}
-			monochrome_info = detect_monochrome(main_ctx);
-
-			if (monochrome) {
-				if (monochrome_info.isMonochrome && monochrome_info.presentNonTransparentRGBAs.length === 2) {
-					palette = make_monochrome_palette(...monochrome_info.presentNonTransparentRGBAs);
-				} else {
-					palette = monochrome_palette;
-				}
-			} else {
-				palette = polychrome_palette;
-			}
-			selected_colors.foreground = palette[0];
-			selected_colors.background = palette[14]; // first in second row
-			selected_colors.ternary = "";
-			$colorbox.rebuild_palette();
-			$G.trigger("option-changed");
 		}
 
 		const unit_to_px = unit_sizes_in_px[unit];
@@ -2875,18 +2733,6 @@ function image_attributes() {
 
 		if (!transparency && has_any_transparency(main_ctx)) {
 			make_opaque();
-		}
-
-		// 1. Must be after canvas resize to avoid weird undoable interaction and such.
-		// 2. Check that monochrome option changed, same as above.
-		//   a) for monochrome_info variable to be available
-		//   b) Consider the case where color is introduced to the canvas while in monochrome mode.
-		//      We only want to show this dialog if it would also change the palette (above), never leave you on an outdated palette.
-		//   c) And it's nice to be able to change other options without worrying about it trying to convert the document to monochrome.
-		if (monochrome != was_monochrome) {
-			if (monochrome && !monochrome_info.isMonochrome) {
-				show_convert_to_black_and_white();
-			}
 		}
 
 		image_attributes.$window.close();
@@ -3498,13 +3344,8 @@ function read_image_file(blob, callback) {
 			const { colorTable, bitsPerPixel, imageData } = decodeBMP(arrayBuffer);
 			file_format = bitsPerPixel === 24 ? "image/bmp" : `image/bmp;bpp=${bitsPerPixel}`;
 			if (colorTable.length >= 2) {
-				if (colorTable.length === 2) {
-					palette = make_monochrome_palette(...colorTable.map((color) => [color.r, color.g, color.b, 255]));
-					monochrome = true;
-				} else {
-					palette = colorTable.map((color) => `rgb(${color.r}, ${color.g}, ${color.b})`);
-					monochrome = false;
-				}
+				palette = colorTable.map((color) => `rgb(${color.r}, ${color.g}, ${color.b})`);
+				monochrome = false;
 			}
 			// if (bitsPerPixel !== 32 && bitsPerPixel !== 16) {
 			// 	for (let i = 3; i < imageData.data.length; i += 4) {
@@ -3523,23 +3364,15 @@ function read_image_file(blob, callback) {
 			// It may contain as many transparency entries as there are palette entries, or as few as one.
 			// tRNS chunk can also be used to specify a single color to be considered fully transparent in true-color mode.
 			if (tabs.PLTE && tabs.PLTE.length >= 3 * 2 && ctype === 3 /* palettized */) {
-				if (tabs.PLTE.length === 3 * 2) {
-					palette = make_monochrome_palette(
-						[...tabs.PLTE.slice(0, 3), tabs.tRNS?.[0] ?? 255],
-						[...tabs.PLTE.slice(3, 6), tabs.tRNS?.[1] ?? 255]
-					);
-					monochrome = true;
-				} else {
-					palette = new Array(tabs.PLTE.length / 3);
-					for (let i = 0; i < palette.length; i++) {
-						if (tabs.tRNS && tabs.tRNS.length >= i + 1) {
-							palette[i] = `rgba(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]}, ${tabs.tRNS[i] / 255})`;
-						} else {
-							palette[i] = `rgb(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]})`;
-						}
+				palette = new Array(tabs.PLTE.length / 3);
+				for (let i = 0; i < palette.length; i++) {
+					if (tabs.tRNS && tabs.tRNS.length >= i + 1) {
+						palette[i] = `rgba(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]}, ${tabs.tRNS[i] / 255})`;
+					} else {
+						palette[i] = `rgb(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]})`;
 					}
-					monochrome = false;
 				}
+				monochrome = false;
 			}
 			file_format = "image/png";
 			const image_data = new ImageData(new Uint8ClampedArray(rgba), width, height);
@@ -3796,9 +3629,9 @@ function show_multi_user_setup_dialog(from_current_document) {
 
 export {
 	$this_version_news,
-	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect, detect_monochrome,
+	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect,
 	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_new, file_open, file_print, file_save,
-	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node, make_monochrome_palette, make_monochrome_pattern, make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
+	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node,  make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
 	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
 	try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
@@ -3811,5 +3644,4 @@ window.show_error_message = show_error_message; // used by app-localization.js, 
 window.show_about_paint = show_about_paint; // used by electron-injected.js
 window.exit_fullscreen_if_ios = exit_fullscreen_if_ios; // used by app-localization.js
 window.get_tool_by_id = get_tool_by_id; // used by app-state.js
-window.make_monochrome_palette = make_monochrome_palette; // used by app-state.js
 window.sanity_check_blob = sanity_check_blob; // used by electron-injected.js

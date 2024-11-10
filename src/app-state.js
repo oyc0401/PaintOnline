@@ -1,12 +1,12 @@
-console.log('JS 실행:','app-state.js')
+console.log('JS 실행:','app-state.js');
 // @ts-check
-/* exported $thumbnail_window, airbrush_size, aliasing, brush_shape, brush_size, button, ctrl, current_history_node, enable_fs_access_api, enable_palette_loading_from_indexed_images, eraser_size, file_format, file_name, fill_color, helper_layer, history_node_to_cancel_to, magnification, main_ctx, monochrome, monochrome_palette, my_canvas_height, my_canvas_width, palette, pencil_size, pick_color_slot, pointer, pointer_active, pointer_buttons, pointer_over_canvas, pointer_previous, pointer_start, pointer_type, pointers, polychrome_palette, redos, return_to_magnification, return_to_tools, reverse, root_history_node, saved, selected_colors, selected_tool, selected_tools, selection, shift, show_grid, show_thumbnail, stroke_color, stroke_size, system_file_handle, text_tool_font, textbox, thumbnail_canvas, tool_transparent_mode, transparency, undos, update_helper_layer_on_pointermove_active */
+/* exported $thumbnail_window, airbrush_size, aliasing, brush_shape, brush_size, button, ctrl, current_history_node, enable_fs_access_api, enable_palette_loading_from_indexed_images, eraser_size, file_format, file_name, fill_color, helper_layer, history_node_to_cancel_to, magnification, main_ctx, my_canvas_height, my_canvas_width, palette, pencil_size, pick_color_slot, pointer, pointer_active, pointer_buttons, pointer_over_canvas, pointer_previous, pointer_start, pointer_type, pointers, polychrome_palette, redos, return_to_magnification, return_to_tools, reverse, root_history_node, saved, selected_colors, selected_tool, selected_tools, selection, shift, show_grid, show_thumbnail, stroke_color, stroke_size, system_file_handle, text_tool_font, textbox, thumbnail_canvas, tool_transparent_mode, transparency, undos, update_helper_layer_on_pointermove_active */
 
 // Can't import things until this file is a module...
 // (Well, could use dynamic imports, but that's async and thus probably as complicated as getting it to work with all ESM.)
-// import { default_palette } from "./color-data.js";
+import { default_palette } from "./color-data.js";
 // import { get_tool_by_id, make_monochrome_palette, make_history_node } from "./functions.js";
-// import { make_canvas } from "./helpers.js";
+import { make_canvas } from "./helpers.js";
 // import { TOOL_PENCIL } from "./tools.js";
 
 // Causes TypeScript errors
@@ -25,7 +25,6 @@ let my_canvas_height = default_canvas_height;
 
 let aliasing = true;
 let transparency = false;
-let monochrome = false;
 
 let magnification = default_magnification;
 let return_to_magnification = 4;
@@ -41,8 +40,6 @@ const main_ctx = main_canvas.ctx;
 let palette = window.default_palette;
 /** @type {(string | CanvasPattern)[]} */
 let polychrome_palette = palette;
-/** @type {(string | CanvasPattern)[]} */
-let monochrome_palette = window.make_monochrome_palette();
 
 // This feature is not ready yet.
 // It needs to let the user decide when to switch the palette or not, when saving/opening an image.
@@ -183,19 +180,20 @@ let pointers = [];
 
 
 const state = {};
-
+state.default_magnification  = default_magnification ;
+state.default_tool = default_tool;
+state.default_canvas_width = default_canvas_width;
+state.default_canvas_height = default_canvas_height;
 state.my_canvas_width = my_canvas_width;
 state.my_canvas_height = my_canvas_height;
 state.aliasing = aliasing;
 state.transparency = transparency;
-state.monochrome = monochrome;
 state.magnification = magnification;
 state.return_to_magnification = return_to_magnification;
 state.main_canvas = main_canvas;
 state.main_ctx = main_ctx;
 state.palette = palette;
 state.polychrome_palette = polychrome_palette;
-state.monochrome_palette = monochrome_palette;
 state.enable_palette_loading_from_indexed_images = enable_palette_loading_from_indexed_images;
 state.enable_fs_access_api = enable_fs_access_api;
 state.brush_shape = brush_shape;
@@ -247,4 +245,4 @@ Object.keys(state).forEach(key => {
 		window[key] = state[key];
 });
 
-export {state};
+export default state;

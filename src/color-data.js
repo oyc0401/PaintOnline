@@ -38,37 +38,6 @@ const default_palette = [
 	"rgb(128,64,0,0.3)", // tranparent
 	"rgb(128,64,0,0)", // tranparent
 ];
-const monochrome_palette_as_colors = [
-	"rgb(0,0,0)",
-	"rgb(9,9,9)",
-	"rgb(18,18,18)",
-	"rgb(27,27,27)",
-	"rgb(37,37,37)",
-	"rgb(46,46,46)",
-	"rgb(55,55,55)",
-	"rgb(63,63,63)",
-	"rgb(73,73,73)",
-	"rgb(82,82,82)",
-	"rgb(92,92,92)",
-	"rgb(101,101,101)",
-	"rgb(110,110,110)",
-	"rgb(119,119,119)",
-
-	"rgb(255,255,255)",
-	"rgb(250,250,250)",
-	"rgb(242,242,242)",
-	"rgb(212,212,212)",
-	"rgb(201,201,201)",
-	"rgb(191,191,191)",
-	"rgb(182,182,182)",
-	"rgb(159,159,159)",
-	"rgb(128,128,128)",
-	"rgb(173,173,173)",
-	"rgb(164,164,164)",
-	"rgb(155,155,155)",
-	"rgb(146,146,146)",
-	"rgb(137,137,137)",
-];
 
 // https://github.com/kouzhudong/win2k/blob/ce6323f76d5cd7d136b74427dad8f94ee4c389d2/trunk/private/shell/win16/comdlg/color.c#L38-L43
 // These are a fallback in case colors are not received from some driver.
@@ -189,7 +158,7 @@ const get_winter_palette = () => {
 
 
 export {
-	basic_colors, custom_colors, default_palette, get_winter_palette, monochrome_palette_as_colors
+	basic_colors, custom_colors, default_palette, get_winter_palette
 };
 // Temporary globals until all dependent code is converted to ES Modules
 window.default_palette = default_palette; // used by app-state.js
