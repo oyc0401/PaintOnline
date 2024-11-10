@@ -1076,8 +1076,25 @@ console.log('JS 실행:','app-localization.js');
 		// 	show_error_message(`Failed to load localizations for ${language_names[language]}.`, error);
 		// 	current_language = prev_language;
 		// });
-		const src = `localization/${language}/localizations.js`;
-		document.write(`<script src="${src}"></${""/*(avoiding ending script tag if inlined in HTML)*/}script>`);
+
+
+		const loadLocalization = async (language) => {
+			const modulePath = `../localization/${language}/localizations.js`;
+			try {
+				const localizationModule = await import(modulePath);
+				// 모듈을 가져오고 필요한 작업 수행
+				return localizationModule.default;
+			} catch (error) {
+				console.error(`Failed to load localization for language ${language}`, error);
+			}
+		};
+
+		loadLocalization(language).then((localization) => {
+			// 로드된 localizations을 사용
+		});
+		
+		// const src = `localization/${language}/localizations.js`;
+		// document.write(`<script src="${src}"></${""/*(avoiding ending script tag if inlined in HTML)*/}script>`);
 	}
 	// JSONP callback in the localization files
 	window.loaded_localizations = function loaded_localizations(language, mapping) {

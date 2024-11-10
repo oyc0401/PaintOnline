@@ -1,4 +1,6 @@
 console.log('JS 실행:','file-format-data.js')
+//const AnyPalette = require('../lib/anypalette-0.6.0.js');
+import AnyPalette from '../lib/anypalette-0.6.0.js';
 // @ts-check
 /* global get_direction, localize */
 

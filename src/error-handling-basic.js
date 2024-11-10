@@ -22,7 +22,9 @@ window.onerror = function (msg, url, lineNo, columnNo, _error) {
 		// 	// try-catch in case of circular references or old browsers without JSON.stringify
 		// 	error = JSON.stringify(error);
 		// } catch (e) {}
-		alert("Internal application error: " + msg + "\n\n" + "URL: " + url + "\n" + "Line: " + lineNo + "\n" + "Column: " + columnNo);
+		console.error("Internal application error: " + msg + "\n\n" + "URL: " + url + "\n" + "Line: " + lineNo + "\n" + "Column: " + columnNo);
+
+		//alert("Internal application error: " + msg + "\n\n" + "URL: " + url + "\n" + "Line: " + lineNo + "\n" + "Column: " + columnNo);
 	}
 	return false;
 };

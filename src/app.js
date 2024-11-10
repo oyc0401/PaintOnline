@@ -638,7 +638,7 @@ const $leftSliderContent = $(E("div"))
 	.addClass("added-slider-content left")
 	.appendTo($leftSlider);
 const sliderArea = $(E("div")).addClass("slider-area").appendTo($zoomBox);
-const zoomSlider = $(E("div")).appendTo(sliderArea);
+const $zoomSlider = $(E("div")).appendTo(sliderArea);
 const $rightSlider = $(E("div"))
 	.addClass("added-slider right")
 	.appendTo($zoomBox);
@@ -669,14 +669,14 @@ const valuesToScale = {
 
 // "-" 버튼 클릭 시 슬라이더 값 감소
 $decreaseButton.on("click", function () {
-	const currentValue = zoomSlider.slider("value");
+	const currentValue = $zoomSlider.slider("value");
 	const currentIndex = values.indexOf(currentValue);
 
 	let scale = valuesToScale[currentValue];
 
 	// 현재 값이 배열 내 첫 번째 값이 아니라면, 이전 값으로 이동
 	if (currentIndex > 0) {
-		zoomSlider.slider("value", values[currentIndex - 1]);
+			$zoomSlider.slider("value", values[currentIndex - 1]);
 		scale = valuesToScale[values[currentIndex - 1]];
 	}
 	set_magnification(scale);
@@ -684,21 +684,21 @@ $decreaseButton.on("click", function () {
 
 // "+" 버튼 클릭 시 슬라이더 값 증가
 $increaseButton.on("click", function () {
-	const currentValue = zoomSlider.slider("value");
+	const currentValue = $zoomSlider.slider("value");
 	const currentIndex = values.indexOf(currentValue);
 
 	let scale = valuesToScale[currentValue]
 	
 	// 현재 값이 배열 내 마지막 값이 아니라면, 다음 값으로 이동
 	if (currentIndex < values.length - 1) {
-		zoomSlider.slider("value", values[currentIndex + 1]);
+			$zoomSlider.slider("value", values[currentIndex + 1]);
 		scale = valuesToScale[values[currentIndex + 1]];
 	}
 	set_magnification(scale);
 });
 
 // 슬라이더 초기화
-zoomSlider.slider({
+	$zoomSlider.slider({
 	min: 0,
 	max: 16,
 	value: 8, // 슬라이더의 초기 위치 (가운데)
