@@ -11,7 +11,7 @@
   
   
   onMount(() => { 
-      setupState();
+      //setupState();
 
     setupApp();
   });
