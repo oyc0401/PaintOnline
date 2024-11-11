@@ -1,7 +1,7 @@
 console.log('JS 실행:','error-handling-basic.js')
 /* eslint-disable no-useless-concat */
 /* eslint-disable no-alert */
-import $ from "jquery";
+
 // Use only ES5 syntax for this script!
 // (I would enforce this but I wasn't able to get it working with ESLint.)
 
