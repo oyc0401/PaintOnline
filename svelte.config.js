@@ -11,12 +11,8 @@ const config = {
     adapter: adapter({
       out: 'build'
     }),
-    vite: {
-      resolve: {
-        alias: {
-          $store: path.resolve('./src/store')
-        }
-      }
+    alias: {
+      $store: path.resolve('./src/store')
     }
   },
   preprocess: vitePreprocess(),

@@ -1,6 +1,12 @@
 {
 	"compilerOptions": {
 		"paths": {
+			"$store": [
+				"../src/store"
+			],
+			"$store/*": [
+				"../src/store/*"
+			],
 			"$lib": [
 				"../src/lib"
 			],

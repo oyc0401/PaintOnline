@@ -25,7 +25,12 @@ let magnification = default_magnification;
 let return_to_magnification = 4;
 
 
+/** @type {PixelCanvas} */
+const main_canvas = window.make_canvas();
+main_canvas.classList.add("main-canvas");
 
+/** @type {PixelContext} */
+const main_ctx = main_canvas.ctx;
 
 
 /** @type {(string | CanvasPattern)[]} */
@@ -182,6 +187,8 @@ state.aliasing = aliasing;
 state.transparency = transparency;
 state.magnification = magnification;
 state.return_to_magnification = return_to_magnification;
+state.main_canvas = main_canvas;
+state.main_ctx = main_ctx;
 state.palette = palette;
 state.polychrome_palette = polychrome_palette;
 state.enable_palette_loading_from_indexed_images = enable_palette_loading_from_indexed_images;
@@ -230,6 +237,7 @@ state.button = button;
 state.pointer_over_canvas = pointer_over_canvas;
 state.update_helper_layer_on_pointermove_active = update_helper_layer_on_pointermove_active;
 state.pointers = pointers;
+
 
 Object.keys(state).forEach(key => {
 		window[key] = state[key];
