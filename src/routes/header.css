@@ -1,0 +1,10 @@
+.appbar{
+  display:flex;
+  align-items:center;
+  padding:8px 12px;
+  width:100%;
+}
+.main-logo{
+  width:26px;
+  height:26px;
+}

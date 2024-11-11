@@ -426,21 +426,21 @@ for (const [key, defaultValue] of Object.entries(window.systemHookDefaults)) {
 
 // #region App UI
 
-const $app =  $(E("div")).addClass("jspaint").appendTo("body");
+const $app =  $('.jspaint')[0];
 window.$app = $app;
 
-const $V = $(E("div")).addClass("vertical").appendTo($app);
-const $H = $(E("div")).addClass("horizontal").appendTo($V);
+const $V = $('.vertical')[0]; 
+const $H = $('.horizontal')[0];
 
-const $canvas_area = $(E("div"))
-	.addClass("canvas-area inset-deep")
-	.appendTo($H);
+const $canvas_area = $('.canvas-area')[0];
 window.$canvas_area = $canvas_area;
 
 // const $canvas_area = $(E("div")).addClass("canvas-area inset-deep").appendTo($H);
 // export { $canvas_area }; // 중괄호 안에 변수 이름을 적어 명명된 export로 설정
 
-const $canvas = $(main_canvas).appendTo($canvas_area);
+const $canvas = main_canvas;
+
+
 window.$canvas = $canvas;
 $canvas.css("touch-action", "none");
 window.canvas_bounding_client_rect = main_canvas.getBoundingClientRect(); // cached for performance, updated later

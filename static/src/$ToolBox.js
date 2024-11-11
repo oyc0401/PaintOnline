@@ -97,7 +97,7 @@ function $ToolBox(tools, is_extras) {
 	));
 
 	//console.log($tools)
-	$c.appendTo(get_direction() === "rtl" ? $right : $left); // opposite ColorBox by default
+	//$c.appendTo(get_direction() === "rtl" ? $right : $left); // opposite ColorBox by default
 	$c.update_selected_tool = () => {
 		$buttons.removeClass("selected");
 		selected_tools.forEach((selected_tool) => {

@@ -1,6 +1,25 @@
-<div class="menus" role="menubar" aria-label="Application Menu" aria-owns=" menu-popup-0gekl0na9c0r menu-popup-10n1r1loxtq4h menu-popup-1beih1rsbdlz7 menu-popup-1gc8g209j0ell" style="touch-action: none;">
-   <div class="menu-button 파일-(f)-menu-button" aria-expanded="false" aria-haspopup="true" role="menuitem" id="menu-button-파일 (F)-z91w5anly8w" aria-controls="menu-popup-0gekl0na9c0r" tabindex="-1"><span>파일 (F)</span></div>
-   <div class="menu-button 편집-(e)-menu-button" aria-expanded="false" aria-haspopup="true" role="menuitem" id="menu-button-편집 (E)-1az4o33sob6qi" aria-controls="menu-popup-10n1r1loxtq4h" tabindex="-1"><span>편집 (E)</span></div>
-   <div class="menu-button 보기-(v)-menu-button" aria-expanded="false" aria-haspopup="true" role="menuitem" id="menu-button-보기 (V)-1fk6axq9c73pm" aria-controls="menu-popup-1beih1rsbdlz7" tabindex="-1"><span>보기 (V)</span></div>
-   <div class="menu-button 이미지-(i)-menu-button" aria-expanded="false" aria-haspopup="true" role="menuitem" id="menu-button-이미지 (I)-1ktw07l9nh53" aria-controls="menu-popup-1gc8g209j0ell" tabindex="-1"><span>이미지 (I)</span></div>
-</div>
+<script>
+ import './header.css';
+
+</script>
+<header>
+   <div class="appbar">
+      <div class='main-logo'>아이콘</div>
+      <p class='flex-1'>제목없음 그림판</p>
+      <div class='redo-icon'>뒤로가기</div>
+      <div class='redo-icon'>앞으로</div>
+   </div>
+   <div class="menus">
+      <div class='menu-button'>메뉴</div>
+      <div class='menu-button'>선택</div>
+      <div class='menu-button'>메뉴</div>
+      <div class='menu-button'>메뉴</div>
+      <div class='menu-button'>메뉴</div>
+      <div class='menu-button'>메뉴</div>
+   </div>
+</header>
+
+
+<style lang="postcss">
+
+</style>

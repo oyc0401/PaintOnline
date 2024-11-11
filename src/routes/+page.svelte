@@ -5,10 +5,13 @@
   
   import welcome from '$lib/images/svelte-welcome.webp';
   import welcome_fallback from '$lib/images/svelte-welcome.png';
+  import { onMount } from 'svelte';
 
 
-  export let data;
-  console.log(data)
+  onMount( () => { 
+   
+  });
+
 </script>
 
 <svelte:head>
@@ -16,11 +19,11 @@
   <meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<section>
+<div class='vertical'>
    <Header></Header>
   
  <Canvas></Canvas>
   <Footer>
   </Footer>
-</section>
+</div>
 

@@ -271,6 +271,9 @@ function make_canvas(width, height) {
 	return new_canvas;
 }
 
+
+
+
 /**
  * @param {string} file_name  name of an image file in the help/ folder, including extension
  * @returns {HTMLImageElement}  an image element
