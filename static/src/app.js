@@ -89,6 +89,7 @@ import {
 	tools,
 } from "./tools.js";
 
+
 // #region Exports
 
 // Q: Why are the exports at the top of the file?
@@ -419,104 +420,13 @@ for (const [key, defaultValue] of Object.entries(window.systemHookDefaults)) {
 
 // #endregion
 
-// #region URL Params
-const update_from_url_params = () => {
-	if (location.hash.match(/eye-gaze-mode/i)) {
-		if (!$("body").hasClass("eye-gaze-mode")) {
-			$("body").addClass("eye-gaze-mode");
-			$G.triggerHandler("eye-gaze-mode-toggled");
-			$G.triggerHandler("theme-load"); // signal layout change
-		}
-	} else {
-		if ($("body").hasClass("eye-gaze-mode")) {
-			$("body").removeClass("eye-gaze-mode");
-			$G.triggerHandler("eye-gaze-mode-toggled");
-			$G.triggerHandler("theme-load"); // signal layout change
-		}
-	}
 
-	if (location.hash.match(/vertical-color-box-mode|eye-gaze-mode/i)) {
-		if (!$("body").hasClass("vertical-color-box-mode")) {
-			$("body").addClass("vertical-color-box-mode");
-			$G.triggerHandler("vertical-color-box-mode-toggled");
-			$G.triggerHandler("theme-load"); // signal layout change
-		}
-	} else {
-		if ($("body").hasClass("vertical-color-box-mode")) {
-			$("body").removeClass("vertical-color-box-mode");
-			$G.triggerHandler("vertical-color-box-mode-toggled");
-			$G.triggerHandler("theme-load"); // signal layout change
-		}
-	}
-
-	$("body").toggleClass(
-		"compare-reference",
-		!!location.hash.match(/compare-reference/i),
-	);
-	$("body").toggleClass(
-		"compare-reference-tool-windows",
-		!!location.hash.match(/compare-reference-tool-windows/i),
-	);
-	setTimeout(() => {
-		if (location.hash.match(/compare-reference/i)) {
-			// including compare-reference-tool-windows
-			select_tool(get_tool_by_id(TOOL_SELECT));
-			const test_canvas_width = 576;
-			const test_canvas_height = 432;
-			if (
-				main_canvas.width !== test_canvas_width ||
-				main_canvas.height !== test_canvas_height
-			) {
-				// Unfortunately, right now this can cause a reverse "Save changes?" dialog,
-				// where Discard will restore your drawing, Cancel will discard it, and Save will save a blank canvas,
-				// because the load from storage happens after this resize.
-				// But this is just a helper for development, so it's not a big deal.
-				// are_you_sure here doesn't help, either.
-				// are_you_sure(() => {
-				resize_canvas_without_saving_dimensions(
-					test_canvas_width,
-					test_canvas_height,
-				);
-				// });
-			}
-			if (!location.hash.match(/compare-reference-tool-windows/i)) {
-				$toolbox.dock($left);
-				$colorbox.dock($bottom);
-				window.debugKeepMenusOpen = false;
-			}
-		}
-		if (location.hash.match(/compare-reference-tool-windows/i)) {
-			$toolbox.undock_to(84, 35);
-			$colorbox.undock_to(239, 195);
-			window.debugKeepMenusOpen = true;
-			// $(".help-menu-button").click(); // have to trigger pointerdown/up, it doesn't respond to click
-			// $(".help-menu-button").trigger("pointerdown").trigger("pointerup"); // and it doesn't use jQuery
-			$(".help-menu-button")[0].dispatchEvent(new Event("pointerdown"));
-			$(".help-menu-button")[0].dispatchEvent(new Event("pointerup"));
-			$("[aria-label='About Paint']")[0].dispatchEvent(
-				new Event("pointerenter"),
-			);
-		}
-	}, 500);
-};
-update_from_url_params();
-$G.on("hashchange popstate change-url-params", update_from_url_params);
-
-// handle backwards compatibility URLs
-if (location.search.match(/eye-gaze-mode/)) {
-	change_url_param("eye-gaze-mode", true, { replace_history_state: true });
-	update_from_url_params();
-}
-if (location.search.match(/vertical-colors?-box/)) {
-	change_url_param("vertical-color-box", true, { replace_history_state: true });
-	update_from_url_params();
-}
 
 // #endregion
 
 // #region App UI
 
-const $app = $(E("div")).addClass("jspaint").appendTo("body");
+const $app =  $(E("div")).addClass("jspaint").appendTo("body");
 window.$app = $app;
 
 const $V = $(E("div")).addClass("vertical").appendTo($app);
@@ -724,6 +634,10 @@ $increaseButton.on("click", function () {
 });
 
 // #endregion
+
+
+
+
 
 // // #region Menu Bar
 let menu_bar_outside_frame = false;
