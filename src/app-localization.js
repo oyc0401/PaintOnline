@@ -1083,7 +1083,7 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 		// });
 
 
-		const loadLocalization = async (language) => {
+		const getlocal = async (language) => {
 			const modulePath = `../localization/${language}/localizations.js`;
 			try {
 				const localizationModule = await import(modulePath);
@@ -1096,7 +1096,7 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 			}
 		};
 
-		loadLocalization(language).then((localization) => {
+		getlocal(language).then((localization) => {
 			// 로드된 localizations을 사용
 			console.log('로컬',localization)
 		});
