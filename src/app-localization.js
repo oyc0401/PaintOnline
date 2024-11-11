@@ -1083,23 +1083,23 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 		// });
 
 
-		const getlocal = async (language) => {
-			const modulePath = `../localization/${language}/localizations.js`;
-			try {
-				const localizationModule = await import(modulePath);
+		// const getlocal = async (language) => {
+		// 	const modulePath = `../localization/${language}/localizations.js`;
+		// 	try {
+		// 		const localizationModule = await import(modulePath);
 				
-				console.log('언어 불러오기',language,localizationModule)
-				// 모듈을 가져오고 필요한 작업 수행
-				return localizationModule.default;
-			} catch (error) {
-				console.error(`Failed to load localization for language ${language}`, error);
-			}
-		};
+		// 		console.log('언어 불러오기',language,localizationModule)
+		// 		// 모듈을 가져오고 필요한 작업 수행
+		// 		return localizationModule.default;
+		// 	} catch (error) {
+		// 		console.error(`Failed to load localization for language ${language}`, error);
+		// 	}
+		// };
 
-		getlocal(language).then((localization) => {
-			// 로드된 localizations을 사용
-			console.log('로컬',localization)
-		});
+		// getlocal(language).then((localization) => {
+		// 	// 로드된 localizations을 사용
+		// 	console.log('로컬',localization)
+		// });
 		
 		// const src = `localization/${language}/localizations.js`;
 		// document.write(`<script src="${src}"></${""/*(avoiding ending script tag if inlined in HTML)*/}script>`);

@@ -1,19 +1,19 @@
-entrypoint = "index.js"
 modules = ["nodejs-22"]
 hidden = [".config", "package-lock.json"]
-run = ["npm",'run', "start"]
+run = "npm run dev"
+#run = ["npm",'run', "start"]
 
 [nix]
 channel = "stable-24_05"
 
 [deployment]
-run = ["npm",'run', "dev"]
+run = ["sh", "-c", "npm run dev"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
 localPort = 3000
-externalPort = 80
 
 [[ports]]
 localPort = 5173
+externalPort = 80
 
