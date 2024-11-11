@@ -19,7 +19,7 @@
   <meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<div class='vertical'>
+<div class='h-full flex flex-col'>
    <Header></Header>
   
  <Canvas></Canvas>

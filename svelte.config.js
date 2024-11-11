@@ -1,5 +1,6 @@
 import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import path from 'path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -10,8 +11,16 @@ const config = {
     adapter: adapter({
       out: 'build'
     }),
-     preprocess: vitePreprocess()
+    vite: {
+      resolve: {
+        alias: {
+          $store: path.resolve('./src/store')
+        }
+      }
+    }
   },
+  preprocess: vitePreprocess(),
+  
 };
 
 export default config;

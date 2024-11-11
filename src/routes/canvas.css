@@ -1,0 +1,11 @@
+.canvas-area{
+  height:100%;
+}
+
+.helper-layer{
+ pointer-events: none;
+  position: absolute;
+  left: 5px; top: 5px;
+  width: 683px; 
+  height: 384px;
+}

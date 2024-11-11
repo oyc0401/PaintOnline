@@ -3,8 +3,42 @@
   align-items:center;
   padding:8px 12px;
   width:100%;
+  background:white;
+  height:44px;
 }
 .main-logo{
   width:26px;
   height:26px;
+}
+.history-button{
+  width:44px;
+  height:44px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+
+
+.menus{
+  display:flex;
+  align-items:center;
+  width:100%;
+  background:#F0F0F0;
+  height:44px;
+  border-top:1px solid #DADBDC;
+  border-bottom: 1px solid #DADBDC;
+
+}
+
+.menu-button{
+  width:44px;
+  height:44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-button img{
+  height: auto;
 }
