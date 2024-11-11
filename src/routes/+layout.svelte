@@ -1,6 +1,11 @@
 <script>
   import Header from './Header.svelte';
   import './styles.css';
+
+
+  // import {hello} from "../../static/mod.js"
+
+  // console.log('hello')
 </script>
 
 <div class="app">
