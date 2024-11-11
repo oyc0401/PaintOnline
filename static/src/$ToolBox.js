@@ -5,7 +5,7 @@ import { $Component } from "./$Component.js";
 // import { get_direction, localize } from "./app-localization.js";
 import { select_tool, select_tools } from "./functions.js";
 import { $G, E, make_css_cursor } from "./helpers.js";
-import $ from "jquery";
+// import $ from "jquery";
 
 let theme_dev_blob_url;
 

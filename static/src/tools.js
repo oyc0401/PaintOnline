@@ -53,7 +53,7 @@ import {
 	$choose_transparent_mode,
 } from "./tool-options.js";
 
-import $ from 'jquery';
+// import $ from 'jquery';
 // This is for linting stuff at the bottom.
 // It has to be defined per file, so I'm defining it up top and immediately disabling it.
 // It's re-enabled below to disallow the use of `this` in functions that are added to the tool objects

@@ -5,7 +5,7 @@ import { $Component } from "./$Component.js";
 // import { get_direction, localize } from "./app-localization.js";
 import { show_edit_colors_window } from "./edit-colors.js";
 import { $G, E, make_canvas } from "./helpers.js";
-import $ from "jquery";
+// import $ from "jquery";
 
 /**
  * Used by the Colors Box and by the Edit Colors dialog.

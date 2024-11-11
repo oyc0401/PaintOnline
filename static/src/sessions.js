@@ -9,7 +9,7 @@ import { change_url_param, get_uris, load_image_from_uri, open_from_image_info, 
 import { $G, debounce, get_help_folder_icon, image_data_match, make_canvas, to_canvas_coords } from "./helpers.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
-import $ from 'jquery'
+// import $ from 'jquery'
 
 const log = (...args) => {
 	window.console?.log(...args);

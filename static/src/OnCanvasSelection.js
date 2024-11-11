@@ -7,7 +7,7 @@ import { get_tool_by_id, make_or_update_undoable, undoable, update_helper_layer 
 import { $G, get_icon_for_tool, get_rgba_from_color, make_canvas, make_css_cursor, to_canvas_coords } from "./helpers.js";
 import { replace_colors_with_swatch } from "./image-manipulation.js";
 import { TOOL_SELECT } from "./tools.js";
-import $ from 'jquery'
+// import $ from 'jquery'
 
 class OnCanvasSelection extends OnCanvasObject {
 	/**

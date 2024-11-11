@@ -1,5 +1,5 @@
 console.log('JS 실행:','app-localization.js');
-import $ from "jquery";
+// import $ from "./lib/jquery-3.4.1.js";
 import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 // @ts-check
 /* global $G, AccessKeys, are_you_sure, exit_fullscreen_if_ios, show_error_message, showMessageBox */

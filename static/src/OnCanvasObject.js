@@ -2,7 +2,7 @@ console.log('JS 실행:','OnCanvasObject.js')
 // @ts-check
 /* global $canvas_area, $status_position, $status_size, canvas_handles, magnification */
 import { $G, E } from "./helpers.js";
-import $ from 'jquery'
+// import $ from 'jquery'
 
 class OnCanvasObject {
 	/**

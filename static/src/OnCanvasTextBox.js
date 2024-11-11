@@ -6,7 +6,7 @@ import { Handles } from "./Handles.js";
 import { OnCanvasObject } from "./OnCanvasObject.js";
 import { update_helper_layer } from "./functions.js";
 import { $G, E, get_rgba_from_color, make_canvas, make_css_cursor, to_canvas_coords } from "./helpers.js";
-import $ from 'jquery'
+// import $ from 'jquery'
 
 class OnCanvasTextBox extends OnCanvasObject {
 	/**

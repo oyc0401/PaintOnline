@@ -2,7 +2,7 @@ console.log('JS 실행:','Hendles.js')
 // @ts-check
 /* global magnification */
 import { $G, E, make_css_cursor, to_canvas_coords } from "./helpers.js";
-import $ from 'jquery'
+// import $ from 'jquery'
 /**
  * Handles for resizable, draggable, on-canvas objects.
  * @param {object} options

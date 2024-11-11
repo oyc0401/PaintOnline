@@ -2,7 +2,7 @@
 
 /* global AccessKeys, main_canvas */
 /* eslint-disable @stylistic/space-unary-ops */
-import $ from "jquery";
+// import $ from "jquery";
 import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 
 console.log('JS 실행:','helpers.js')

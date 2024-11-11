@@ -7,7 +7,7 @@ console.log('JS 실행:','app.js')
 import { $ColorBox } from "./$ColorBox.js";
 import { $ToolBox } from "./$ToolBox.js";
 import { Handles } from "./Handles.js";
-import $ from 'jquery';
+// import $ from 'jquery';
 import {MenuBar} from '../lib/os-gui/MenuBar.js';
 
 // import { get_direction, localize } from "./app-localization.js";

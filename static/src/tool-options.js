@@ -4,7 +4,7 @@ console.log('JS 실행:','tool-options.js')
 import { set_magnification } from "./functions.js";
 import { $G, E, make_canvas } from "./helpers.js";
 import { render_brush, replace_colors_with_swatch, stamp_brush_canvas } from "./image-manipulation.js";
-import $ from "jquery";
+// import $ from "jquery";
 
 const ChooserCanvas = (
 	url,

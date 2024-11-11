@@ -3,7 +3,7 @@ console.log('JS 실행:','$ToolWindow.js')
 /* global $Window */
 
 import { $G, E } from "./helpers.js";
-import $ from "jquery";
+// import $ from "jquery";
 /**
  * @param {OSGUIWindowOptions} options
  * @returns {OSGUI$Window}

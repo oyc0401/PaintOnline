@@ -6,7 +6,7 @@ console.log('JS 실행:','functions.js')
 import UPNG from '../lib/UPNG.js'
 import pdfjs from '../lib/pdf.js/build/pdf.js'
 import AnyPalette from '../lib/anypalette-0.6.0.js';
-import $ from 'jquery'
+// import $ from 'jquery'
 import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 
 import { $DialogWindow } from "./$ToolWindow.js";
