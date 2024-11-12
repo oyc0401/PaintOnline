@@ -151,31 +151,16 @@
       <!-- Scripts that are not yet transitioned to ES Modules are marked as "defer"
     so that the ES Modules (which are implicitly deferred) can still export globals to be consumed by the non-module scripts,
     which helps with progressively converting the codebase to ES Modules. -->
-      <!-- <script type="module" src="src/msgbox.js"></script> -->
-      <!-- <script type="module" src="src/functions.js"></script> -->
-      <!-- <script type="module" src="src/helpers.js"></script> -->
-      <!-- <script type="module" src="src/storage.js"></script>
-      <script type="module" src="src/$Component.js"></script>
-      <script type="module" src="src/$ToolWindow.js"></script> -->
-
-      <!-- After show_error_message, showMessageBox, make_window_supporting_scale, and localize are defined,
-    set up better global error handling. -->
-      <!-- <script type="module" src="src/error-handling-enhanced.js"></script>
-      <script type="module" src="src/Handles.js"></script>
-      <script type="module" src="src/OnCanvasObject.js"></script>
-      <script type="module" src="src/OnCanvasSelection.js"></script>
-      <script type="module" src="src/OnCanvasHelperLayer.js"></script>
-      <script type="module" src="src/image-manipulation.js"></script>
-      <script type="module" src="src/tool-options.js"></script>
-      <script type="module" src="src/tools.js"></script>
+      <script type="module" src="src/msgbox.js"></script>
+      <script type="module" src="src/functions.js"></script>
+      <script type="module" src="src/helpers.js"></script>
+    
+      <script type="module" src="src/error-handling-enhanced.js"></script>
+    
+      <script type="module" src="src/tools.js"></script> 
       <script type="module" src="src/color-data.js"></script>
-      <script type="module" src="src/file-format-data.js"></script> -->
-      <!-- <script type="module" src="src/menus.js"></script> -->
-
       <script type="module" src="src/app.js"></script>
       <script type="module" src="src/sessions.js"></script>
-
-    
     
     <div style="height:100%">%sveltekit.body%</div>
   </body>

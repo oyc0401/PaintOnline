@@ -443,4 +443,4 @@ export {
 };
 // Temporary globals until all dependent code is converted to ES Modules
 window.$G = $G; // used by app-localization.js
-window.make_canvas = make_canvas; // used by app-state.js, electron-injected.js
+window.make_canvas = make_canvas; // used by app-state.js
