@@ -10,7 +10,7 @@
   import {setupState} from "../setupState";
   
   onMount(() => { 
-      //setupState();
+    setupState();
 
     setupApp();
     window.setSession();

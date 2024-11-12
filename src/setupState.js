@@ -16,7 +16,8 @@ export function setupState() {
 
   let magnification = default_magnification;
   let return_to_magnification = 4;
-  
+
+
   /** @type {PixelCanvas} */
   const main_canvas = window.make_canvas();
   main_canvas.classList.add("main-canvas");
@@ -24,7 +25,6 @@ export function setupState() {
   /** @type {PixelContext} */
   const main_ctx = main_canvas.ctx;
 
-  console.log('main:',main_canvas)
 
   /** @type {(string | CanvasPattern)[]} */
   let palette = window.default_palette;
@@ -92,8 +92,6 @@ export function setupState() {
 
   /** @type {OnCanvasSelection} */
   let selection; // singleton
-  /** @type {OnCanvasTextBox} */
-  let textbox; // singleton
   /** @type {OnCanvasHelperLayer} */
   let helper_layer; // instance used for the grid and tool previews (not a singleton)
   /** @type {OSGUI$Window} */
@@ -201,7 +199,6 @@ export function setupState() {
   state.return_to_tools = return_to_tools;
   state.selected_colors = selected_colors;
   state.selection = selection;
-  state.textbox = textbox;
   state.helper_layer = helper_layer;
   state.$thumbnail_window = $thumbnail_window;
   state.thumbnail_canvas = thumbnail_canvas;
@@ -231,8 +228,11 @@ export function setupState() {
   state.update_helper_layer_on_pointermove_active = update_helper_layer_on_pointermove_active;
   state.pointers = pointers;
 
+
+  window.globAppstate={};
+
   Object.keys(state).forEach(key => {
-      window[key] = state[key];
+      window['globAppstate'][key] = state[key];
   });
 
 }
