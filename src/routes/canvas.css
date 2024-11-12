@@ -1,5 +1,11 @@
 .canvas-area{
   height:100%;
+  flex: 1;
+  display: block !important;
+  position: relative;
+  overflow: auto;
+  padding: 3px;
+  direction: ltr/*rtl:ignore*/;
 }
 
 .helper-layer{
