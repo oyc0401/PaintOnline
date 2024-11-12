@@ -1,5 +1,59 @@
 console.log('JS 실행:','functions.js')
 
+
+// let {
+// 	return_to_magnification,
+// 	main_canvas,
+// 	main_ctx,
+// 	palette,
+// 	polychrome_palette,
+// 	enable_palette_loading_from_indexed_images,
+// 	enable_fs_access_api,
+// 	brush_shape,
+// 	brush_size,
+// 	eraser_size,
+// 	airbrush_size,
+// 	pencil_size,
+// 	stroke_size,
+// 	tool_transparent_mode,
+// 	stroke_color,
+// 	fill_color,
+// 	pick_color_slot,
+// 	selected_tool,
+// 	selected_tools,
+// 	return_to_tools,
+// 	selected_colors,
+// 	selection,
+// 	helper_layer,
+// 	$thumbnail_window,
+// 	thumbnail_canvas,
+// 	show_grid,
+// 	show_thumbnail,
+// 	text_tool_font,
+// 	root_history_node,
+// 	current_history_node,
+// 	history_node_to_cancel_to,
+// 	undos,
+// 	redos,
+// 	file_name,
+// 	file_format,
+// 	system_file_handle,
+// 	saved,
+// 	pointer,
+// 	pointer_start,
+// 	pointer_previous,
+// 	pointer_active,
+// 	pointer_type,
+// 	pointer_buttons,
+// 	reverse,
+// 	ctrl,
+// 	shift,
+// 	button,
+// 	pointer_over_canvas,
+// 	update_helper_layer_on_pointermove_active,
+// 	pointers
+// } = window.globAppstate;
+
 import UPNG from '../lib/UPNG.js'
 import pdfjs from '../lib/pdf.js/build/pdf.js'
 import AnyPalette from '../lib/anypalette-0.6.0.js';
@@ -255,10 +309,10 @@ function update_helper_layer_immediately() {
 		scroll_x_fraction = Math.min(scroll_x_fraction, 1);
 		scroll_y_fraction = Math.min(scroll_y_fraction, 1);
 
-		let viewport_x = Math.floor(Math.max(scroll_x_fraction * (window.globAppstate.main_canvas.width - thumbnail_canvas.width), 0));
-		let viewport_y = Math.floor(Math.max(scroll_y_fraction * (window.globAppstate.main_canvas.height - thumbnail_canvas.height), 0));
+		let viewport_x = Math.floor(Math.max(scroll_x_fraction * (window.globAppstate.main_canvas.width - window.globAppstate.thumbnail_canvas.width), 0));
+		let viewport_y = Math.floor(Math.max(scroll_y_fraction * (window.globAppstate.main_canvas.height - window.globAppstate.thumbnail_canvas.height), 0));
 
-		render_canvas_view(thumbnail_canvas, 1, viewport_x, viewport_y, false); // devicePixelRatio?
+		render_canvas_view(window.globAppstate.thumbnail_canvas, 1, viewport_x, viewport_y, false); // devicePixelRatio?
 	}
 }
 
@@ -288,7 +342,7 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 
 	// Don't preview tools while dragging components/component windows
 	// (The magnifier preview is especially confusing looking together with the component preview!)
-	if ($("body").hasClass("dragging") && !pointer_active) {
+	if ($("body").hasClass("dragging") && !window.globAppstate.pointer_active) {
 		// tools_to_preview.length = 0;
 		// Curve and Polygon tools have a persistent state over multiple gestures,
 		// which is, as of writing, part of the "tool preview"; it's ugly,
@@ -339,7 +393,7 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 
 		hctx.restore();
 
-		if (!is_helper_layer && !selection.dragging) {
+		if (!is_helper_layer && !window.globAppstate.selection.dragging) {
 			// Draw the selection outline (for the thumbnail)
 			// (The main canvas view has the OnCanvasSelection object which has its own outline)
 			draw_selection_box(hctx, window.globAppstate.selection.x, window.globAppstate.selection.y, window.globAppstate.selection.width, window.globAppstate.selection.height, scale, -viewport_x, -viewport_y);
@@ -383,7 +437,7 @@ function set_magnification(new_scale, anchor_point) {
 
 	window.globAppstate.magnification = new_scale;
 	if (new_scale !== 1) {
-		return_to_magnification = new_scale;
+		window.globAppstate.return_to_magnification = new_scale;
 	}
 	update_magnified_canvas_size(); // also updates canvas_bounding_client_rect used by from_canvas_coords()
 
@@ -718,11 +772,11 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		reset_file();
 		reset_selected_colors();
 		reset_canvas_and_history(); // (with newly reset colors)
-		set_magnification(default_magnification);
+		set_magnification(window.globAppstate.default_magnification);
 
 		window.globAppstate.main_ctx.copy(info.image || info.image_data);
 		apply_file_format_and_palette_info(info);
-		transparency = has_any_transparency(window.globAppstate.main_ctx);
+		window.globAppstate.transparency = has_any_transparency(window.globAppstate.main_ctx);
 		$canvas_area.trigger("resize");
 
 		window.globAppstate.current_history_node.name = localize("Open");
@@ -783,9 +837,9 @@ function open_from_file(file, source_file_handle) {
 					show_file_format_errors({ as_image_error, as_palette_error });
 					return;
 				}
-				palette = new_palette.map((color) => color.toString());
+				window.globAppstate.palette = new_palette.map((color) => color.toString());
 				//$colorbox.rebuild_palette();
-				window.console?.log(`Loaded palette: ${palette.map(() => "%c█").join("")}`, ...palette.map((color) => `color: ${color};`));
+				window.console?.log(`Loaded palette: ${window.globAppstate.palette.map(() => "%c█").join("")}`, ...window.globAppstate.palette.map((color) => `color: ${color};`));
 			});
 			return;
 		}
@@ -798,20 +852,20 @@ function open_from_file(file, source_file_handle) {
  * @param {ImageInfo} info
  */
 function apply_file_format_and_palette_info(info) {
-	file_format = info.file_format;
+	window.globAppstate.file_format = info.file_format;
 
-	if (!enable_palette_loading_from_indexed_images) {
+	if (!window.globAppstate.enable_palette_loading_from_indexed_images) {
 		return;
 	}
 
 	if (info.palette) {
 		window.console?.log(`Loaded palette from image file: ${info.palette.map(() => "%c█").join("")}`, ...info.palette.map((color) => `color: ${color};`));
-		palette = info.palette;
-		window.globAppstate.selected_colors.foreground = palette[0];
-		window.globAppstate.selected_colors.background = palette.length === 14 * 2 ? palette[14] : palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
+		window.globAppstate.palette = info.palette;
+		window.globAppstate.selected_colors.foreground = window.globAppstate.palette[0];
+		window.globAppstate.selected_colors.background = window.globAppstate.palette.length === 14 * 2 ? window.globAppstate.palette[14] : window.globAppstate.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
 		$G.trigger("option-changed");
 	} else if (monochrome && !info.monochrome) {
-		palette = default_palette;
+		window.globAppstate.palette = default_palette;
 		reset_selected_colors();
 	}
 	//$colorbox.rebuild_palette();
@@ -846,7 +900,7 @@ function file_new() {
 		reset_file();
 		reset_selected_colors();
 		reset_canvas_and_history(); // (with newly reset colors)
-		set_magnification(default_magnification);
+		set_magnification(window.globAppstate.default_magnification);
 
 		$G.triggerHandler("session-update"); // autosave
 	});
@@ -908,7 +962,7 @@ function file_save(maybe_saved_callback = () => { }, update_from_saved = true) {
 	if (!save_file_handle || window.globAppstate.file_name.match(/\.(svg|pdf)$/i)) {
 		return file_save_as(maybe_saved_callback, update_from_saved);
 	}
-	write_image_file(window.globAppstate.main_canvas, file_format, async (blob) => {
+	write_image_file(window.globAppstate.main_canvas, window.globAppstate.file_format, async (blob) => {
 		// An error may be shown by `systemHooks.writeBlobToHandle`,
 		// or it may be unknown whether the save will succeed,
 		// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
@@ -938,7 +992,7 @@ function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true
 		formats: image_formats,
 		defaultFileName: window.globAppstate.file_name,
 		defaultPath: typeof window.globAppstate.system_file_handle === "string" ? window.globAppstate.system_file_handle : null,
-		defaultFileFormatID: file_format,
+		defaultFileFormatID: window.globAppstate.file_format,
 		getBlob: (new_file_type) => {
 			return new Promise((resolve) => {
 				write_image_file(window.globAppstate.main_canvas, new_file_type, (blob) => {
@@ -950,7 +1004,7 @@ function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true
 			window.globAppstate.saved = true;
 			window.globAppstate.system_file_handle = newFileHandle;
 			window.globAppstate.file_name = newFileName;
-			file_format = newFileFormatID;
+			window.globAppstate.file_format = newFileFormatID;
 			update_title();
 			maybe_saved_callback();
 			if (update_from_saved) {
@@ -1596,7 +1650,7 @@ function go_to_history_node(target_history_node, canceling) {
 
 	const old_history_path =
 		window.globAppstate.redos.length > 0 ?
-			[redos[0], ...get_history_ancestors(window.globAppstate.redos[0])] :
+			[window.globAppstate.redos[0], ...get_history_ancestors(window.globAppstate.redos[0])] :
 			[from_history_node, ...get_history_ancestors(from_history_node)];
 
 	// window.console?.log("target_history_node:", target_history_node);
@@ -2204,10 +2258,10 @@ function clear() {
 		window.globAppstate.saved = false;
 		update_title();
 
-		if (transparency) {
+		if (window.globAppstate.transparency) {
 			window.globAppstate.main_ctx.clearRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 		} else {
-			window.globAppstate.main_ctx.fillStyle = selected_colors.background;
+			window.globAppstate.main_ctx.fillStyle = window.globAppstate.selected_colors.background;
 			window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 		}
 	});
@@ -2501,8 +2555,8 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 				window.globAppstate.main_canvas.height = new_height;
 				window.globAppstate.main_ctx.disable_image_smoothing();
 
-				if (!transparency) {
-					window.globAppstate.main_ctx.fillStyle = selected_colors.background;
+				if (!window.globAppstate.transparency) {
+					window.globAppstate.main_ctx.fillStyle = window.globAppstate.selected_colors.background;
 					window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 				}
 
@@ -2621,7 +2675,7 @@ function image_attributes() {
 			<div class="radio-field"><input type="radio" name="transparency" id="attribute-opaque" value="opaque"><label for="attribute-opaque">${localize("Opaque")}</label></div>
 		</div>
 	`);
-	$transparency.find(`[value=${transparency ? "transparent" : "opaque"}]`).attr({ checked: true });
+	$transparency.find(`[value=${window.globAppstate.transparency ? "transparent" : "opaque"}]`).attr({ checked: true });
 
 	// Buttons on the right
 
@@ -2632,11 +2686,11 @@ function image_attributes() {
 
 		
 		image_attributes.unit = unit;
-		transparency = (transparency_option == "transparent");
+		window.globAppstate.transparency = (transparency_option == "transparent");
 	
 		// added oyc0401
 		if(transparency_option == "transparent"){
-			selected_colors.background = 'transparent'
+			window.globAppstate.selected_colors.background = 'transparent'
 		}
 
 		const unit_to_px = unit_sizes_in_px[unit];
@@ -2644,7 +2698,7 @@ function image_attributes() {
 		const height = Number($height.val()) * unit_to_px;
 		resize_canvas_and_save_dimensions(~~width, ~~height);
 
-		if (!transparency && has_any_transparency(window.globAppstate.main_ctx)) {
+		if (!window.globAppstate.transparency && has_any_transparency(window.globAppstate.main_ctx)) {
 			make_opaque();
 		}
 

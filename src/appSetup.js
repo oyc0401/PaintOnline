@@ -1,4 +1,5 @@
 export function setupApp() {
+  
   const $ = window.$;
 
   window.update_fill_and_stroke_colors_and_lineWidth =
@@ -203,11 +204,11 @@ export function setupApp() {
     // also, ideally check that modifiers *aren't* pressed
     // probably best to use a library at this point!
 
-    if (selection) {
+    if (window.globAppstate.selection) {
       const nudge_selection = (delta_x, delta_y) => {
-        selection.x += delta_x;
-        selection.y += delta_y;
-        selection.position();
+        window.globAppstate.selection.x += delta_x;
+        window.globAppstate.selection.y += delta_y;
+        window.globAppstate.selection.position();
       };
       switch (e.key) {
         case "ArrowLeft":
@@ -231,13 +232,13 @@ export function setupApp() {
 
     if (e.key === "Escape") {
       // Note: Escape handled above too!
-      if (selection) {
+      if (window.globAppstate.selection) {
         deselect();
       } else {
         cancel();
       }
     } else if (e.key === "Enter") {
-      if (selection) {
+      if (window.globAppstate.selection) {
         deselect();
       }
     } else if (e.key === "F4") {
@@ -276,24 +277,24 @@ export function setupApp() {
       const minus = e.code === "NumpadSubtract" || e.key === "-";
       const delta = Number(plus) - Number(minus); // const delta = +plus++ -minus--; // Δ = ±±±±
 
-      if (selection) {
-        selection.scale(2 ** delta);
+      if (window.globAppstate.selection) {
+        window.globAppstate.selection.scale(2 ** delta);
       } else {
-        if (selected_tool.id === TOOL_BRUSH) {
+        if (window.globAppstate.selected_tool.id === TOOL_BRUSH) {
           window.globAppstate.brush_size = Math.max(1, Math.min(window.globAppstate.brush_size + delta, 500));
-        } else if (selected_tool.id === TOOL_ERASER) {
+        } else if (window.globAppstate.selected_tool.id === TOOL_ERASER) {
           window.globAppstate.eraser_size = Math.max(1, Math.min(window.globAppstate.eraser_size + delta, 500));
-        } else if (selected_tool.id === TOOL_AIRBRUSH) {
+        } else if (window.globAppstate.selected_tool.id === TOOL_AIRBRUSH) {
           window.globAppstate.airbrush_size = Math.max(1, Math.min(window.globAppstate.airbrush_size + delta, 500));
-        } else if (selected_tool.id === TOOL_PENCIL) {
+        } else if (window.globAppstate.selected_tool.id === TOOL_PENCIL) {
           window.globAppstate.pencil_size = Math.max(1, Math.min(window.globAppstate.pencil_size + delta, 50));
         } else if (
-          selected_tool.id === TOOL_LINE ||
-          selected_tool.id === TOOL_CURVE ||
-          selected_tool.id === TOOL_RECTANGLE ||
-          selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
-          selected_tool.id === TOOL_ELLIPSE ||
-          selected_tool.id === TOOL_POLYGON
+          window.globAppstate.selected_tool.id === TOOL_LINE ||
+          window.globAppstate.selected_tool.id === TOOL_CURVE ||
+          window.globAppstate.selected_tool.id === TOOL_RECTANGLE ||
+          window.globAppstate.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
+          window.globAppstate.selected_tool.id === TOOL_ELLIPSE ||
+          window.globAppstate.selected_tool.id === TOOL_POLYGON
         ) {
           window.globAppstate.stroke_size = Math.max(1, Math.min(window.globAppstate.stroke_size + delta, 500));
         }
@@ -301,9 +302,9 @@ export function setupApp() {
         $G.trigger("option-changed");
         if (window.globAppstate.button !== undefined && window.globAppstate.pointer) {
           // pointer may only be needed for tests
-          window.globAppstate.selected_tools.forEach((selected_tool) => {
-            tool_go(selected_tool);
-          });
+         
+          tool_go(window.globAppstate.selected_tool);
+         
         }
         update_helper_layer();
       }
@@ -492,10 +493,10 @@ export function setupApp() {
     }
 
     if (e.type === "copy" || e.type === "cut") {
-      if (selection && selection.canvas) {
+      if (window.globAppstate.selection && window.globAppstate.selection.canvas) {
         const do_sync_clipboard_copy_or_cut = () => {
           // works only for pasting within a jspaint instance
-          const data_url = selection.canvas.toDataURL();
+          const data_url = window.globAppstate.selection.canvas.toDataURL();
           cd.setData("text/x-data-uri; type=image/png", data_url);
           cd.setData("text/uri-list", data_url);
           cd.setData("URL", data_url);
@@ -608,13 +609,13 @@ export function setupApp() {
 
   // #region Palette Updating From Theme
 
-  function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
+  function update_fill_and_stroke_colors_and_lineWidth(selected_tooool) {
     window.globAppstate.main_ctx.lineWidth = window.globAppstate.stroke_size;
 
     const reverse_because_fill_only = !!(
-      selected_tool.$options &&
-      selected_tool.$options.fill &&
-      !selected_tool.$options.stroke
+      selected_tooool.$options &&
+      selected_tooool.$options.fill &&
+      !selected_tooool.$options.stroke
     );
     /** @type {ColorSelectionSlot} */
     const color_k =
@@ -638,8 +639,8 @@ export function setupApp() {
     /** @type {ColorSelectionSlot} */
     let stroke_color_k = fill_color_k;
 
-    if (selected_tool.shape || selected_tool.shape_colors) {
-      if (!selected_tool.stroke_only) {
+    if (selected_tooool.shape || selected_tooool.shape_colors) {
+      if (!selected_tooool.stroke_only) {
         if (window.globAppstate.reverse !== reverse_because_fill_only) {
           fill_color_k = "foreground";
           stroke_color_k = "background";
@@ -648,21 +649,21 @@ export function setupApp() {
           stroke_color_k = "foreground";
         }
       }
-      window.globAppstate.main_ctx.fillStyle = fill_color = window.globAppstate.selected_colors[fill_color_k];
+      window.globAppstate.main_ctx.fillStyle = window.globAppstate.fill_color = window.globAppstate.selected_colors[fill_color_k];
       window.globAppstate.main_ctx.strokeStyle = window.globAppstate.stroke_color = window.globAppstate.selected_colors[stroke_color_k];
     }
     window.globAppstate.pick_color_slot = fill_color_k;
   }
 
   // #region Primary Canvas Interaction
-  function tool_go(selected_tool, event_name) {
-    update_fill_and_stroke_colors_and_lineWidth(selected_tool);
+  function tool_go(selected_tooool, event_name) {
+    update_fill_and_stroke_colors_and_lineWidth(selected_tooool);
 
-    if (selected_tool[event_name]) {
-      selected_tool[event_name](window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
+    if (selected_tooool[event_name]) {
+      selected_tooool[event_name](window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
     }
-    if (selected_tool.paint) {
-      selected_tool.paint(window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
+    if (selected_tooool.paint) {
+      selected_tooool.paint(window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
     }
   }
   function canvas_pointer_move(e) {
@@ -689,34 +690,34 @@ export function setupApp() {
     if (e.shiftKey) {
       // TODO: snap to 45 degrees for Pencil and Polygon tools
       // TODO: manipulating the pointer object directly is a bit of a hack
-      if (selected_tool.id === TOOL_LINE || selected_tool.id === TOOL_CURVE) {
+      if (window.globAppstate.selected_tool.id === TOOL_LINE || window.globAppstate.selected_tool.id === TOOL_CURVE) {
         // snap to eight directions
         const dist = Math.sqrt(
-          (window.globAppstate.pointer.y - pointer_start.y) * (window.globAppstate.pointer.y - pointer_start.y) +
-            (window.globAppstate.pointer.x - pointer_start.x) * (window.globAppstate.pointer.x - pointer_start.x),
+          (window.globAppstate.pointer.y - window.globAppstate.pointer_start.y) * (window.globAppstate.pointer.y - window.globAppstate.pointer_start.y) +
+            (window.globAppstate.pointer.x - window.globAppstate.pointer_start.x) * (window.globAppstate.pointer.x - window.globAppstate.pointer_start.x),
         );
         const eighth_turn = TAU / 8;
         const angle_0_to_8 =
-          Math.atan2(window.globAppstate.pointer.y - pointer_start.y, window.globAppstate.pointer.x - pointer_start.x) /
+          Math.atan2(window.globAppstate.pointer.y - window.globAppstate.pointer_start.y, window.globAppstate.pointer.x - window.globAppstate.pointer_start.x) /
           eighth_turn;
         const angle = Math.round(angle_0_to_8) * eighth_turn;
-        window.globAppstate.pointer.x = Math.round(pointer_start.x + Math.cos(angle) * dist);
-        window.globAppstate.pointer.y = Math.round(pointer_start.y + Math.sin(angle) * dist);
-      } else if (selected_tool.shape) {
+        window.globAppstate.pointer.x = Math.round(window.globAppstate.pointer_start.x + Math.cos(angle) * dist);
+        window.globAppstate.pointer.y = Math.round(window.globAppstate.pointer_start.y + Math.sin(angle) * dist);
+      } else if (window.globAppstate.selected_tool.shape) {
         // snap to four diagonals
-        const w = Math.abs(window.globAppstate.pointer.x - pointer_start.x);
-        const h = Math.abs(window.globAppstate.pointer.y - pointer_start.y);
+        const w = Math.abs(window.globAppstate.pointer.x - window.globAppstate.pointer_start.x);
+        const h = Math.abs(window.globAppstate.pointer.y - window.globAppstate.pointer_start.y);
         if (w < h) {
-          if (window.globAppstate.pointer.y > pointer_start.y) {
-            window.globAppstate.pointer.y = pointer_start.y + w;
+          if (window.globAppstate.pointer.y > window.globAppstate.pointer_start.y) {
+            window.globAppstate.pointer.y = window.globAppstate.pointer_start.y + w;
           } else {
-            window.globAppstate.pointer.y = pointer_start.y - w;
+            window.globAppstate.pointer.y = window.globAppstate.pointer_start.y - w;
           }
         } else {
-          if (window.globAppstate.pointer.x > pointer_start.x) {
-            window.globAppstate.pointer.x = pointer_start.x + h;
+          if (window.globAppstate.pointer.x > window.globAppstate.pointer_start.x) {
+            window.globAppstate.pointer.x = window.globAppstate.pointer_start.x + h;
           } else {
-            window.globAppstate.pointer.x = pointer_start.x - h;
+            window.globAppstate.pointer.x = window.globAppstate.pointer_start.x - h;
           }
         }
       }
@@ -962,8 +963,8 @@ export function setupApp() {
         }
 
         if (window.globAppstate.selected_tools.length === 1) {
-          if (selected_tool.deselect) {
-            select_tools(return_to_tools);
+          if (window.globAppstate.selected_tool.deselect) {
+            select_tools(window.globAppstate.return_to_tools);
           }
         }
         $G.off("pointermove", canvas_pointer_move);
@@ -972,7 +973,7 @@ export function setupApp() {
         }
 
         if (!canceling) {
-          history_node_to_cancel_to = null;
+          window.globAppstate.history_node_to_cancel_to = null;
         }
       });
     };
@@ -986,36 +987,36 @@ export function setupApp() {
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
       if ($canvas_area.is(e.target)) {
-        if (selection) {
+        if (window.globAppstate.selection) {
           deselect();
         }
       }
     }
   });
 
-  function prevent_selection($el) {
-    $el.on("mousedown selectstart contextmenu", (e) => {
-      if (e.isDefaultPrevented()) {
-        return;
-      }
-      if (
-        e.target instanceof HTMLSelectElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLLabelElement && e.type !== "contextmenu") ||
-        (e.target instanceof HTMLInputElement && e.target.type !== "color")
-      ) {
-        return;
-      }
-      if (e.button === 1) {
-        return; // allow middle-click scrolling
-      }
-      e.preventDefault();
-      // we're just trying to prevent selection
-      // but part of the default for mousedown is *deselection*
-      // so we have to do that ourselves explicitly
-      window.getSelection().removeAllRanges();
-    });
-  }
+  // function prevent_selection($el) {
+  //   $el.on("mousedown selectstart contextmenu", (e) => {
+  //     if (e.isDefaultPrevented()) {
+  //       return;
+  //     }
+  //     if (
+  //       e.target instanceof HTMLSelectElement ||
+  //       e.target instanceof HTMLTextAreaElement ||
+  //       (e.target instanceof HTMLLabelElement && e.type !== "contextmenu") ||
+  //       (e.target instanceof HTMLInputElement && e.target.type !== "color")
+  //     ) {
+  //       return;
+  //     }
+  //     if (e.button === 1) {
+  //       return; // allow middle-click scrolling
+  //     }
+  //     e.preventDefault();
+  //     // we're just trying to prevent selection
+  //     // but part of the default for mousedown is *deselection*
+  //     // so we have to do that ourselves explicitly
+  //     window.getSelection().removeAllRanges();
+  //   });
+  // }
 
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
   $G.on("blur", () => {

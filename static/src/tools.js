@@ -1,9 +1,10 @@
 console.log('JS 실행:','tools.js')
 // @ts-check
-/* global selection:writable, stroke_size:writable, textbox:writable */
-/* global $canvas, $canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
+/* global selection:writable, window.globAppstate.stroke_size:writable, textbox:writable */
+/* global $canvas, $canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, window.globAppstate.pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
+
 import {
 	deselect,
 	get_tool_by_id,
@@ -182,72 +183,7 @@ const tools = [
 	{
 		id: TOOL_FREE_FORM_SELECT,
 		name: localize("Free-Form Select"),
-		speech_recognition: [
-			"lasso",
-			"select with lasso",
-			"select by lassoing",
-			"lassoing",
-			"lasso select",
-			"freeform select",
-			"free-form select",
-			"free form select",
-			"polygonal select",
-			"polygon select",
-			"shape select",
-			"outline select",
-			"select by outline",
-			"select by outlining",
-			"star select",
-			"shape select",
-			"select by shape",
-			"select by drawing a shape",
-			"select by drawing shape",
-			"lasso selection",
-			"freeform selection",
-			"free-form selection",
-			"free form selection",
-			"polygonal selection",
-			"polygon selection",
-			"shape selection",
-			"outline selection",
-			"selection by outline",
-			"selection by outlining",
-			"star selection",
-			"shape selection",
-			"selection by shape",
-			"selection by drawing a shape",
-			"selection by drawing shape",
-			"lasso selecting",
-			"freeform selecting",
-			"free-form selecting",
-			"free form selecting",
-			"polygonal selecting",
-			"polygon selecting",
-			"shape selecting",
-			"outline selecting",
-			"selecting by outline",
-			"selecting by outlining",
-			"star selecting",
-			"shape selecting",
-			"selecting by shape",
-			"selecting by drawing a shape",
-			"selecting by drawing shape",
-			"lasso selector",
-			"freeform selector",
-			"free-form selector",
-			"free form selector",
-			"polygonal selector",
-			"polygon selector",
-			"shape selector",
-			"outline selector",
-			"by outline selector",
-			"outlining selector",
-			"star selector",
-			"shape selector",
-			"by shape selector",
-			"by drawing a shape selector",
-			"by drawing shape selector",
-		],
+		speech_recognition: [		],
 		help_icon: "p_free.gif",
 		description: localize(
 			"Selects a free-form part of the picture to move, copy, or edit.",
@@ -267,10 +203,10 @@ const tools = [
 		y_max: -Infinity,
 
 		pointerdown() {
-			this.x_min = pointer.x;
-			this.x_max = pointer.x + 1;
-			this.y_min = pointer.y;
-			this.y_max = pointer.y + 1;
+			this.x_min = window.globAppstate.pointer.x;
+			this.x_max = window.globAppstate.pointer.x + 1;
+			this.y_min = window.globAppstate.pointer.y;
+			this.y_max = window.globAppstate.pointer.y + 1;
 			this.points = [];
 			this.preview_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
@@ -280,23 +216,23 @@ const tools = [
 		},
 		paint(_ctx, _x, _y) {
 			// Constrain the pointer to the canvas
-			pointer.x = Math.min(window.globAppstate.main_canvas.width, pointer.x);
-			pointer.x = Math.max(0, pointer.x);
-			pointer.y = Math.min(window.globAppstate.main_canvas.height, pointer.y);
-			pointer.y = Math.max(0, pointer.y);
+			window.globAppstate.pointer.x = Math.min(window.globAppstate.main_canvas.width, window.globAppstate.pointer.x);
+			window.globAppstate.pointer.x = Math.max(0, window.globAppstate.pointer.x);
+			window.globAppstate.pointer.y = Math.min(window.globAppstate.main_canvas.height, window.globAppstate.pointer.y);
+			window.globAppstate.pointer.y = Math.max(0, window.globAppstate.pointer.y);
 			// Add the point
-			this.points.push(pointer);
+			this.points.push(window.globAppstate.pointer);
 			// Update the boundaries of the polygon
-			this.x_min = Math.min(pointer.x, this.x_min);
-			this.x_max = Math.max(pointer.x, this.x_max);
-			this.y_min = Math.min(pointer.y, this.y_min);
-			this.y_max = Math.max(pointer.y, this.y_max);
+			this.x_min = Math.min(window.globAppstate.pointer.x, this.x_min);
+			this.x_max = Math.max(window.globAppstate.pointer.x, this.x_max);
+			this.y_min = Math.min(window.globAppstate.pointer.y, this.y_min);
+			this.y_max = Math.max(window.globAppstate.pointer.y, this.y_max);
 
 			bresenham_line(
 				window.globAppstate.pointer_previous.x,
 				window.globAppstate.pointer_previous.y,
-				pointer.x,
-				pointer.y,
+				window.globAppstate.pointer.x,
+				window.globAppstate.pointer.y,
 				(x, y) => {
 					this.ffs_paint_iteration(x, y);
 				},
@@ -351,7 +287,7 @@ const tools = [
 				this.y_max,
 			);
 
-			if (selection) {
+			if (window.globAppstate.selection) {
 				// for silly multitools feature
 				show_error_message(
 					"This isn't supposed to happen: Free-Form Select after Select in the tool chain?",
@@ -366,14 +302,14 @@ const tools = [
 					soft: true,
 				},
 				() => {
-					selection = new OnCanvasSelection(
+					window.globAppstate.selection = new OnCanvasSelection(
 						this.x_min,
 						this.y_min,
 						this.x_max - this.x_min,
 						this.y_max - this.y_min,
 						contents_within_polygon,
 					);
-					selection.cut_out_background();
+					window.globAppstate.selection.cut_out_background();
 				},
 			);
 		},
@@ -418,12 +354,12 @@ const tools = [
 		cursor: ["precise", [16, 16], "crosshair"],
 		selectBox(rect_x, rect_y, rect_width, rect_height) {
 			if (rect_width > 1 && rect_height > 1) {
-				var free_form_selection = selection;
-				if (selection) {
+				var free_form_selection = window.globAppstate.selection;
+				if (window.globAppstate.selection) {
 					// for silly multitools feature
 					meld_selection_into_canvas();
 				}
-				if (ctrl) {
+				if (window.globAppstate.ctrl) {
 					undoable({ name: "Crop" }, () => {
 						var cropped_canvas = make_canvas(rect_width, rect_height);
 						cropped_canvas.ctx.drawImage(window.globAppstate.main_canvas, -rect_x, -rect_y);
@@ -480,14 +416,14 @@ const tools = [
 							soft: true,
 						},
 						() => {
-							selection = new OnCanvasSelection(
+							window.globAppstate.selection = new OnCanvasSelection(
 								x_min,
 								y_min,
 								x_max - x_min,
 								y_max - y_min,
 								contents_canvas,
 							);
-							selection.cut_out_background();
+								window.globAppstate.cut_out_background();
 						},
 					);
 				} else {
@@ -498,7 +434,7 @@ const tools = [
 							soft: true,
 						},
 						() => {
-							selection = new OnCanvasSelection(
+							window.globAppstate.selection = new OnCanvasSelection(
 								rect_x,
 								rect_y,
 								rect_width,
@@ -525,10 +461,10 @@ const tools = [
 		mask_canvas: null,
 
 		get_rect(x, y) {
-			const rect_x = Math.ceil(x - eraser_size / 2);
-			const rect_y = Math.ceil(y - eraser_size / 2);
-			const rect_w = eraser_size;
-			const rect_h = eraser_size;
+			const rect_x = Math.ceil(x - window.globAppstate.eraser_size / 2);
+			const rect_y = Math.ceil(y - window.globAppstate.eraser_size / 2);
+			const rect_w = window.globAppstate.eraser_size;
+			const rect_h = window.globAppstate.eraser_size;
 			return { rect_x, rect_y, rect_w, rect_h };
 		},
 
@@ -553,7 +489,7 @@ const tools = [
 				this.render_from_mask(ctx, true);
 			}
 
-			ctx.fillStyle = selected_colors.background;
+			ctx.fillStyle = window.globAppstate.selected_colors.background;
 			ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
 		},
 		drawPreviewAboveGrid(
@@ -603,14 +539,14 @@ const tools = [
 			ctx.restore();
 
 			/** @type {string | CanvasPattern | CanvasGradient} */
-			let color = selected_colors.background;
+			let color = window.globAppstate.selected_colors.background;
 
 			const translucent = get_rgba_from_color(color)[3] < 1;
 
 			if (translucent) {
 				color = previewing
 					? "rgba(255, 0, 0, 0.3)"
-					: selected_colors.background;
+					: window.globAppstate.selected_colors.background;
 			}
 
 			const mask_fill_canvas = make_canvas(this.mask_canvas);
@@ -654,7 +590,7 @@ const tools = [
 		eraser_paint_iteration(ctx, x, y) {
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
 
-			this.color_eraser_mode = button !== 0;
+			this.color_eraser_mode = window.globAppstate.button !== 0;
 
 			if (!this.color_eraser_mode) {
 				// Eraser
@@ -665,7 +601,7 @@ const tools = [
 				// Right click with the eraser to selectively replace
 				// the selected foreground color with the selected background color
 
-				const fg_rgba = get_rgba_from_color(selected_colors.foreground);
+				const fg_rgba = get_rgba_from_color(window.globAppstate.selected_colors.foreground);
 
 				const test_image_data = ctx.getImageData(
 					rect_x,
@@ -712,7 +648,7 @@ const tools = [
 		description: "Fills an area with the selected drawing color.",
 		cursor: ["fill-bucket", [8, 22], "crosshair"],
 		pointerdown(ctx, x, y) {
-			if (shift) {
+			if (window.globAppstate.shift) {
 				undoable(
 					{
 						name: "Replace Color",
@@ -720,7 +656,7 @@ const tools = [
 					},
 					() => {
 						// Perform global color replacement
-						draw_noncontiguous_fill(ctx, x, y, fill_color);
+						draw_noncontiguous_fill(ctx, x, y, window.globAppstate.fill_color);
 					},
 				);
 			} else {
@@ -731,7 +667,7 @@ const tools = [
 					},
 					() => {
 						// Perform a normal fill operation
-						draw_fill(ctx, x, y, fill_color);
+						draw_fill(ctx, x, y, window.globAppstate.fill_color);
 					},
 				);
 			}
@@ -770,7 +706,7 @@ const tools = [
 			this.display_current_color();
 		},
 		pointerup() {
-			selected_colors[pick_color_slot] = this.current_color;
+			window.globAppstate.selected_colors[window.globAppstate.pick_color_slot] = this.current_color;
 			$G.trigger("option-changed");
 		},
 		$options: $(E("div")),
@@ -937,7 +873,7 @@ const tools = [
 		pointerdown(_ctx, x, y) {
 			const prev_magnification = magnification;
 			const prospective_magnification =
-				this.getProspectiveMagnification(button);
+				this.getProspectiveMagnification(window.globAppstate.button);
 
 			//console.log("예정 배율:", prospective_magnification);
 			
@@ -994,7 +930,7 @@ const tools = [
 		cursor: ["precise-dotted", [16, 16], "crosshair"],
 		dynamic_preview_cursor: true,
 		get_brush() {
-			return { size: window.globAppstate.brush_size, shape: brush_shape };
+			return { size: window.globAppstate.brush_size, shape: window.globAppstate.brush_shape };
 		},
 		$options: $choose_brush,
 	},
@@ -1007,7 +943,7 @@ const tools = [
 		cursor: ["airbrush", [7, 22], "crosshair"],
 		paint_on_time_interval: 5,
 		paint_mask(ctx, x, y) {
-			const r = airbrush_size / 2;
+			const r = window.globAppstate.airbrush_size / 2;
 			for (let i = 0; i < 6 + r / 5; i++) {
 				const rx = (Math.random() * 2 - 1) * r;
 				const ry = (Math.random() * 2 - 1) * r;
@@ -1038,8 +974,8 @@ const tools = [
 		cursor: ["precise", [16, 16], "crosshair"],
 		stroke_only: true,
 		shape(ctx, x, y, w, h) {
-			update_brush_for_drawing_lines(stroke_size);
-			draw_line(ctx, x, y, x + w, y + h, stroke_size);
+			update_brush_for_drawing_lines(window.globAppstate.stroke_size);
+			draw_line(ctx, x, y, x + w, y + h, window.globAppstate.stroke_size);
 		},
 		$options: $choose_stroke_size,
 	},
@@ -1108,7 +1044,7 @@ const tools = [
 				return;
 			}
 
-			update_brush_for_drawing_lines(stroke_size);
+			update_brush_for_drawing_lines(window.globAppstate.stroke_size);
 
 			const i = this.points.length - 1;
 			this.points[i].x = x;
@@ -1134,7 +1070,7 @@ const tools = [
 					this.points[3].y,
 					this.points[1].x,
 					this.points[1].y,
-					stroke_size,
+					window.globAppstate.stroke_size,
 				);
 			} else if (this.points.length === 3) {
 				draw_quadratic_curve(
@@ -1145,7 +1081,7 @@ const tools = [
 					this.points[2].y,
 					this.points[1].x,
 					this.points[1].y,
-					stroke_size,
+					window.globAppstate.stroke_size,
 				);
 			} else if (this.points.length === 2) {
 				draw_line(
@@ -1154,7 +1090,7 @@ const tools = [
 					this.points[0].y,
 					this.points[1].x,
 					this.points[1].y,
-					stroke_size,
+					window.globAppstate.stroke_size,
 				);
 			} else {
 				draw_line(
@@ -1163,7 +1099,7 @@ const tools = [
 					this.points[0].y,
 					this.points[0].x,
 					this.points[0].y,
-					stroke_size,
+					window.globAppstate.stroke_size,
 				);
 			}
 
@@ -1269,7 +1205,7 @@ const tools = [
 				ctx.fillRect(x, y, w, h);
 			}
 			if (this.$options.stroke) {
-				if (w < stroke_size * 2 || h < stroke_size * 2) {
+				if (w < window.globAppstate.stroke_size * 2 || h < window.globAppstate.stroke_size * 2) {
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
 					ctx.fillRect(x, y, w, h);
@@ -1277,10 +1213,10 @@ const tools = [
 				} else {
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
-					ctx.fillRect(x, y, stroke_size, h);
-					ctx.fillRect(x + w - stroke_size, y, stroke_size, h);
-					ctx.fillRect(x, y, w, stroke_size);
-					ctx.fillRect(x, y + h - stroke_size, w, stroke_size);
+					ctx.fillRect(x, y, window.globAppstate.stroke_size, h);
+					ctx.fillRect(x + w - window.globAppstate.stroke_size, y, window.globAppstate.stroke_size, h);
+					ctx.fillRect(x, y, w, window.globAppstate.stroke_size);
+					ctx.fillRect(x, y + h - window.globAppstate.stroke_size, w, window.globAppstate.stroke_size);
 					ctx.restore();
 				}
 			}
@@ -1356,12 +1292,12 @@ const tools = [
 			const d = Math.sqrt(dx * dx + dy * dy);
 			if ($("body").hasClass("eye-gaze-mode")) {
 				if (this.points.length >= 3) {
-					if (d < stroke_size * 10 + 20) {
+					if (d < window.globAppstate.stroke_size * 10 + 20) {
 						this.complete(ctx);
 					}
 				}
 			} else {
-				if (d < stroke_size * 5.1010101) {
+				if (d < window.globAppstate.stroke_size * 5.1010101) {
 					// arbitrary number (@TODO: find correct value (or formula))
 					this.complete(ctx);
 				}
@@ -1422,10 +1358,10 @@ const tools = [
 				this.preview_canvas.ctx.drawImage(window.globAppstate.main_canvas, 0, 0);
 				this.preview_canvas.ctx.strokeStyle = "white";
 				this.preview_canvas.ctx.globalCompositeOperation = "difference";
-				var orig_stroke_size = stroke_size;
-				stroke_size = 2;
+				var orig_stroke_size = window.globAppstate.stroke_size;
+				window.globAppstate.stroke_size = 2;
 				draw_line_strip(this.preview_canvas.ctx, this.points);
-				stroke_size = orig_stroke_size;
+				window.globAppstate.stroke_size = orig_stroke_size;
 			} else if (this.points.length > 1) {
 				this.preview_canvas.ctx.strokeStyle = window.globAppstate.stroke_color;
 				draw_line_strip(this.preview_canvas.ctx, this.points);
@@ -1436,7 +1372,7 @@ const tools = [
 					this.points[0].y,
 					this.points[0].x,
 					this.points[0].y,
-					stroke_size,
+					window.globAppstate.stroke_size,
 				);
 			}
 
@@ -1469,13 +1405,13 @@ const tools = [
 						icon: get_icon_for_tool(this),
 					},
 					() => {
-						ctx.fillStyle = fill_color;
+						ctx.fillStyle = window.globAppstate.fill_color;
 						ctx.strokeStyle = window.globAppstate.stroke_color;
 
-						var orig_stroke_size = stroke_size;
+						var orig_stroke_size = window.globAppstate.stroke_size;
 						if (this.$options.fill && !this.$options.stroke) {
-							stroke_size = 2;
-							ctx.strokeStyle = fill_color;
+							window.globAppstate.stroke_size = 2;
+							ctx.strokeStyle = window.globAppstate.fill_color;
 						}
 
 						draw_polygon(
@@ -1486,7 +1422,7 @@ const tools = [
 							this.$options.fill,
 						);
 
-						stroke_size = orig_stroke_size;
+						window.globAppstate.stroke_size = orig_stroke_size;
 					},
 				);
 			}
@@ -1580,16 +1516,16 @@ const tools = [
 				h = -h;
 			}
 
-			if (w < stroke_size || h < stroke_size) {
+			if (w < window.globAppstate.stroke_size || h < window.globAppstate.stroke_size) {
 				ctx.fillStyle = ctx.strokeStyle;
 				draw_ellipse(ctx, x, y, w, h, false, true);
 			} else {
 				draw_ellipse(
 					ctx,
-					x + ~~(stroke_size / 2),
-					y + ~~(stroke_size / 2),
-					w - stroke_size,
-					h - stroke_size,
+					x + ~~(window.globAppstate.stroke_size / 2),
+					y + ~~(window.globAppstate.stroke_size / 2),
+					w - window.globAppstate.stroke_size,
+					h - window.globAppstate.stroke_size,
 					this.$options.stroke,
 					this.$options.fill,
 				);
@@ -1700,7 +1636,7 @@ const tools = [
 				h = -h;
 			}
 
-			if (w < stroke_size || h < stroke_size) {
+			if (w < window.globAppstate.stroke_size || h < window.globAppstate.stroke_size) {
 				ctx.fillStyle = ctx.strokeStyle;
 				const radius = Math.min(8, w / 2, h / 2);
 				// const radius_x = Math.min(8, w/2);
@@ -1720,17 +1656,17 @@ const tools = [
 			} else {
 				const radius = Math.min(
 					8,
-					(w - stroke_size) / 2,
-					(h - stroke_size) / 2,
+					(w - window.globAppstate.stroke_size) / 2,
+					(h - window.globAppstate.stroke_size) / 2,
 				);
-				// const radius_x = Math.min(8, (w - stroke_size)/2);
-				// const radius_y = Math.min(8, (h - stroke_size)/2);
+				// const radius_x = Math.min(8, (w - window.globAppstate.stroke_size)/2);
+				// const radius_y = Math.min(8, (h - window.globAppstate.stroke_size)/2);
 				draw_rounded_rectangle(
 					ctx,
-					x + ~~(stroke_size / 2),
-					y + ~~(stroke_size / 2),
-					w - stroke_size,
-					h - stroke_size,
+					x + ~~(window.globAppstate.stroke_size / 2),
+					y + ~~(window.globAppstate.stroke_size / 2),
+					w - window.globAppstate.stroke_size,
+					h - window.globAppstate.stroke_size,
 					radius,
 					radius,
 					// radius_x, radius_y,
@@ -1747,7 +1683,7 @@ const tools = [
 
 tools.forEach((tool) => {
 	if (tool.selectBox) {
-		// TODO: is drag_start_x/y redundant with pointer_start.x/y?
+		// TODO: is drag_start_x/y redundant with window.globAppstate.pointer_start.x/y?
 		let drag_start_x = 0;
 		let drag_start_y = 0;
 		let pointer_has_moved = false;
@@ -1757,25 +1693,25 @@ tools.forEach((tool) => {
 		let rect_height = 0;
 
 		tool.pointerdown = () => {
-			drag_start_x = pointer.x;
-			drag_start_y = pointer.y;
+			drag_start_x = window.globAppstate.pointer.x;
+			drag_start_y = window.globAppstate.pointer.y;
 			pointer_has_moved = false;
 			$G.one("pointermove", () => {
 				pointer_has_moved = true;
 			});
-			if (selection) {
+			if (window.globAppstate.selection) {
 				meld_selection_into_canvas();
 			}
 			canvas_handles.hide();
 		};
 		tool.paint = () => {
-			rect_x = ~~Math.max(0, Math.min(drag_start_x, pointer.x));
-			rect_y = ~~Math.max(0, Math.min(drag_start_y, pointer.y));
+			rect_x = ~~Math.max(0, Math.min(drag_start_x, window.globAppstate.pointer.x));
+			rect_y = ~~Math.max(0, Math.min(drag_start_y, window.globAppstate.pointer.y));
 			rect_width =
-				~~Math.min(window.globAppstate.main_canvas.width, Math.max(drag_start_x, pointer.x) + 1) -
+				~~Math.min(window.globAppstate.main_canvas.width, Math.max(drag_start_x, window.globAppstate.pointer.x) + 1) -
 				rect_x;
 			rect_height =
-				~~Math.min(window.globAppstate.main_canvas.height, Math.max(drag_start_y, pointer.y + 1)) -
+				~~Math.min(window.globAppstate.main_canvas.height, Math.max(drag_start_y, window.globAppstate.pointer.y + 1)) -
 				rect_y;
 			$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 		};
@@ -1854,13 +1790,13 @@ tools.forEach((tool) => {
 			tool.shape_canvas.ctx.lineWidth = window.globAppstate.main_ctx.lineWidth;
 			tool.shape(
 				tool.shape_canvas.ctx,
-				pointer_start.x,
-				pointer_start.y,
-				pointer.x - pointer_start.x,
-				pointer.y - pointer_start.y,
+				window.globAppstate.pointer_start.x,
+				window.globAppstate.pointer_start.y,
+				window.globAppstate.pointer.x - window.globAppstate.pointer_start.x,
+				window.globAppstate.pointer.y - window.globAppstate.pointer_start.y,
 			);
-			const signed_width = pointer.x - pointer_start.x || 1;
-			const signed_height = pointer.y - pointer_start.y || 1;
+			const signed_width = window.globAppstate.pointer.x - window.globAppstate.pointer_start.x || 1;
+			const signed_height = window.globAppstate.pointer.y - window.globAppstate.pointer_start.y || 1;
 			$status_size.text(`${signed_width} x ${signed_height}px`);
 		};
 		tool.pointerup = () => {
