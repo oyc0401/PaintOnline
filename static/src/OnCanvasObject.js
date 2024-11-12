@@ -3,6 +3,15 @@ console.log('JS 실행:','OnCanvasObject.js')
 /* global $canvas_area, $status_position, $status_size, canvas_handles */
 import { $G, E } from "./helpers.js";
 // import $ from 'jquery'
+// let{
+// 	update_fill_and_stroke_colors_and_lineWidth ,
+// 	$canvas_area,
+// 	$canvas,
+// 	canvas_bounding_client_rect,
+// 	canvas_handles ,
+// 	$status_position,
+// 	$status_size ,
+// }= window.globApp;
 
 class OnCanvasObject {
 	/**
@@ -18,9 +27,9 @@ class OnCanvasObject {
 		this.width = width;
 		this.height = height;
 		this.hideMainCanvasHandles = hideMainCanvasHandles;
-		this.$el = $(E("div")).addClass("on-canvas-object").appendTo($canvas_area);
+		this.$el = $(E("div")).addClass("on-canvas-object").appendTo(window.globApp.$canvas_area);
 		if (this.hideMainCanvasHandles) {
-			canvas_handles.hide();
+			window.globApp.canvas_handles.hide();
 		}
 		$G.on("resize theme-load", this._global_resize_handler = () => {
 			this.position();
@@ -31,8 +40,8 @@ class OnCanvasObject {
 		// const direction = get_direction();
 		// const left_for_ltr = direction === "rtl" ? "right" : "left";
 		// const offset_left = parseFloat($canvas_area.css(`padding-${left_for_ltr}`));
-		const offset_left = parseFloat($canvas_area.css("padding-left"));
-		const offset_top = parseFloat($canvas_area.css("padding-top"));
+		const offset_left = parseFloat(window.globApp.$canvas_area.css("padding-left"));
+		const offset_top = parseFloat(window.globApp.$canvas_area.css("padding-top"));
 		this.$el.css({
 			position: "absolute",
 			// [left_for_ltr]: magnification * (direction === "rtl" ? canvas.width - this.width - this.x : this.x) + offset_left,
@@ -42,14 +51,14 @@ class OnCanvasObject {
 			height: window.globAppstate.magnification * this.height,
 		});
 		if (updateStatus) {
-			$status_position.text(`${this.x}, ${this.y}px`);
-			$status_size.text(`${this.width} x ${this.height}px`);
+			window.globApp.$status_position.text(`${this.x}, ${this.y}px`);
+			window.globApp.$status_size.text(`${this.width} x ${this.height}px`);
 		}
 	}
 	destroy() {
 		this.$el.remove();
 		if (this.hideMainCanvasHandles) {
-			canvas_handles.show();
+			window.globApp.canvas_handles.show();
 		}
 		$G.off("resize theme-load", this._global_resize_handler);
 	}

@@ -1,6 +1,7 @@
 console.log('JS 실행:','functions.js')
 
 
+
 // let {
 // 	return_to_magnification,
 // 	main_canvas,
@@ -194,8 +195,8 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 }
 
 function update_magnified_canvas_size() {
-	$canvas.css("width", window.globAppstate.main_canvas.width * window.globAppstate.magnification);
-	$canvas.css("height", window.globAppstate.main_canvas.height * window.globAppstate.magnification);
+	window.globApp.$canvas.css("width", window.globAppstate.main_canvas.width * window.globAppstate.magnification);
+	window.globApp.$canvas.css("height", window.globAppstate.main_canvas.height * window.globAppstate.magnification);
 
 	update_canvas_rect();
 }
@@ -251,16 +252,16 @@ function update_helper_layer_immediately() {
 	}
 
 	const margin = 15;
-	const viewport_x = Math.floor(Math.max($canvas_area.scrollLeft() / window.globAppstate.magnification - margin, 0));
+	const viewport_x = Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / window.globAppstate.magnification - margin, 0));
 	// Nevermind, canvas, isn't aligned to the right in RTL layout!
 	// const viewport_x =
 	// 	get_direction() === "rtl" ?
-	// 		// Note: $canvas_area.scrollLeft() can return negative numbers for RTL layout
-	// 		Math.floor(Math.max(($canvas_area.scrollLeft() - $canvas_area.innerWidth()) / magnification + canvas.width - margin, 0)) :
-	// 		Math.floor(Math.max($canvas_area.scrollLeft() / magnification - margin, 0));
-	const viewport_y = Math.floor(Math.max($canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
-	const viewport_x2 = Math.floor(Math.min(viewport_x + $canvas_area.width() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.width));
-	const viewport_y2 = Math.floor(Math.min(viewport_y + $canvas_area.height() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.height));
+	// 		// Note: window.globApp.$canvas_area.scrollLeft() can return negative numbers for RTL layout
+	// 		Math.floor(Math.max((window.globApp.$canvas_area.scrollLeft() - window.globApp.$canvas_area.innerWidth()) / magnification + canvas.width - margin, 0)) :
+	// 		Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / magnification - margin, 0));
+	const viewport_y = Math.floor(Math.max(window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
+	const viewport_x2 = Math.floor(Math.min(viewport_x + window.globApp.$canvas_area.width() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.width));
+	const viewport_y2 = Math.floor(Math.min(viewport_y + window.globApp.$canvas_area.height() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.height));
 	const viewport_width = viewport_x2 - viewport_x;
 	const viewport_height = viewport_y2 - viewport_y;
 	const resolution_width = viewport_width * scale;
@@ -291,18 +292,18 @@ function update_helper_layer_immediately() {
 		// It gets clipped to the top left portion of the viewport if the thumbnail is too small.
 
 		// This works except for if there's a selection, it affects the scrollable area, and it shouldn't affect this calculation.
-		// const scroll_width = $canvas_area[0].scrollWidth - $canvas_area[0].clientWidth;
-		// const scroll_height = $canvas_area[0].scrollHeight - $canvas_area[0].clientHeight;
+		// const scroll_width = window.globApp.$canvas_area[0].scrollWidth - window.globApp.$canvas_area[0].clientWidth;
+		// const scroll_height = window.globApp.$canvas_area[0].scrollHeight - window.globApp.$canvas_area[0].clientHeight;
 
 		// These padding terms are negligible in comparison to the margin reserved for canvas handles,
 		// which I'm not accounting for (except for clamping below).
-		const padding_left = parseFloat($canvas_area.css("padding-left"));
-		const padding_top = parseFloat($canvas_area.css("padding-top"));
-		const scroll_width = window.globAppstate.main_canvas.clientWidth + padding_left - $canvas_area[0].clientWidth;
-		const scroll_height = window.globAppstate.main_canvas.clientHeight + padding_top - $canvas_area[0].clientHeight;
+		const padding_left = parseFloat(window.globApp.$canvas_area.css("padding-left"));
+		const padding_top = parseFloat(window.globApp.$canvas_area.css("padding-top"));
+		const scroll_width = window.globAppstate.main_canvas.clientWidth + padding_left - window.globApp.$canvas_area[0].clientWidth;
+		const scroll_height = window.globAppstate.main_canvas.clientHeight + padding_top - window.globApp.$canvas_area[0].clientHeight;
 		// Don't divide by less than one, or the thumbnail with disappear off to the top/left (or completely for NaN).
-		let scroll_x_fraction = $canvas_area[0].scrollLeft / Math.max(1, scroll_width);
-		let scroll_y_fraction = $canvas_area[0].scrollTop / Math.max(1, scroll_height);
+		let scroll_x_fraction = window.globApp.$canvas_area[0].scrollLeft / Math.max(1, scroll_width);
+		let scroll_y_fraction = window.globApp.$canvas_area[0].scrollTop / Math.max(1, scroll_height);
 		// If the canvas is larger than the document view, but not by much, and you scroll to the bottom or right,
 		// the margin for the canvas handles can lead to the thumbnail being cut off or even showing
 		// just blank space without this clamping (due to the not quite accurate scrollable area calculation).
@@ -324,7 +325,7 @@ function update_helper_layer_immediately() {
  * @param {boolean} is_helper_layer
  */
 function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_layer) {
-	//update_fill_and_stroke_colors_and_lineWidth(selected_tool);
+	window.globApp.update_fill_and_stroke_colors_and_lineWidth(window.globAppstate.selected_tool);
 
 	const grid_visible = window.globAppstate.show_grid && window.globAppstate.magnification >= 4 && (window.devicePixelRatio * window.globAppstate.magnification) >= 4 && is_helper_layer;
 
@@ -415,12 +416,12 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 function update_disable_aa() {
 	const dots_per_canvas_px = window.devicePixelRatio * window.globAppstate.magnification;
 	const round = Math.floor(dots_per_canvas_px) === dots_per_canvas_px;
-	$canvas_area.toggleClass("disable-aa-for-things-at-main-canvas-scale", dots_per_canvas_px >= 3 || round);
+	window.globApp.$canvas_area.toggleClass("disable-aa-for-things-at-main-canvas-scale", dots_per_canvas_px >= 3 || round);
 }
 
 /**
  * @param {number} new_scale
- * @param {{x: number, y: number}} [anchor_point] - uses canvas coordinates; default is the top-left of the $canvas_area viewport
+ * @param {{x: number, y: number}} [anchor_point] - uses canvas coordinates; default is the top-left of the window.globApp.$canvas_area viewport
  */
 function set_magnification(new_scale, anchor_point) {
 	// How this works is, you imagine "what if it was zoomed, where would the anchor point be?"
@@ -430,8 +431,8 @@ function set_magnification(new_scale, anchor_point) {
 	//console.log('돋보기', new_scale);
 	//window.$zoomText.text(new_scale==0.125?'12.50%':`${new_scale*100}%`);
 	anchor_point = anchor_point ?? {
-		x: $canvas_area.scrollLeft() / window.globAppstate.magnification,
-		y: $canvas_area.scrollTop() / window.globAppstate.magnification,
+		x: window.globApp.$canvas_area.scrollLeft() / window.globAppstate.magnification,
+		y: window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification,
 	};
 	const anchor_on_page = from_canvas_coords(anchor_point);
 
@@ -443,7 +444,7 @@ function set_magnification(new_scale, anchor_point) {
 
 	const anchor_after_zoom = from_canvas_coords(anchor_point);
 	// Note: scrollBy() not scrollTo()
-	$canvas_area[0].scrollBy({
+	window.globApp.$canvas_area[0].scrollBy({
 		left: anchor_after_zoom.clientX - anchor_on_page.clientX,
 		top: anchor_after_zoom.clientY - anchor_on_page.clientY,
 		behavior: "instant",
@@ -489,7 +490,7 @@ function reset_canvas_and_history() {
 
 	window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
-	$canvas_area.trigger("resize");
+	window.globApp.$canvas_area.trigger("resize");
 	$G.triggerHandler("history-update"); // update history view
 }
 
@@ -777,7 +778,7 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		window.globAppstate.main_ctx.copy(info.image || info.image_data);
 		apply_file_format_and_palette_info(info);
 		window.globAppstate.transparency = has_any_transparency(window.globAppstate.main_ctx);
-		$canvas_area.trigger("resize");
+		window.globApp.$canvas_area.trigger("resize");
 
 		window.globAppstate.current_history_node.name = localize("Open");
 		window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
@@ -1556,7 +1557,7 @@ function paste(img_or_canvas) {
 					}
 				);
 				do_the_paste();
-				$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
+				window.globApp.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
 			} else if (result === "crop") {
 				do_the_paste();
 			}
@@ -1569,16 +1570,16 @@ function paste(img_or_canvas) {
 		deselect();
 		select_tool(get_tool_by_id(TOOL_SELECT));
 
-		const x = Math.max(0, Math.ceil($canvas_area.scrollLeft() / window.globAppstate.magnification));
-		const y = Math.max(0, Math.ceil(($canvas_area.scrollTop()) / window.globAppstate.magnification));
+		const x = Math.max(0, Math.ceil(window.globApp.$canvas_area.scrollLeft() / window.globAppstate.magnification));
+		const y = Math.max(0, Math.ceil((window.globApp.$canvas_area.scrollTop()) / window.globAppstate.magnification));
 		// Nevermind, canvas, isn't aligned to the right in RTL layout!
-		// let x = Math.max(0, Math.ceil($canvas_area.scrollLeft() / magnification));
+		// let x = Math.max(0, Math.ceil(window.globApp.$canvas_area.scrollLeft() / magnification));
 		// if (get_direction() === "rtl") {
 		// 	// magic number 8 is a guess, I guess based on the scrollbar width which shows on the left in RTL layout
-		// 	// x = Math.max(0, Math.ceil(($canvas_area.innerWidth() - canvas.width + $canvas_area.scrollLeft() + 8) / magnification));
-		// 	const scrollbar_width = $canvas_area[0].offsetWidth - $canvas_area[0].clientWidth; // maybe??
+		// 	// x = Math.max(0, Math.ceil((window.globApp.$canvas_area.innerWidth() - canvas.width + window.globApp.$canvas_area.scrollLeft() + 8) / magnification));
+		// 	const scrollbar_width = window.globApp.$canvas_area[0].offsetWidth - window.globApp.$canvas_area[0].clientWidth; // maybe??
 		// 	console.log("scrollbar_width", scrollbar_width);
-		// 	x = Math.max(0, Math.ceil((-$canvas_area.innerWidth() + $canvas_area.scrollLeft() + scrollbar_width) / magnification + canvas.width));
+		// 	x = Math.max(0, Math.ceil((-window.globApp.$canvas_area.innerWidth() + window.globApp.$canvas_area.scrollLeft() + scrollbar_width) / magnification + canvas.width));
 		// }
 
 		undoable({
@@ -1676,7 +1677,7 @@ function go_to_history_node(target_history_node, canceling) {
 	// window.console?.log("new undos:", undos);
 	// window.console?.log("new redos:", redos);
 
-	$canvas_area.trigger("resize");
+	window.globApp.$canvas_area.trigger("resize");
 	$G.triggerHandler("session-update"); // autosave
 	$G.triggerHandler("history-update"); // update history view
 }
@@ -2574,7 +2575,7 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 				return;
 			}
 
-			$canvas_area.trigger("resize");
+			window.globApp.$canvas_area.trigger("resize");
 		});
 	}
 }

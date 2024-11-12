@@ -1,35 +1,32 @@
-export function setupApp() {
-  
+function setupApp() {
   const $ = window.$;
 
-  window.update_fill_and_stroke_colors_and_lineWidth =
-    update_fill_and_stroke_colors_and_lineWidth;
-  window.tool_go = tool_go;
+  const appState = window.globAppstate;
 
+  const globApp = {};
+  window.globApp = globApp;
 
+  
   const $app = $(".jspaint");
-  window.$app = $app;
-
+  globApp.$app = $app;
+  
   const $V = $(".vertical");
   const $H = $(".horizontal");
 
   const $canvas_area = $(".canvas-area");
-  window.$canvas_area = $canvas_area;
-  console.log($canvas_area);
 
-  const $canvas = $(window.globAppstate.main_canvas).appendTo($canvas_area);
-  window.$canvas = $canvas;
+  const $canvas = $(appState.main_canvas).appendTo($canvas_area);
+
   $canvas.css("touch-action", "none");
-  window.canvas_bounding_client_rect =
-    window.globAppstate.main_canvas.getBoundingClientRect(); // cached for performance, updated later
+
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
     $object_container: $canvas_area,
     get_rect: () => ({
       x: 0,
       y: 0,
-      width: window.globAppstate.main_canvas.width,
-      height: window.globAppstate.main_canvas.height,
+      width: appState.main_canvas.width,
+      height: appState.main_canvas.height,
     }),
     set_rect: ({ width, height }) =>
       resize_canvas_and_save_dimensions(width, height),
@@ -43,13 +40,26 @@ export function setupApp() {
     get_ghost_offset_top: () => parseFloat($canvas_area.css("padding-top")) + 1,
     size_only: true,
   });
-  window.canvas_handles = canvas_handles;
+
+  
 
   // 위치
   const $status_position = $("status-text");
-  window.$status_position = $status_position;
   const $status_size = $status_position;
-  window.$status_position = $status_position;
+
+
+  globApp.update_fill_and_stroke_colors_and_lineWidth = update_fill_and_stroke_colors_and_lineWidth;
+
+  globApp.$canvas_area = $canvas_area;
+  globApp.$canvas = $canvas;
+  globApp.canvas_bounding_client_rect = appState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
+  globApp.canvas_handles = canvas_handles;
+  globApp.$status_position = $status_position;
+  globApp.$status_size = $status_size;
+
+
+
+ 
 
   $G.on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
@@ -204,11 +214,11 @@ export function setupApp() {
     // also, ideally check that modifiers *aren't* pressed
     // probably best to use a library at this point!
 
-    if (window.globAppstate.selection) {
+    if (appState.selection) {
       const nudge_selection = (delta_x, delta_y) => {
-        window.globAppstate.selection.x += delta_x;
-        window.globAppstate.selection.y += delta_y;
-        window.globAppstate.selection.position();
+        appState.selection.x += delta_x;
+        appState.selection.y += delta_y;
+        appState.selection.position();
       };
       switch (e.key) {
         case "ArrowLeft":
@@ -232,13 +242,13 @@ export function setupApp() {
 
     if (e.key === "Escape") {
       // Note: Escape handled above too!
-      if (window.globAppstate.selection) {
+      if (appState.selection) {
         deselect();
       } else {
         cancel();
       }
     } else if (e.key === "Enter") {
-      if (window.globAppstate.selection) {
+      if (appState.selection) {
         deselect();
       }
     } else if (e.key === "F4") {
@@ -277,34 +287,48 @@ export function setupApp() {
       const minus = e.code === "NumpadSubtract" || e.key === "-";
       const delta = Number(plus) - Number(minus); // const delta = +plus++ -minus--; // Δ = ±±±±
 
-      if (window.globAppstate.selection) {
-        window.globAppstate.selection.scale(2 ** delta);
+      if (appState.selection) {
+        appState.selection.scale(2 ** delta);
       } else {
-        if (window.globAppstate.selected_tool.id === TOOL_BRUSH) {
-          window.globAppstate.brush_size = Math.max(1, Math.min(window.globAppstate.brush_size + delta, 500));
-        } else if (window.globAppstate.selected_tool.id === TOOL_ERASER) {
-          window.globAppstate.eraser_size = Math.max(1, Math.min(window.globAppstate.eraser_size + delta, 500));
-        } else if (window.globAppstate.selected_tool.id === TOOL_AIRBRUSH) {
-          window.globAppstate.airbrush_size = Math.max(1, Math.min(window.globAppstate.airbrush_size + delta, 500));
-        } else if (window.globAppstate.selected_tool.id === TOOL_PENCIL) {
-          window.globAppstate.pencil_size = Math.max(1, Math.min(window.globAppstate.pencil_size + delta, 50));
+        if (appState.selected_tool.id === TOOL_BRUSH) {
+          appState.brush_size = Math.max(
+            1,
+            Math.min(appState.brush_size + delta, 500),
+          );
+        } else if (appState.selected_tool.id === TOOL_ERASER) {
+          appState.eraser_size = Math.max(
+            1,
+            Math.min(appState.eraser_size + delta, 500),
+          );
+        } else if (appState.selected_tool.id === TOOL_AIRBRUSH) {
+          appState.airbrush_size = Math.max(
+            1,
+            Math.min(appState.airbrush_size + delta, 500),
+          );
+        } else if (appState.selected_tool.id === TOOL_PENCIL) {
+          appState.pencil_size = Math.max(
+            1,
+            Math.min(appState.pencil_size + delta, 50),
+          );
         } else if (
-          window.globAppstate.selected_tool.id === TOOL_LINE ||
-          window.globAppstate.selected_tool.id === TOOL_CURVE ||
-          window.globAppstate.selected_tool.id === TOOL_RECTANGLE ||
-          window.globAppstate.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
-          window.globAppstate.selected_tool.id === TOOL_ELLIPSE ||
-          window.globAppstate.selected_tool.id === TOOL_POLYGON
+          appState.selected_tool.id === TOOL_LINE ||
+          appState.selected_tool.id === TOOL_CURVE ||
+          appState.selected_tool.id === TOOL_RECTANGLE ||
+          appState.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
+          appState.selected_tool.id === TOOL_ELLIPSE ||
+          appState.selected_tool.id === TOOL_POLYGON
         ) {
-          window.globAppstate.stroke_size = Math.max(1, Math.min(window.globAppstate.stroke_size + delta, 500));
+          appState.stroke_size = Math.max(
+            1,
+            Math.min(appState.stroke_size + delta, 500),
+          );
         }
 
         $G.trigger("option-changed");
-        if (window.globAppstate.button !== undefined && window.globAppstate.pointer) {
+        if (appState.button !== undefined && appState.pointer) {
           // pointer may only be needed for tests
-         
-          tool_go(window.globAppstate.selected_tool);
-         
+
+          tool_go(appState.selected_tool);
         }
         update_helper_layer();
       }
@@ -433,7 +457,7 @@ export function setupApp() {
     (e) => {
       if (e.altKey) {
         e.preventDefault();
-        let new_magnification = window.globAppstate.magnification;
+        let new_magnification = appState.magnification;
         if (e.deltaY < 0) {
           new_magnification *= 1.5;
         } else {
@@ -493,10 +517,10 @@ export function setupApp() {
     }
 
     if (e.type === "copy" || e.type === "cut") {
-      if (window.globAppstate.selection && window.globAppstate.selection.canvas) {
+      if (appState.selection && appState.selection.canvas) {
         const do_sync_clipboard_copy_or_cut = () => {
           // works only for pasting within a jspaint instance
-          const data_url = window.globAppstate.selection.canvas.toDataURL();
+          const data_url = appState.selection.canvas.toDataURL();
           cd.setData("text/x-data-uri; type=image/png", data_url);
           cd.setData("text/uri-list", data_url);
           cd.setData("URL", data_url);
@@ -553,21 +577,21 @@ export function setupApp() {
   window.reset_file();
   window.reset_selected_colors();
   window.reset_canvas_and_history(); // (with newly reset colors)
-  window.set_magnification(window.globAppstate.default_magnification);
+  window.set_magnification(appState.default_magnification);
 
   // this is synchronous for now, but @TODO: handle possibility of loading a document before callback
   // when switching to asynchronous storage, e.g. with localforage
   localStore.get(
     {
-      width: window.globAppstate.default_canvas_width,
-      height: window.globAppstate.default_canvas_height,
+      width: appState.default_canvas_width,
+      height: appState.default_canvas_height,
     },
     (err, stored_values) => {
       if (err) {
         return;
       }
-      window.globAppstate.my_canvas_width = Number(stored_values.width);
-      window.globAppstate.my_canvas_height = Number(stored_values.height);
+      appState.my_canvas_width = Number(stored_values.width);
+      appState.my_canvas_height = Number(stored_values.height);
 
       make_or_update_undoable(
         {
@@ -576,12 +600,17 @@ export function setupApp() {
           icon: get_help_folder_icon("p_stretch_both.png"),
         },
         () => {
-          window.globAppstate.main_canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
-          window.globAppstate.main_canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
-          window.globAppstate.main_ctx.disable_image_smoothing();
-          if (!window.globAppstate.transparency) {
-            window.globAppstate.main_ctx.fillStyle = window.globAppstate.selected_colors.background;
-            window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+          appState.main_canvas.width = Math.max(1, appState.my_canvas_width);
+          appState.main_canvas.height = Math.max(1, appState.my_canvas_height);
+          appState.main_ctx.disable_image_smoothing();
+          if (!appState.transparency) {
+            appState.main_ctx.fillStyle = appState.selected_colors.background;
+            appState.main_ctx.fillRect(
+              0,
+              0,
+              appState.main_canvas.width,
+              appState.main_canvas.height,
+            );
           }
           $canvas_area.trigger("resize");
         },
@@ -610,7 +639,7 @@ export function setupApp() {
   // #region Palette Updating From Theme
 
   function update_fill_and_stroke_colors_and_lineWidth(selected_tooool) {
-    window.globAppstate.main_ctx.lineWidth = window.globAppstate.stroke_size;
+    appState.main_ctx.lineWidth = appState.stroke_size;
 
     const reverse_because_fill_only = !!(
       selected_tooool.$options &&
@@ -619,21 +648,23 @@ export function setupApp() {
     );
     /** @type {ColorSelectionSlot} */
     const color_k =
-      window.globAppstate.ctrl && window.globAppstate.selected_colors.ternary && window.globAppstate.pointer_active
+      appState.ctrl &&
+      appState.selected_colors.ternary &&
+      appState.pointer_active
         ? "ternary"
-        : window.globAppstate.reverse !== reverse_because_fill_only
+        : appState.reverse !== reverse_because_fill_only
           ? "background"
           : "foreground";
-    window.globAppstate.main_ctx.fillStyle =
-      window.globAppstate.fill_color =
-      window.globAppstate.main_ctx.strokeStyle =
-      window.globAppstate.stroke_color =
-      window.globAppstate.selected_colors[color_k];
+    appState.main_ctx.fillStyle =
+      appState.fill_color =
+      appState.main_ctx.strokeStyle =
+      appState.stroke_color =
+        appState.selected_colors[color_k];
 
     /** @type {ColorSelectionSlot} */
-    let fill_color_k = window.globAppstate.ctrl
+    let fill_color_k = appState.ctrl
       ? "ternary"
-      : window.globAppstate.reverse !== reverse_because_fill_only
+      : appState.reverse !== reverse_because_fill_only
         ? "background"
         : "foreground";
     /** @type {ColorSelectionSlot} */
@@ -641,7 +672,7 @@ export function setupApp() {
 
     if (selected_tooool.shape || selected_tooool.shape_colors) {
       if (!selected_tooool.stroke_only) {
-        if (window.globAppstate.reverse !== reverse_because_fill_only) {
+        if (appState.reverse !== reverse_because_fill_only) {
           fill_color_k = "foreground";
           stroke_color_k = "background";
         } else {
@@ -649,10 +680,12 @@ export function setupApp() {
           stroke_color_k = "foreground";
         }
       }
-      window.globAppstate.main_ctx.fillStyle = window.globAppstate.fill_color = window.globAppstate.selected_colors[fill_color_k];
-      window.globAppstate.main_ctx.strokeStyle = window.globAppstate.stroke_color = window.globAppstate.selected_colors[stroke_color_k];
+      appState.main_ctx.fillStyle = appState.fill_color =
+        appState.selected_colors[fill_color_k];
+      appState.main_ctx.strokeStyle = appState.stroke_color =
+        appState.selected_colors[stroke_color_k];
     }
-    window.globAppstate.pick_color_slot = fill_color_k;
+    appState.pick_color_slot = fill_color_k;
   }
 
   // #region Primary Canvas Interaction
@@ -660,29 +693,37 @@ export function setupApp() {
     update_fill_and_stroke_colors_and_lineWidth(selected_tooool);
 
     if (selected_tooool[event_name]) {
-      selected_tooool[event_name](window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
+      selected_tooool[event_name](
+        appState.main_ctx,
+        appState.pointer.x,
+        appState.pointer.y,
+      );
     }
     if (selected_tooool.paint) {
-      selected_tooool.paint(window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
+      selected_tooool.paint(
+        appState.main_ctx,
+        appState.pointer.x,
+        appState.pointer.y,
+      );
     }
   }
   function canvas_pointer_move(e) {
-    window.globAppstate.ctrl = e.ctrlKey;
-    window.globAppstate.shift = e.shiftKey;
-    window.globAppstate.pointer = to_canvas_coords(e);
+    appState.ctrl = e.ctrlKey;
+    appState.shift = e.shiftKey;
+    appState.pointer = to_canvas_coords(e);
 
     // Quick Undo (for mouse/pen)
     // (Note: pointermove also occurs when the set of buttons pressed changes,
     // except when another event would fire like pointerdown)
-    if (window.globAppstate.pointers.length && e.button != -1) {
+    if (appState.pointers.length && e.button != -1) {
       // compare buttons other than middle mouse button by using bitwise OR to make that bit of the number the same
       const MMB = 4;
       if (
-        e.pointerType != window.globAppstate.pointer_type ||
-        (e.buttons | MMB) != (window.globAppstate.pointer_buttons | MMB)
+        e.pointerType != appState.pointer_type ||
+        (e.buttons | MMB) != (appState.pointer_buttons | MMB)
       ) {
         cancel();
-        window.globAppstate.pointer_active = false; // NOTE: window.globAppstate.pointer_active used in cancel()
+        appState.pointer_active = false; // NOTE: appState.pointer_active used in cancel()
         return;
       }
     }
@@ -690,67 +731,81 @@ export function setupApp() {
     if (e.shiftKey) {
       // TODO: snap to 45 degrees for Pencil and Polygon tools
       // TODO: manipulating the pointer object directly is a bit of a hack
-      if (window.globAppstate.selected_tool.id === TOOL_LINE || window.globAppstate.selected_tool.id === TOOL_CURVE) {
+      if (
+        appState.selected_tool.id === TOOL_LINE ||
+        appState.selected_tool.id === TOOL_CURVE
+      ) {
         // snap to eight directions
         const dist = Math.sqrt(
-          (window.globAppstate.pointer.y - window.globAppstate.pointer_start.y) * (window.globAppstate.pointer.y - window.globAppstate.pointer_start.y) +
-            (window.globAppstate.pointer.x - window.globAppstate.pointer_start.x) * (window.globAppstate.pointer.x - window.globAppstate.pointer_start.x),
+          (appState.pointer.y - appState.pointer_start.y) *
+            (appState.pointer.y - appState.pointer_start.y) +
+            (appState.pointer.x - appState.pointer_start.x) *
+              (appState.pointer.x - appState.pointer_start.x),
         );
         const eighth_turn = TAU / 8;
         const angle_0_to_8 =
-          Math.atan2(window.globAppstate.pointer.y - window.globAppstate.pointer_start.y, window.globAppstate.pointer.x - window.globAppstate.pointer_start.x) /
-          eighth_turn;
+          Math.atan2(
+            appState.pointer.y - appState.pointer_start.y,
+            appState.pointer.x - appState.pointer_start.x,
+          ) / eighth_turn;
         const angle = Math.round(angle_0_to_8) * eighth_turn;
-        window.globAppstate.pointer.x = Math.round(window.globAppstate.pointer_start.x + Math.cos(angle) * dist);
-        window.globAppstate.pointer.y = Math.round(window.globAppstate.pointer_start.y + Math.sin(angle) * dist);
-      } else if (window.globAppstate.selected_tool.shape) {
+        appState.pointer.x = Math.round(
+          appState.pointer_start.x + Math.cos(angle) * dist,
+        );
+        appState.pointer.y = Math.round(
+          appState.pointer_start.y + Math.sin(angle) * dist,
+        );
+      } else if (appState.selected_tool.shape) {
         // snap to four diagonals
-        const w = Math.abs(window.globAppstate.pointer.x - window.globAppstate.pointer_start.x);
-        const h = Math.abs(window.globAppstate.pointer.y - window.globAppstate.pointer_start.y);
+        const w = Math.abs(appState.pointer.x - appState.pointer_start.x);
+        const h = Math.abs(appState.pointer.y - appState.pointer_start.y);
         if (w < h) {
-          if (window.globAppstate.pointer.y > window.globAppstate.pointer_start.y) {
-            window.globAppstate.pointer.y = window.globAppstate.pointer_start.y + w;
+          if (appState.pointer.y > appState.pointer_start.y) {
+            appState.pointer.y = appState.pointer_start.y + w;
           } else {
-            window.globAppstate.pointer.y = window.globAppstate.pointer_start.y - w;
+            appState.pointer.y = appState.pointer_start.y - w;
           }
         } else {
-          if (window.globAppstate.pointer.x > window.globAppstate.pointer_start.x) {
-            window.globAppstate.pointer.x = window.globAppstate.pointer_start.x + h;
+          if (appState.pointer.x > appState.pointer_start.x) {
+            appState.pointer.x = appState.pointer_start.x + h;
           } else {
-            window.globAppstate.pointer.x = window.globAppstate.pointer_start.x - h;
+            appState.pointer.x = appState.pointer_start.x - h;
           }
         }
       }
     }
-    window.globAppstate.selected_tools.forEach((selected_tool) => {
+    appState.selected_tools.forEach((selected_tool) => {
       tool_go(selected_tool);
     });
-    window.globAppstate.pointer_previous = window.globAppstate.pointer;
+    appState.pointer_previous = appState.pointer;
   }
   $canvas.on("pointermove", (e) => {
-    window.globAppstate.pointer = to_canvas_coords(e);
-    $status_position.text(`${window.globAppstate.pointer.x}, ${window.globAppstate.pointer.y} px`);
+    appState.pointer = to_canvas_coords(e);
+    $status_position.text(`${appState.pointer.x}, ${appState.pointer.y} px`);
   });
   $canvas.on("pointerenter", (e) => {
-    window.globAppstate.pointer_over_canvas = true;
+    appState.pointer_over_canvas = true;
 
     update_helper_layer(e);
 
-    if (!window.globAppstate.update_helper_layer_on_pointermove_active) {
+    if (!appState.update_helper_layer_on_pointermove_active) {
       $G.on("pointermove", update_helper_layer);
-      window.globAppstate.update_helper_layer_on_pointermove_active = true;
+      appState.update_helper_layer_on_pointermove_active = true;
     }
   });
   $canvas.on("pointerleave", (e) => {
-    window.globAppstate.pointer_over_canvas = false;
+    appState.pointer_over_canvas = false;
 
     $status_position.text("");
 
     update_helper_layer(e);
 
-    if (!window.globAppstate.pointer_active && window.globAppstate.update_helper_layer_on_pointermove_active) {
+    if (
+      !appState.pointer_active &&
+      appState.update_helper_layer_on_pointermove_active
+    ) {
       $G.off("pointermove", update_helper_layer);
-      window.globAppstate.update_helper_layer_on_pointermove_active = false;
+      appState.update_helper_layer_on_pointermove_active = false;
     }
   });
   // #endregion
@@ -782,12 +837,12 @@ export function setupApp() {
     }
 
     if (
-      window.globAppstate.pointers.every(
+      appState.pointers.every(
         (pointer) =>
           // prevent multitouch panning in case of synthetic events from eye gaze mode
           pointer.pointerId !== 1234567890 &&
           // prevent multitouch panning in case of dragging across iframe boundary with a mouse/pen
-          // Note: there can be multiple active primary window.globAppstate.pointers, one per pointer type
+          // Note: there can be multiple active primary appState.pointers, one per pointer type
           !(
             pointer.isPrimary &&
             (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
@@ -795,7 +850,7 @@ export function setupApp() {
         // @TODO: handle case of dragging across iframe boundary with touch
       )
     ) {
-      window.globAppstate.pointers.push({
+      appState.pointers.push({
         pointerId: event.pointerId,
         pointerType: event.pointerType,
         // isPrimary not available on jQuery.Event, and originalEvent not available in synthetic case
@@ -807,51 +862,51 @@ export function setupApp() {
         y: event.clientY,
       });
     }
-    if (window.globAppstate.pointers.length === 1) {
+    if (appState.pointers.length === 1) {
       first_pointer_time = performance.now();
     }
-    if (window.globAppstate.pointers.length == 2) {
+    if (appState.pointers.length == 2) {
       last_zoom_pointer_distance = Math.hypot(
-        window.globAppstate.pointers[0].x - window.globAppstate.pointers[1].x,
-        window.globAppstate.pointers[0].y - window.globAppstate.pointers[1].y,
+        appState.pointers[0].x - appState.pointers[1].x,
+        appState.pointers[0].y - appState.pointers[1].y,
       );
-      pan_last_pos = average_points(window.globAppstate.pointers);
+      pan_last_pos = average_points(appState.pointers);
       // pan_start_magnification = magnification;
     }
-    // Quick Undo when there are multiple window.globAppstate.pointers (i.e. for touch)
+    // Quick Undo when there are multiple appState.pointers (i.e. for touch)
     // See pointermove for other pointer types
     // SEE OTHER POINTERDOWN HANDLER ALSO
-    if (window.globAppstate.pointers.length >= 2) {
+    if (appState.pointers.length >= 2) {
       // If you press two fingers quickly, it shouldn't make a new history entry.
       // But if you draw something and then press a second finger to clear it, it should let you redo.
       const discard_document_state =
         first_pointer_time &&
         performance.now() - first_pointer_time < discard_quick_undo_period;
       cancel(false, discard_document_state);
-      window.globAppstate.pointer_active = false; // NOTE: window.globAppstate.pointer_active used in cancel(); must be set after cancel()
+      appState.pointer_active = false; // NOTE: appState.pointer_active used in cancel(); must be set after cancel()
       return;
     }
   });
   $G.on("pointerup pointercancel", (event) => {
-    window.globAppstate.pointers = window.globAppstate.pointers.filter(
+    appState.pointers = appState.pointers.filter(
       (pointer) => pointer.pointerId !== event.pointerId,
     );
   });
   $G.on("pointermove", (event) => {
-    for (const pointer of window.globAppstate.pointers) {
+    for (const pointer of appState.pointers) {
       if (pointer.pointerId === event.pointerId) {
         pointer.x = event.clientX;
         pointer.y = event.clientY;
       }
     }
-    if (window.globAppstate.pointers.length >= 2) {
-      const current_pos = average_points(window.globAppstate.pointers);
+    if (appState.pointers.length >= 2) {
+      const current_pos = average_points(appState.pointers);
       const distance = Math.hypot(
-        window.globAppstate.pointers[0].x - window.globAppstate.pointers[1].x,
-        window.globAppstate.pointers[0].y - window.globAppstate.pointers[1].y,
+        appState.pointers[0].x - appState.pointers[1].x,
+        appState.pointers[0].y - appState.pointers[1].y,
       );
       const difference_in_distance = distance - last_zoom_pointer_distance;
-      let new_magnification = window.globAppstate.magnification;
+      let new_magnification = appState.magnification;
       if (Math.abs(difference_in_distance) > 60) {
         last_zoom_pointer_distance = distance;
         if (difference_in_distance > 0) {
@@ -882,56 +937,64 @@ export function setupApp() {
     $status_size.text("");
     update_canvas_rect();
 
-    // Quick Undo when there are multiple window.globAppstate.pointers (i.e. for touch)
+    // Quick Undo when there are multiple appState.pointers (i.e. for touch)
     // see pointermove for other pointer types
     // SEE OTHER POINTERDOWN HANDLER ALSO
     // NOTE: this relies on event handler order for pointerdown
-    // pointer is not added to window.globAppstate.pointers yet
-    if (window.globAppstate.pointers.length >= 1) {
+    // pointer is not added to appState.pointers yet
+    if (appState.pointers.length >= 1) {
       // If you press two fingers quickly, it shouldn't make a new history entry.
       // But if you draw something and then press a second finger to clear it, it should let you redo.
       const discard_document_state =
         first_pointer_time &&
         performance.now() - first_pointer_time < discard_quick_undo_period;
       cancel(false, discard_document_state);
-      window.globAppstate.pointer_active = false; // NOTE: window.globAppstate.pointer_active used in cancel(); must be set after cancel()
+      appState.pointer_active = false; // NOTE: appState.pointer_active used in cancel(); must be set after cancel()
 
       // in eye gaze mode, allow drawing with mouse after canceling gaze gesture with mouse
-      window.globAppstate.pointers = window.globAppstate.pointers.filter((pointer) => pointer.pointerId !== 1234567890);
+      appState.pointers = appState.pointers.filter(
+        (pointer) => pointer.pointerId !== 1234567890,
+      );
       return;
     }
 
-    window.globAppstate.history_node_to_cancel_to = window.globAppstate.current_history_node;
+    appState.history_node_to_cancel_to = appState.current_history_node;
 
-    window.globAppstate.pointer_active = !!(e.buttons & (1 | 2)); // as far as tools are concerned
-    window.globAppstate.pointer_type = e.pointerType;
-    window.globAppstate.pointer_buttons = e.buttons;
+    appState.pointer_active = !!(e.buttons & (1 | 2)); // as far as tools are concerned
+    appState.pointer_type = e.pointerType;
+    appState.pointer_buttons = e.buttons;
     $G.one("pointerup", (e) => {
-      window.globAppstate.pointer_active = false;
+      appState.pointer_active = false;
       update_helper_layer(e);
 
-      if (!window.globAppstate.pointer_over_canvas && window.globAppstate.update_helper_layer_on_pointermove_active) {
+      if (
+        !appState.pointer_over_canvas &&
+        appState.update_helper_layer_on_pointermove_active
+      ) {
         $G.off("pointermove", update_helper_layer);
-        window.globAppstate.update_helper_layer_on_pointermove_active = false;
+        appState.update_helper_layer_on_pointermove_active = false;
       }
     });
 
     if (e.button === 0) {
-      window.globAppstate.reverse = false;
+      appState.reverse = false;
     } else if (e.button === 2) {
-      window.globAppstate.reverse = true;
+      appState.reverse = true;
     } else {
       return;
     }
 
-    window.globAppstate.button = e.button;
-    window.globAppstate.ctrl = e.ctrlKey;
-    window.globAppstate.shift = e.shiftKey;
-    window.globAppstate.pointer_start = window.globAppstate.pointer_previous = window.globAppstate.pointer = to_canvas_coords(e);
+    appState.button = e.button;
+    appState.ctrl = e.ctrlKey;
+    appState.shift = e.shiftKey;
+    appState.pointer_start =
+      appState.pointer_previous =
+      appState.pointer =
+        to_canvas_coords(e);
 
     const pointerdown_action = () => {
       let interval_ids = [];
-      window.globAppstate.selected_tools.forEach((selected_tool) => {
+      appState.selected_tools.forEach((selected_tool) => {
         if (selected_tool.paint || selected_tool.pointerdown) {
           tool_go(selected_tool, "pointerdown");
         }
@@ -947,24 +1010,28 @@ export function setupApp() {
       $G.on("pointermove", canvas_pointer_move);
 
       $G.one("pointerup", (e, canceling, no_undoable) => {
-        window.globAppstate.button = undefined;
-        window.globAppstate.reverse = false;
+        appState.button = undefined;
+        appState.reverse = false;
 
         if (e.clientX !== undefined) {
           // may be synthetic event without coordinates
-          window.globAppstate.pointer = to_canvas_coords(e);
+          appState.pointer = to_canvas_coords(e);
         }
         // don't create undoables if you're two-finger-panning
         // @TODO: do any tools use pointerup for cleanup?
         if (!no_undoable) {
-          window.globAppstate.selected_tools.forEach((selected_tool) => {
-            selected_tool.pointerup?.(window.globAppstate.main_ctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y);
+          appState.selected_tools.forEach((selected_tool) => {
+            selected_tool.pointerup?.(
+              appState.main_ctx,
+              appState.pointer.x,
+              appState.pointer.y,
+            );
           });
         }
 
-        if (window.globAppstate.selected_tools.length === 1) {
-          if (window.globAppstate.selected_tool.deselect) {
-            select_tools(window.globAppstate.return_to_tools);
+        if (appState.selected_tools.length === 1) {
+          if (appState.selected_tool.deselect) {
+            select_tools(appState.return_to_tools);
           }
         }
         $G.off("pointermove", canvas_pointer_move);
@@ -973,7 +1040,7 @@ export function setupApp() {
         }
 
         if (!canceling) {
-          window.globAppstate.history_node_to_cancel_to = null;
+          appState.history_node_to_cancel_to = null;
         }
       });
     };
@@ -987,7 +1054,7 @@ export function setupApp() {
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
       if ($canvas_area.is(e.target)) {
-        if (window.globAppstate.selection) {
+        if (appState.selection) {
           deselect();
         }
       }
@@ -1057,4 +1124,10 @@ export function setupApp() {
   // #endregion
 
   init_webgl_stuff();
+
+  
+
+ 
 }
+
+export { setupApp };
