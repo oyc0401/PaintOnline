@@ -398,12 +398,6 @@ export function setupApp() {
             file_new();
           }
           break;
-        case "T":
-          $toolbox.toggle();
-          break;
-        case "L": // allowed to override in Firefox
-          $colorbox.toggle();
-          break;
         case "R":
           image_flip_and_rotate();
           break;

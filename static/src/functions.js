@@ -821,7 +821,7 @@ function open_from_file(file, source_file_handle) {
 					return;
 				}
 				palette = new_palette.map((color) => color.toString());
-				$colorbox.rebuild_palette();
+				//$colorbox.rebuild_palette();
 				window.console?.log(`Loaded palette: ${palette.map(() => "%c█").join("")}`, ...palette.map((color) => `color: ${color};`));
 			});
 			return;
@@ -851,7 +851,7 @@ function apply_file_format_and_palette_info(info) {
 		palette = default_palette;
 		reset_selected_colors();
 	}
-	$colorbox.rebuild_palette();
+	//$colorbox.rebuild_palette();
 
 	monochrome = info.monochrome;
 }
@@ -2441,10 +2441,10 @@ function get_tool_by_id(id) {
  * @param {Tool[]} tools
  */
 function select_tools(tools) {
-	for (let i = 0; i < tools.length; i++) {
-		select_tool(tools[i], i > 0);
-	}
-	update_helper_layer();
+	// for (let i = 0; i < tools.length; i++) {
+	// 	select_tool(tools[i], i > 0);
+	// }
+	// update_helper_layer();
 }
 
 /**
@@ -2452,44 +2452,44 @@ function select_tools(tools) {
  * @param {boolean} [toggle]
  */
 function select_tool(tool, toggle) {
-	deselect();
+	// deselect();
 
-	if (!(selected_tools.length === 1 && selected_tool.deselect)) {
-		return_to_tools = [...selected_tools];
-	}
-	if (toggle) {
-		const index = selected_tools.indexOf(tool);
-		if (index === -1) {
-			selected_tools.push(tool);
-			selected_tools.sort((a, b) => {
-				if (tools.indexOf(a) < tools.indexOf(b)) {
-					return -1;
-				}
-				if (tools.indexOf(a) > tools.indexOf(b)) {
-					return +1;
-				}
-				return 0;
-			});
-		} else {
-			selected_tools.splice(index, 1);
-		}
-		if (selected_tools.length > 0) {
-			selected_tool = selected_tools[selected_tools.length - 1];
-		} else {
-			selected_tool = default_tool;
-			selected_tools = [selected_tool];
-		}
-	} else {
-		selected_tool = tool;
-		selected_tools = [tool];
-	}
+	// if (!(selected_tools.length === 1 && selected_tool.deselect)) {
+	// 	return_to_tools = [...selected_tools];
+	// }
+	// if (toggle) {
+	// 	const index = selected_tools.indexOf(tool);
+	// 	if (index === -1) {
+	// 		selected_tools.push(tool);
+	// 		selected_tools.sort((a, b) => {
+	// 			if (tools.indexOf(a) < tools.indexOf(b)) {
+	// 				return -1;
+	// 			}
+	// 			if (tools.indexOf(a) > tools.indexOf(b)) {
+	// 				return +1;
+	// 			}
+	// 			return 0;
+	// 		});
+	// 	} else {
+	// 		selected_tools.splice(index, 1);
+	// 	}
+	// 	if (selected_tools.length > 0) {
+	// 		selected_tool = selected_tools[selected_tools.length - 1];
+	// 	} else {
+	// 		selected_tool = default_tool;
+	// 		selected_tools = [selected_tool];
+	// 	}
+	// } else {
+	// 	selected_tool = tool;
+	// 	selected_tools = [tool];
+	// }
 
-	if (tool.preload) {
-		tool.preload();
-	}
+	// if (tool.preload) {
+	// 	tool.preload();
+	// }
 
-	$toolbox.update_selected_tool();
-	// $toolbox2.update_selected_tool();
+	// $toolbox.update_selected_tool();
+	// // $toolbox2.update_selected_tool();
 }
 
 /**
