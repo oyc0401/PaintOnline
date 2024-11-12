@@ -3,7 +3,7 @@ console.log('JS 실행:','$ColorBox.js')
 /* global $bottom, $left, $right, button, get_direction, localize, palette, selected_colors */
 import { $Component } from "./$Component.js";
 // import { get_direction, localize } from "./app-localization.js";
-import { show_edit_colors_window } from "./edit-colors.js";
+//import { show_edit_colors_window } from "./edit-colors.js";
 import { $G, E, make_canvas } from "./helpers.js";
 // import $ from "jquery";
 
@@ -104,7 +104,7 @@ function $ColorBox(vertical) {
 			const color_selection_slot = e.ctrlKey ? "ternary" : e.button === 0 ? "foreground" : e.button === 2 ? "background" : null;
 			if (color_selection_slot) {
 				if (within_double_click_period && e.button === double_click_button) {
-					show_edit_colors_window($b, color_selection_slot);
+					//show_edit_colors_window($b, color_selection_slot);
 				} else {
 					selected_colors[color_selection_slot] = $b.data("swatch");
 					$G.trigger("option-changed");
