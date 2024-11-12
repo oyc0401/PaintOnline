@@ -1,14 +1,9 @@
-
-
-
 export function setupApp() {
   const $ = window.$;
-
 
   window.update_fill_and_stroke_colors_and_lineWidth =
     update_fill_and_stroke_colors_and_lineWidth;
   window.tool_go = tool_go;
-  
 
   const prependDot = (extension) => `.${extension}`;
   /**
@@ -134,7 +129,9 @@ export function setupApp() {
           };
           if (!newFileExtension) {
             // return await doItAgain(`Missing file extension.`);
-            return await doItAgain(`'${newFileName}' doesn't have an extension.`);
+            return await doItAgain(
+              `'${newFileName}' doesn't have an extension.`,
+            );
           }
           if (!new_format.extensions.includes(newFileExtension)) {
             // Closest translation: "Paint cannot save to the same filename with a different file type."
@@ -254,7 +251,9 @@ export function setupApp() {
             // use didn't give permission to save
             // is this too much of a warning?
             show_error_message(
-              localize("Save was interrupted, so your file has not been saved."),
+              localize(
+                "Save was interrupted, so your file has not been saved.",
+              ),
               error,
             );
             return false;
@@ -314,41 +313,21 @@ export function setupApp() {
     window.systemHooks[key] = window.systemHooks[key] || defaultValue;
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  const $app =  $('.jspaint');
+  const $app = $(".jspaint");
   window.$app = $app;
 
-  const $V =  $('.vertical');
-  const $H =  $('.horizontal');
+  const $V = $(".vertical");
+  const $H = $(".horizontal");
 
-  const $canvas_area =  $('.canvas-area');
+  const $canvas_area = $(".canvas-area");
   window.$canvas_area = $canvas_area;
-  console.log($canvas_area)
+  console.log($canvas_area);
 
   const $canvas = $(main_canvas).appendTo($canvas_area);
   window.$canvas = $canvas;
   $canvas.css("touch-action", "none");
-  window.canvas_bounding_client_rect = window.main_canvas.getBoundingClientRect(); // cached for performance, updated later
+  window.canvas_bounding_client_rect =
+    window.main_canvas.getBoundingClientRect(); // cached for performance, updated later
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
     $object_container: $canvas_area,
@@ -363,19 +342,20 @@ export function setupApp() {
     outset: 4,
     get_handles_offset_left: () =>
       parseFloat($canvas_area.css("padding-left")) + 1,
-    get_handles_offset_top: () => parseFloat($canvas_area.css("padding-top")) + 1,
-    get_ghost_offset_left: () => parseFloat($canvas_area.css("padding-left")) + 1,
+    get_handles_offset_top: () =>
+      parseFloat($canvas_area.css("padding-top")) + 1,
+    get_ghost_offset_left: () =>
+      parseFloat($canvas_area.css("padding-left")) + 1,
     get_ghost_offset_top: () => parseFloat($canvas_area.css("padding-top")) + 1,
     size_only: true,
   });
   window.canvas_handles = canvas_handles;
 
   // 위치
-  const $status_position = $('status-text');
+  const $status_position = $("status-text");
   window.$status_position = $status_position;
-  const $status_size = $status_position
+  const $status_size = $status_position;
   window.$status_position = $status_position;
-
 
   $G.on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
@@ -392,8 +372,6 @@ export function setupApp() {
   $G.on("scroll focusin", () => {
     window.scrollTo(0, 0);
   });
-
-
 
   // jQuery's multiple event handling is not that useful in the first place, but when adding type info... it's downright ugly.
   $("body")
@@ -487,11 +465,12 @@ export function setupApp() {
 
   // #endregion
 
-
   // #region Keyboard Shortcuts
   $G.on("keydown", (e) => {
     // typecast to HTMLElement because e.target is incorrectly given as Window, due to $G wrapping window
-    const target = /** @type {HTMLElement} */ (/** @type {unknown} */ (e.target));
+    const target = /** @type {HTMLElement} */ (
+      /** @type {unknown} */ (e.target)
+    );
 
     if (e.isDefaultPrevented()) {
       return;
@@ -688,7 +667,6 @@ export function setupApp() {
           redo();
           break;
         case "G":
-
           break;
         case "F":
           // @ts-ignore (repeat doesn't exist on jQuery.Event, I guess, but this is fine)
@@ -745,7 +723,6 @@ export function setupApp() {
   });
   // #endregion
 
-
   // #region Alt+Mousewheel Zooming (and also some dev helper that I haven't used in years)
   let alt_zooming = false;
   addEventListener("keyup", (e) => {
@@ -785,7 +762,10 @@ export function setupApp() {
         if (!isFinite(old_opacity)) {
           old_opacity = 0.5;
         }
-        const new_opacity = Math.max(0, Math.min(1, old_opacity + delta_opacity));
+        const new_opacity = Math.max(
+          0,
+          Math.min(1, old_opacity + delta_opacity),
+        );
         $("body").attr("data-reference-opacity", new_opacity);
         // prevent scrolling, keeping the screenshot lined up
         // e.preventDefault(); // doesn't work
@@ -796,7 +776,6 @@ export function setupApp() {
     { passive: false },
   );
   // #endregion
-
 
   // #region Clipboard Handling
   $G.on("cut copy paste", (e) => {
@@ -834,10 +813,7 @@ export function setupApp() {
             });
           }
         };
-        if (
-          !navigator.clipboard ||
-          !navigator.clipboard.write
-        ) {
+        if (!navigator.clipboard || !navigator.clipboard.write) {
           return do_sync_clipboard_copy_or_cut();
         }
         try {
@@ -1085,7 +1061,6 @@ export function setupApp() {
   });
   // #endregion
 
-
   // #region Panning and Zooming
   let last_zoom_pointer_distance;
   let pan_last_pos;
@@ -1207,7 +1182,6 @@ export function setupApp() {
   });
   // #endregion
 
-
   // #region Primary Canvas Interaction (continued)
   $canvas.on("pointerdown", (e) => {
     //oyc0401
@@ -1315,7 +1289,7 @@ export function setupApp() {
     update_helper_layer(e);
   });
   // #endregion
-  
+
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
       if ($canvas_area.is(e.target)) {
@@ -1349,7 +1323,7 @@ export function setupApp() {
       window.getSelection().removeAllRanges();
     });
   }
-  
+
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
   $G.on("blur", () => {
     $G.triggerHandler("pointerup");
@@ -1389,5 +1363,4 @@ export function setupApp() {
   // #endregion
 
   init_webgl_stuff();
-  
 }

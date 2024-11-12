@@ -51,11 +51,6 @@ function Handles(options) {
 	/** @type {HTMLElement[]} */
 	const handles = [];
 	[
-		[HANDLE_TOP, HANDLE_RIGHT], // ↗
-		[HANDLE_TOP, HANDLE_MIDDLE], // ↑
-		[HANDLE_TOP, HANDLE_LEFT], // ↖
-		[HANDLE_MIDDLE, HANDLE_LEFT], // ←
-		[HANDLE_BOTTOM, HANDLE_LEFT], // ↙
 		[HANDLE_BOTTOM, HANDLE_MIDDLE], // ↓
 		[HANDLE_BOTTOM, HANDLE_RIGHT], // ↘
 		[HANDLE_MIDDLE, HANDLE_RIGHT], // →
@@ -73,10 +68,7 @@ function Handles(options) {
 		let dragged = false;
 		const resizes_height = y_axis !== HANDLE_MIDDLE;
 		const resizes_width = x_axis !== HANDLE_MIDDLE;
-		if (size_only && (y_axis === HANDLE_TOP || x_axis === HANDLE_LEFT)) {
-			$h.addClass("useless-handle");
-			$grab_region.remove();
-		} else {
+		
 
 			let cursor_fname;
 			if ((x_axis === HANDLE_LEFT && y_axis === HANDLE_TOP) || (x_axis === HANDLE_RIGHT && y_axis === HANDLE_BOTTOM)) {
@@ -173,7 +165,7 @@ function Handles(options) {
 			$h.on("mousedown selectstart", (event) => {
 				event.preventDefault();
 			});
-		}
+		
 
 		const update_handle = () => {
 			const rect = options.get_rect();
