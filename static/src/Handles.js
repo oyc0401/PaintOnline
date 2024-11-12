@@ -1,6 +1,5 @@
 console.log('JS 실행:','Hendles.js')
-// @ts-check
-/* global magnification */
+
 import { $G, E, make_css_cursor, to_canvas_coords } from "./helpers.js";
 // import $ from 'jquery'
 /**
@@ -138,10 +137,10 @@ function Handles(options) {
 
 				$resize_ghost.css({
 					position: "absolute",
-					left: magnification * new_rect.x + get_ghost_offset_left(),
-					top: magnification * new_rect.y + get_ghost_offset_top(),
-					width: magnification * new_rect.width - 2,
-					height: magnification * new_rect.height - 2,
+					left:window.globAppstate.magnification * new_rect.x + get_ghost_offset_left(),
+					top: window.globAppstate.magnification * new_rect.y + get_ghost_offset_top(),
+					width: window.globAppstate.magnification * new_rect.width - 2,
+					height: window.globAppstate.magnification * new_rect.height - 2,
 				});
 				rect = new_rect;
 			};
@@ -180,25 +179,25 @@ function Handles(options) {
 				{ len_key: "height", pos_key: "top", region: y_axis, offset: y },
 			]) {
 				let middle_start = Math.max(
-					rect[len_key] * magnification / 2 - grab_size / 2,
+					rect[len_key] * window.globAppstate.magnification / 2 - grab_size / 2,
 					Math.min(
 						grab_size / 2,
-						rect[len_key] * magnification / 3
+						rect[len_key] * window.globAppstate.magnification / 3
 					)
 				);
-				let middle_end = rect[len_key] * magnification - middle_start;
-				if (middle_end - middle_start < magnification) {
+				let middle_end = rect[len_key] * window.globAppstate.magnification - middle_start;
+				if (middle_end - middle_start < window.globAppstate.magnification) {
 					// give middle region min size of one (1) canvas pixel
 					middle_start = 0;
-					middle_end = magnification;
+					middle_end = window.globAppstate.magnification;
 				}
 				const start_start = -grab_size / 2;
 				const start_end = Math.min(
 					grab_size / 2,
 					middle_start
 				);
-				const end_start = rect[len_key] * magnification - start_end;
-				const end_end = rect[len_key] * magnification - start_start;
+				const end_start = rect[len_key] * window.globAppstate.magnification - start_end;
+				const end_end = rect[len_key] * window.globAppstate.magnification - start_start;
 				if (size_only) {
 					// For main canvas handles, where only the right/bottom handles are interactive,
 					// extend the middle regions left/up into the unused space of the useless handles.
@@ -212,13 +211,13 @@ function Handles(options) {
 						[len_key]: start_end - start_start,
 					});
 				} else if (region === HANDLE_MIDDLE) {
-					$h.css({ [pos_key]: offset + (rect[len_key] * magnification - hs) / 2 });
+					$h.css({ [pos_key]: offset + (rect[len_key] * window.globAppstate.magnification - hs) / 2 });
 					$grab_region.css({
 						[pos_key]: offset + middle_start,
 						[len_key]: middle_end - middle_start,
 					});
 				} else if (region === HANDLE_END) {
-					$h.css({ [pos_key]: offset + (rect[len_key] * magnification - hs / 2) });
+					$h.css({ [pos_key]: offset + (rect[len_key] * window.globAppstate.magnification - hs / 2) });
 					$grab_region.css({
 						[pos_key]: offset + end_start,
 						[len_key]: end_end - end_start,

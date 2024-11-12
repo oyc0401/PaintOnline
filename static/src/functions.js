@@ -1,8 +1,5 @@
 console.log('JS 실행:','functions.js')
-// @ts-check
-// eslint-disable-next-line no-unused-vars
-/* global $thumbnail_window:writable, canvas_bounding_client_rect:writable, current_history_node:writable, file_format:writable, file_name:writable, helper_layer:writable, history_node_to_cancel_to:writable, magnification:writable, monochrome:writable, palette:writable, pointer:writable, return_to_magnification:writable, return_to_tools:writable, root_history_node:writable, saved:writable, selected_colors:writable, selected_tool:writable, selected_tools:writable, selection:writable, show_grid:writable, show_thumbnail:writable, system_file_handle:writable, textbox:writable, thumbnail_canvas:writable, tool_transparent_mode:writable, transparency:writable, undos:writable */
-/* global $canvas, $canvas_area, $colorbox, $status_text, $toolbox, $Window, AccessKeys, applyCSSProperties, decodeBMP, default_canvas_height, default_canvas_width, default_magnification, default_tool, enable_palette_loading_from_indexed_images, encodeBMP, localize, main_canvas, main_ctx, monochrome_palette, my_canvas_height, my_canvas_width, new_local_session, parseThemeFileString, pointer_active, pointers, polychrome_palette, redos, systemHooks, text_tool_font, update_fill_and_stroke_colors_and_lineWidth, UPNG, UTIF */
+
 import UPNG from '../lib/UPNG.js'
 import pdfjs from '../lib/pdf.js/build/pdf.js'
 import AnyPalette from '../lib/anypalette-0.6.0.js';
@@ -143,14 +140,14 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 }
 
 function update_magnified_canvas_size() {
-	$canvas.css("width", main_canvas.width * magnification);
-	$canvas.css("height", main_canvas.height * magnification);
+	$canvas.css("width", window.globAppstate.main_canvas.width * window.globAppstate.magnification);
+	$canvas.css("height", window.globAppstate.main_canvas.height * window.globAppstate.magnification);
 
 	update_canvas_rect();
 }
 
 function update_canvas_rect() {
-	window.canvas_bounding_client_rect = main_canvas.getBoundingClientRect();
+	window.canvas_bounding_client_rect = window.globAppstate.main_canvas.getBoundingClientRect();
 
 	update_helper_layer();
 }
@@ -190,45 +187,45 @@ function update_helper_layer_immediately() {
 		info_for_updating_pointer.clientX *= rescale;
 		info_for_updating_pointer.clientY *= rescale;
 		info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
-		pointer = to_canvas_coords(info_for_updating_pointer);
+		window.globAppstate.pointer = to_canvas_coords(info_for_updating_pointer);
 	}
 
-	const scale = magnification * window.devicePixelRatio;
+	const scale = window.globAppstate.magnification * window.devicePixelRatio;
 
-	if (!helper_layer) {
-		helper_layer = new OnCanvasHelperLayer(0, 0, main_canvas.width, main_canvas.height, false, scale);
+	if (!window.globAppstate.helper_layer) {
+		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
 	const margin = 15;
-	const viewport_x = Math.floor(Math.max($canvas_area.scrollLeft() / magnification - margin, 0));
+	const viewport_x = Math.floor(Math.max($canvas_area.scrollLeft() / window.globAppstate.magnification - margin, 0));
 	// Nevermind, canvas, isn't aligned to the right in RTL layout!
 	// const viewport_x =
 	// 	get_direction() === "rtl" ?
 	// 		// Note: $canvas_area.scrollLeft() can return negative numbers for RTL layout
 	// 		Math.floor(Math.max(($canvas_area.scrollLeft() - $canvas_area.innerWidth()) / magnification + canvas.width - margin, 0)) :
 	// 		Math.floor(Math.max($canvas_area.scrollLeft() / magnification - margin, 0));
-	const viewport_y = Math.floor(Math.max($canvas_area.scrollTop() / magnification - margin, 0));
-	const viewport_x2 = Math.floor(Math.min(viewport_x + $canvas_area.width() / magnification + margin * 2, main_canvas.width));
-	const viewport_y2 = Math.floor(Math.min(viewport_y + $canvas_area.height() / magnification + margin * 2, main_canvas.height));
+	const viewport_y = Math.floor(Math.max($canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
+	const viewport_x2 = Math.floor(Math.min(viewport_x + $canvas_area.width() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.width));
+	const viewport_y2 = Math.floor(Math.min(viewport_y + $canvas_area.height() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.height));
 	const viewport_width = viewport_x2 - viewport_x;
 	const viewport_height = viewport_y2 - viewport_y;
 	const resolution_width = viewport_width * scale;
 	const resolution_height = viewport_height * scale;
 	if (
-		helper_layer.canvas.width !== resolution_width ||
-		helper_layer.canvas.height !== resolution_height
+		window.globAppstate.helper_layer.canvas.width !== resolution_width ||
+		window.globAppstate.helper_layer.canvas.height !== resolution_height
 	) {
-		helper_layer.canvas.width = resolution_width;
-		helper_layer.canvas.height = resolution_height;
-		helper_layer.canvas.ctx.disable_image_smoothing();
-		helper_layer.width = viewport_width;
-		helper_layer.height = viewport_height;
+		window.globAppstate.helper_layer.canvas.width = resolution_width;
+		window.globAppstate.helper_layer.canvas.height = resolution_height;
+		window.globAppstate.helper_layer.canvas.ctx.disable_image_smoothing();
+		window.globAppstate.helper_layer.width = viewport_width;
+		window.globAppstate.helper_layer.height = viewport_height;
 	}
-	helper_layer.x = viewport_x;
-	helper_layer.y = viewport_y;
-	helper_layer.position();
+	window.globAppstate.helper_layer.x = viewport_x;
+	window.globAppstate.helper_layer.y = viewport_y;
+	window.globAppstate.helper_layer.position();
 
-	render_canvas_view(helper_layer.canvas, scale, viewport_x, viewport_y, true);
+	render_canvas_view(window.globAppstate.helper_layer.canvas, scale, viewport_x, viewport_y, true);
 
 	if (thumbnail_canvas && $thumbnail_window.is(":visible")) {
 		// The thumbnail can be bigger or smaller than the viewport, depending on the magnification and thumbnail window size.
@@ -247,8 +244,8 @@ function update_helper_layer_immediately() {
 		// which I'm not accounting for (except for clamping below).
 		const padding_left = parseFloat($canvas_area.css("padding-left"));
 		const padding_top = parseFloat($canvas_area.css("padding-top"));
-		const scroll_width = main_canvas.clientWidth + padding_left - $canvas_area[0].clientWidth;
-		const scroll_height = main_canvas.clientHeight + padding_top - $canvas_area[0].clientHeight;
+		const scroll_width = window.globAppstate.main_canvas.clientWidth + padding_left - $canvas_area[0].clientWidth;
+		const scroll_height = window.globAppstate.main_canvas.clientHeight + padding_top - $canvas_area[0].clientHeight;
 		// Don't divide by less than one, or the thumbnail with disappear off to the top/left (or completely for NaN).
 		let scroll_x_fraction = $canvas_area[0].scrollLeft / Math.max(1, scroll_width);
 		let scroll_y_fraction = $canvas_area[0].scrollTop / Math.max(1, scroll_height);
@@ -258,8 +255,8 @@ function update_helper_layer_immediately() {
 		scroll_x_fraction = Math.min(scroll_x_fraction, 1);
 		scroll_y_fraction = Math.min(scroll_y_fraction, 1);
 
-		let viewport_x = Math.floor(Math.max(scroll_x_fraction * (main_canvas.width - thumbnail_canvas.width), 0));
-		let viewport_y = Math.floor(Math.max(scroll_y_fraction * (main_canvas.height - thumbnail_canvas.height), 0));
+		let viewport_x = Math.floor(Math.max(scroll_x_fraction * (window.globAppstate.main_canvas.width - thumbnail_canvas.width), 0));
+		let viewport_y = Math.floor(Math.max(scroll_y_fraction * (window.globAppstate.main_canvas.height - thumbnail_canvas.height), 0));
 
 		render_canvas_view(thumbnail_canvas, 1, viewport_x, viewport_y, false); // devicePixelRatio?
 	}
@@ -275,7 +272,7 @@ function update_helper_layer_immediately() {
 function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_layer) {
 	//update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
-	const grid_visible = show_grid && magnification >= 4 && (window.devicePixelRatio * magnification) >= 4 && is_helper_layer;
+	const grid_visible = window.globAppstate.show_grid && window.globAppstate.magnification >= 4 && (window.devicePixelRatio * window.globAppstate.magnification) >= 4 && is_helper_layer;
 
 	const hctx = hcanvas.ctx;
 
@@ -284,10 +281,10 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	if (!is_helper_layer) {
 		// Draw the actual document canvas (for the thumbnail)
 		// (For the main canvas view, the helper layer is separate from (and overlaid on top of) the document canvas)
-		hctx.drawImage(main_canvas, viewport_x, viewport_y, hcanvas.width, hcanvas.height, 0, 0, hcanvas.width, hcanvas.height);
+		hctx.drawImage(window.globAppstate.main_canvas, viewport_x, viewport_y, hcanvas.width, hcanvas.height, 0, 0, hcanvas.width, hcanvas.height);
 	}
 
-	var tools_to_preview = [...selected_tools];
+	var tools_to_preview = [...window.globAppstate.selected_tools];
 
 	// Don't preview tools while dragging components/component windows
 	// (The magnifier preview is especially confusing looking together with the component preview!)
@@ -325,27 +322,27 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	}
 
 	tools_to_preview.forEach((tool) => {
-		if (tool.drawPreviewUnderGrid && pointer && pointers.length < 2) {
+		if (tool.drawPreviewUnderGrid && window.globAppstate.pointer && window.globAppstate.pointers.length < 2) {
 			hctx.save();
-			tool.drawPreviewUnderGrid(hctx, pointer.x, pointer.y, grid_visible, scale, -viewport_x, -viewport_y);
+			tool.drawPreviewUnderGrid(hctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y, grid_visible, scale, -viewport_x, -viewport_y);
 			hctx.restore();
 		}
 	});
 
-	if (selection) {
+	if (window.globAppstate.selection) {
 		hctx.save();
 
 		hctx.scale(scale, scale);
 		hctx.translate(-viewport_x, -viewport_y);
 
-		hctx.drawImage(selection.canvas, selection.x, selection.y);
+		hctx.drawImage(window.globAppstate.selection.canvas, window.globAppstate.selection.x, window.globAppstate.selection.y);
 
 		hctx.restore();
 
 		if (!is_helper_layer && !selection.dragging) {
 			// Draw the selection outline (for the thumbnail)
 			// (The main canvas view has the OnCanvasSelection object which has its own outline)
-			draw_selection_box(hctx, selection.x, selection.y, selection.width, selection.height, scale, -viewport_x, -viewport_y);
+			draw_selection_box(hctx, window.globAppstate.selection.x, window.globAppstate.selection.y, window.globAppstate.selection.width, window.globAppstate.selection.height, scale, -viewport_x, -viewport_y);
 		}
 	}
 
@@ -371,15 +368,15 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	}
 
 	tools_to_preview.forEach((tool) => {
-		if (tool.drawPreviewAboveGrid && pointer && pointers.length < 2) {
+		if (tool.drawPreviewAboveGrid && window.globAppstate.pointer && window.globAppstate.pointers.length < 2) {
 			hctx.save();
-			tool.drawPreviewAboveGrid(hctx, pointer.x, pointer.y, grid_visible, scale, -viewport_x, -viewport_y);
+			tool.drawPreviewAboveGrid(hctx, window.globAppstate.pointer.x, window.globAppstate.pointer.y, grid_visible, scale, -viewport_x, -viewport_y);
 			hctx.restore();
 		}
 	});
 }
 function update_disable_aa() {
-	const dots_per_canvas_px = window.devicePixelRatio * magnification;
+	const dots_per_canvas_px = window.devicePixelRatio * window.globAppstate.magnification;
 	const round = Math.floor(dots_per_canvas_px) === dots_per_canvas_px;
 	$canvas_area.toggleClass("disable-aa-for-things-at-main-canvas-scale", dots_per_canvas_px >= 3 || round);
 }
@@ -396,12 +393,12 @@ function set_magnification(new_scale, anchor_point) {
 	//console.log('돋보기', new_scale);
 	//window.$zoomText.text(new_scale==0.125?'12.50%':`${new_scale*100}%`);
 	anchor_point = anchor_point ?? {
-		x: $canvas_area.scrollLeft() / magnification,
-		y: $canvas_area.scrollTop() / magnification,
+		x: $canvas_area.scrollLeft() / window.globAppstate.magnification,
+		y: $canvas_area.scrollTop() / window.globAppstate.magnification,
 	};
 	const anchor_on_page = from_canvas_coords(anchor_point);
 
-	magnification = new_scale;
+	window.globAppstate.magnification = new_scale;
 	if (new_scale !== 1) {
 		return_to_magnification = new_scale;
 	}
@@ -422,7 +419,7 @@ function set_magnification(new_scale, anchor_point) {
 
 
 function reset_selected_colors() {
-	selected_colors = {
+	window.globAppstate.selected_colors = {
 		foreground: "#000000",
 		background: "#ffffff",
 		ternary: "",
@@ -431,29 +428,29 @@ function reset_selected_colors() {
 }
 
 function reset_file() {
-	system_file_handle = null;
-	file_name = localize("untitled");
-	file_format = "image/png";
-	saved = true;
+	window.globAppstate.system_file_handle = null;
+	window.globAppstate.file_name = localize("untitled");
+	window.globAppstate.file_format = "image/png";
+	window.globAppstate.saved = true;
 	update_title();
 }
 
 function reset_canvas_and_history() {
-	undos.length = 0;
-	redos.length = 0;
-	current_history_node = root_history_node = make_history_node({
+	window.globAppstate.undos.length = 0;
+	window.globAppstate.redos.length = 0;
+	window.globAppstate.current_history_node = window.globAppstate.root_history_node = make_history_node({
 		name: localize("New"),
 		icon: get_help_folder_icon("p_blank.png"),
 	});
-	history_node_to_cancel_to = null;
+	window.globAppstate.history_node_to_cancel_to = null;
 
-	main_canvas.width = Math.max(1, my_canvas_width);
-	main_canvas.height = Math.max(1, my_canvas_height);
-	main_ctx.disable_image_smoothing();
-	main_ctx.fillStyle = selected_colors.background;
-	main_ctx.fillRect(0, 0, main_canvas.width, main_canvas.height);
+	window.globAppstate.main_canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
+	window.globAppstate.main_canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
+	window.globAppstate.main_ctx.disable_image_smoothing();
+	window.globAppstate.main_ctx.fillStyle = window.globAppstate.selected_colors.background;
+	window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
-	current_history_node.image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
+	window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
 	$canvas_area.trigger("resize");
 	$G.triggerHandler("history-update"); // update history view
@@ -531,14 +528,14 @@ function make_history_node({
 }
 
 function update_title() {
-	document.title = `${file_name} - ${is_pride_month ? "June Solidarity " : ""}${localize("Paint")}`;
+	document.title = `${window.globAppstate.file_name} - ${is_pride_month ? "June Solidarity " : ""}${localize("Paint")}`;
 
 	if (is_pride_month) {
 		$("link[rel~='icon']").attr("href", "./images/icons/gay-es-paint-16x16-light-outline.png");
 	}
 
 	if (window.setRepresentedFilename) {
-		window.setRepresentedFilename(system_file_handle ?? "");
+		window.setRepresentedFilename(window.globAppstate.system_file_handle ?? "");
 	}
 	if (window.setDocumentEdited) {
 		window.setDocumentEdited(!saved);
@@ -756,14 +753,14 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		reset_canvas_and_history(); // (with newly reset colors)
 		set_magnification(default_magnification);
 
-		main_ctx.copy(info.image || info.image_data);
+		window.globAppstate.main_ctx.copy(info.image || info.image_data);
 		apply_file_format_and_palette_info(info);
-		transparency = has_any_transparency(main_ctx);
+		transparency = has_any_transparency(window.globAppstate.main_ctx);
 		$canvas_area.trigger("resize");
 
-		current_history_node.name = localize("Open");
-		current_history_node.image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
-		current_history_node.icon = get_help_folder_icon("p_open.png");
+		window.globAppstate.current_history_node.name = localize("Open");
+		window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+		window.globAppstate.current_history_node.icon = get_help_folder_icon("p_open.png");
 
 		if (canvas_modified_while_loading || !from_session_load) {
 			// normally we don't want to autosave if we're loading a session,
@@ -776,13 +773,13 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		$G.triggerHandler("history-update"); // update history view
 
 		if (info.source_blob instanceof File) {
-			file_name = info.source_blob.name;
+			window.globAppstate.file_name = info.source_blob.name;
 			// file.path is available in Electron (see https://www.electronjs.org/docs/api/file-object#file-object)
 			// @ts-ignore
-			system_file_handle = info.source_blob.path;
+			window.globAppstate.system_file_handle = info.source_blob.path;
 		}
 		if (info.source_file_handle) {
-			system_file_handle = info.source_file_handle;
+			window.globAppstate.system_file_handle = info.source_file_handle;
 		}
 		saved = true;
 		update_title();
@@ -940,11 +937,11 @@ async function confirm_overwrite_capability() {
 function file_save(maybe_saved_callback = () => { }, update_from_saved = true) {
 	deselect();
 	// store and use file handle at this point in time, to avoid race conditions
-	const save_file_handle = system_file_handle;
-	if (!save_file_handle || file_name.match(/\.(svg|pdf)$/i)) {
+	const save_file_handle = window.globAppstate.system_file_handle;
+	if (!save_file_handle || window.globAppstate.file_name.match(/\.(svg|pdf)$/i)) {
 		return file_save_as(maybe_saved_callback, update_from_saved);
 	}
-	write_image_file(main_canvas, file_format, async (blob) => {
+	write_image_file(window.globAppstate.main_canvas, file_format, async (blob) => {
 		// An error may be shown by `systemHooks.writeBlobToHandle`,
 		// or it may be unknown whether the save will succeed,
 		// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
@@ -972,20 +969,20 @@ function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true
 	systemHooks.showSaveFileDialog({
 		dialogTitle: localize("Save As"),
 		formats: image_formats,
-		defaultFileName: file_name,
-		defaultPath: typeof system_file_handle === "string" ? system_file_handle : null,
+		defaultFileName: window.globAppstate.file_name,
+		defaultPath: typeof window.globAppstate.system_file_handle === "string" ? window.globAppstate.system_file_handle : null,
 		defaultFileFormatID: file_format,
 		getBlob: (new_file_type) => {
 			return new Promise((resolve) => {
-				write_image_file(main_canvas, new_file_type, (blob) => {
+				write_image_file(window.globAppstate.main_canvas, new_file_type, (blob) => {
 					resolve(blob);
 				});
 			});
 		},
 		savedCallbackUnreliable: ({ newFileName, newFileFormatID, newFileHandle, newBlob }) => {
 			saved = true;
-			system_file_handle = newFileHandle;
-			file_name = newFileName;
+			window.globAppstate.system_file_handle = newFileHandle;
+			window.globAppstate.file_name = newFileName;
 			file_format = newFileFormatID;
 			update_title();
 			maybe_saved_callback();
@@ -1018,7 +1015,7 @@ function are_you_sure(action, canceled, from_session_load) {
 		//   http://127.0.0.1:1999/#load:https://i.imgur.com/M5zcPuk.jpeg
 		// - click an Open link in the Manage Storage dialog in the Electron app
 		showMessageBox({
-			message: localize("You've modified the document while an existing document was loading.\nSave the new document?", file_name),
+			message: localize("You've modified the document while an existing document was loading.\nSave the new document?", window.globAppstate.file_name),
 			buttons: [
 				{
 					// label: localize("Save"),
@@ -1051,7 +1048,7 @@ function are_you_sure(action, canceled, from_session_load) {
 		});
 	} else {
 		showMessageBox({
-			message: localize("Save changes to %1?", file_name),
+			message: localize("Save changes to %1?", window.globAppstate.file_name),
 			buttons: [
 				{
 					// label: localize("Save"),
@@ -1497,7 +1494,7 @@ async function choose_file_to_paste() {
  */
 function paste(img_or_canvas) {
 
-	if (img_or_canvas.width > main_canvas.width || img_or_canvas.height > main_canvas.height) {
+	if (img_or_canvas.width > window.globAppstate.main_canvas.width || img_or_canvas.height > window.globAppstate.main_canvas.height) {
 		const message = localize("The image in the clipboard is larger than the bitmap.") + "\n" +
 			localize("Would you like the bitmap enlarged?");
 		showMessageBox({
@@ -1530,8 +1527,8 @@ function paste(img_or_canvas) {
 			if (result === "enlarge") {
 				// The resize gets its own undoable, as in mspaint
 				resize_canvas_and_save_dimensions(
-					Math.max(main_canvas.width, img_or_canvas.width),
-					Math.max(main_canvas.height, img_or_canvas.height),
+					Math.max(window.globAppstate.main_canvas.width, img_or_canvas.width),
+					Math.max(window.globAppstate.main_canvas.height, img_or_canvas.height),
 					{
 						name: "Enlarge Canvas For Paste",
 						icon: get_help_folder_icon("p_stretch_both.png"),
@@ -1551,8 +1548,8 @@ function paste(img_or_canvas) {
 		deselect();
 		select_tool(get_tool_by_id(TOOL_SELECT));
 
-		const x = Math.max(0, Math.ceil($canvas_area.scrollLeft() / magnification));
-		const y = Math.max(0, Math.ceil(($canvas_area.scrollTop()) / magnification));
+		const x = Math.max(0, Math.ceil($canvas_area.scrollLeft() / window.globAppstate.magnification));
+		const y = Math.max(0, Math.ceil(($canvas_area.scrollTop()) / window.globAppstate.magnification));
 		// Nevermind, canvas, isn't aligned to the right in RTL layout!
 		// let x = Math.max(0, Math.ceil($canvas_area.scrollLeft() / magnification));
 		// if (get_direction() === "rtl") {
@@ -1568,7 +1565,7 @@ function paste(img_or_canvas) {
 			icon: get_help_folder_icon("p_paste.png"),
 			soft: true,
 		}, () => {
-			selection = new OnCanvasSelection(x, y, img_or_canvas.width, img_or_canvas.height, img_or_canvas);
+			window.globAppstate.selection = new OnCanvasSelection(x, y, img_or_canvas.width, img_or_canvas.height, img_or_canvas);
 		});
 	}
 }
@@ -1578,7 +1575,7 @@ function paste(img_or_canvas) {
  * @param {boolean=} canceling
  */
 function go_to_history_node(target_history_node, canceling) {
-	const from_history_node = current_history_node;
+	const from_history_node = window.globAppstate.current_history_node;
 
 	if (!target_history_node.image_data) {
 		if (!canceling) {
@@ -1588,13 +1585,13 @@ function go_to_history_node(target_history_node, canceling) {
 		return;
 	}
 	/* For performance (especially with two finger panning), I'm disabling this safety check that preserves certain document states in the history.
-	const current_image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
-	if (!current_history_node.image_data || !image_data_match(current_history_node.image_data, current_image_data, 5)) {
-		window.console?.log("Canvas image data changed outside of undoable", current_history_node, "current_history_node.image_data:", current_history_node.image_data, "document's current image data:", current_image_data);
+	const current_image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+	if (!window.globAppstate.current_history_node.image_data || !image_data_match(window.globAppstate.current_history_node.image_data, current_image_data, 5)) {
+		window.console?.log("Canvas image data changed outside of undoable", window.globAppstate.current_history_node, "window.globAppstate.current_history_node.image_data:", window.globAppstate.current_history_node.image_data, "document's current image data:", current_image_data);
 		undoable({name: "Unknown [go_to_history_node]", use_loose_canvas_changes: true}, ()=> {});
 	}
 	*/
-	current_history_node = target_history_node;
+	window.globAppstate.current_history_node = target_history_node;
 
 	deselect(true);
 	if (!canceling) {
@@ -1603,10 +1600,10 @@ function go_to_history_node(target_history_node, canceling) {
 	saved = false;
 	update_title();
 
-	main_ctx.copy(target_history_node.image_data);
+	window.globAppstate.main_ctx.copy(target_history_node.image_data);
 	if (target_history_node.selection_image_data) {
-		if (selection) {
-			selection.destroy();
+		if (window.globAppstate.selection) {
+			window.globAppstate.selection.destroy();
 		}
 		// @TODO maybe: could store whether a selection is from Free-Form Select
 		// so it selects Free-Form Select when you jump to e.g. Move Selection
@@ -1616,7 +1613,7 @@ function go_to_history_node(target_history_node, canceling) {
 		} else {
 			select_tool(get_tool_by_id(TOOL_SELECT));
 		}
-		selection = new OnCanvasSelection(
+		window.globAppstate.selection = new OnCanvasSelection(
 			target_history_node.selection_x,
 			target_history_node.selection_y,
 			target_history_node.selection_image_data.width,
@@ -1650,18 +1647,18 @@ function go_to_history_node(target_history_node, canceling) {
 
 	const ancestors_of_target = get_history_ancestors(target_history_node);
 
-	undos = [...ancestors_of_target];
-	undos.reverse();
+	window.globAppstate.undos = [...ancestors_of_target];
+	window.globAppstate.undos.reverse();
 
 	const old_history_path =
-		redos.length > 0 ?
-			[redos[0], ...get_history_ancestors(redos[0])] :
+		window.globAppstate.redos.length > 0 ?
+			[redos[0], ...get_history_ancestors(window.globAppstate.redos[0])] :
 			[from_history_node, ...get_history_ancestors(from_history_node)];
 
 	// window.console?.log("target_history_node:", target_history_node);
 	// window.console?.log("ancestors_of_target:", ancestors_of_target);
 	// window.console?.log("old_history_path:", old_history_path);
-	redos.length = 0;
+	window.globAppstate.redos.length = 0;
 
 	let latest_node = target_history_node;
 	while (latest_node.futures.length > 0) {
@@ -1676,7 +1673,7 @@ function go_to_history_node(target_history_node, canceling) {
 			return 0;
 		});
 		latest_node = futures[0];
-		redos.unshift(latest_node);
+		window.globAppstate.redos.unshift(latest_node);
 	}
 	// window.console?.log("new undos:", undos);
 	// window.console?.log("new redos:", redos);
@@ -1695,9 +1692,9 @@ function go_to_history_node(target_history_node, canceling) {
 function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, callback) {
 	if (!use_loose_canvas_changes) {
 		/* For performance (especially with two finger panning), I'm disabling this safety check that preserves certain document states in the history.
-		const current_image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
-		if (!current_history_node.image_data || !image_data_match(current_history_node.image_data, current_image_data, 5)) {
-			window.console?.log("Canvas image data changed outside of undoable", current_history_node, "current_history_node.image_data:", current_history_node.image_data, "document's current image data:", current_image_data);
+		const current_image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+		if (!window.globAppstate.current_history_node.image_data || !image_data_match(window.globAppstate.current_history_node.image_data, current_image_data, 5)) {
+			window.console?.log("Canvas image data changed outside of undoable", window.globAppstate.current_history_node, "window.globAppstate.current_history_node.image_data:", window.globAppstate.current_history_node.image_data, "document's current image data:", current_image_data);
 			undoable({name: "Unknown [undoable]", use_loose_canvas_changes: true}, ()=> {});
 		}
 		*/
@@ -1708,23 +1705,23 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 		update_title();
 	}
 
-	const before_callback_history_node = current_history_node;
+	const before_callback_history_node = window.globAppstate.current_history_node;
 	callback?.();
-	if (current_history_node !== before_callback_history_node) {
+	if (window.globAppstate.current_history_node !== before_callback_history_node) {
 		show_error_message(`History node switched during undoable callback for ${name}. This shouldn't happen.`);
-		window.console?.log(`History node switched during undoable callback for ${name}, from`, before_callback_history_node, "to", current_history_node);
+		window.console?.log(`History node switched during undoable callback for ${name}, from`, before_callback_history_node, "to", window.globAppstate.current_history_node);
 	}
 
-	const image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
+	const image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
-	redos.length = 0;
-	undos.push(current_history_node);
+	window.globAppstate.redos.length = 0;
+	window.globAppstate.undos.push(window.globAppstate.current_history_node);
 
 	const new_history_node = make_history_node({
 		image_data,
 		selection_image_data: selection && selection.canvas.ctx.getImageData(0, 0, selection.canvas.width, selection.canvas.height),
-		selection_x: selection && selection.x,
-		selection_y: selection && selection.y,
+		selection_x: window.globAppstate.selection && window.globAppstate.selection.x,
+		selection_y: window.globAppstate.selection && window.globAppstate.selection.y,
 		textbox_text: textbox && textbox.$editor.val(),
 		textbox_x: textbox && textbox.x,
 		textbox_y: textbox && textbox.y,
@@ -1735,13 +1732,13 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 		foreground_color: selected_colors.foreground,
 		background_color: selected_colors.background,
 		ternary_color: selected_colors.ternary,
-		parent: current_history_node,
+		parent: window.globAppstate.current_history_node,
 		name,
 		icon,
 		soft,
 	});
-	current_history_node.futures.push(new_history_node);
-	current_history_node = new_history_node;
+	window.globAppstate.current_history_node.futures.push(new_history_node);
+	window.globAppstate.current_history_node = new_history_node;
 
 	$G.triggerHandler("history-update"); // update history view
 
@@ -1752,14 +1749,14 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
  * @param {()=> void} undoable_action
  */
 function make_or_update_undoable(undoable_meta, undoable_action) {
-	if (current_history_node.futures.length === 0 && undoable_meta.match(current_history_node)) {
+	if (window.globAppstate.current_history_node.futures.length === 0 && undoable_meta.match(window.globAppstate.current_history_node)) {
 		undoable_action();
-		current_history_node.image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
-		current_history_node.selection_image_data = selection && selection.canvas.ctx.getImageData(0, 0, selection.canvas.width, selection.canvas.height);
-		current_history_node.selection_x = selection && selection.x;
-		current_history_node.selection_y = selection && selection.y;
+		window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+		window.globAppstate.current_history_node.selection_image_data = window.globAppstate.selection && window.globAppstate.selection.canvas.ctx.getImageData(0, 0, window.globAppstate.selection.canvas.width, window.globAppstate.selection.canvas.height);
+		window.globAppstate.current_history_node.selection_x = window.globAppstate.selection && window.globAppstate.selection.x;
+		window.globAppstate.current_history_node.selection_y = window.globAppstate.selection && window.globAppstate.selection.y;
 		if (undoable_meta.update_name) {
-			current_history_node.name = undoable_meta.name;
+			window.globAppstate.current_history_node.name = undoable_meta.name;
 		}
 		$G.triggerHandler("history-update"); // update history view
 	} else {
@@ -1767,14 +1764,14 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 	}
 }
 function undo() {
-	if (undos.length < 1) { return false; }
+	if (window.globAppstate.undos.length < 1) { return false; }
 
-	redos.push(current_history_node);
-	let target_history_node = undos.pop();
+	window.globAppstate.redos.push(window.globAppstate.current_history_node);
+	let target_history_node = window.globAppstate.undos.pop();
 
-	while (target_history_node.soft && undos.length) {
-		redos.push(target_history_node);
-		target_history_node = undos.pop();
+	while (target_history_node.soft && window.globAppstate.undos.length) {
+		window.globAppstate.redos.push(target_history_node);
+		target_history_node = window.globAppstate.undos.pop();
 	}
 
 	go_to_history_node(target_history_node);
@@ -1786,7 +1783,7 @@ function undo() {
 /** @type {OSGUI$Window} */
 let $document_history_prompt_window;
 function redo() {
-	if (redos.length < 1) {
+	if (window.globAppstate.redos.length < 1) {
 		if ($document_history_prompt_window) {
 			$document_history_prompt_window.close();
 		}
@@ -1800,12 +1797,12 @@ function redo() {
 		return false;
 	}
 
-	undos.push(current_history_node);
-	let target_history_node = redos.pop();
+	window.globAppstate.undos.push(window.globAppstate.current_history_node);
+	let target_history_node = window.globAppstate.redos.pop();
 
-	while (target_history_node.soft && redos.length) {
-		undos.push(target_history_node);
-		target_history_node = redos.pop();
+	while (target_history_node.soft && window.globAppstate.redos.length) {
+		window.globAppstate.undos.push(target_history_node);
+		target_history_node = window.globAppstate.redos.pop();
 	}
 
 	go_to_history_node(target_history_node);
@@ -1882,7 +1879,7 @@ function show_document_history() {
 			</div>
 		`);
 		// $entry.find(".history-entry-name").text((node.name || "Unknown") + (node.soft ? " (soft)" : ""));
-		$entry.find(".history-entry-name").text((node.name || "Unknown") + (node === root_history_node ? " (Start of History)" : ""));
+		$entry.find(".history-entry-name").text((node.name || "Unknown") + (node === window.globAppstate.root_history_node ? " (Start of History)" : ""));
 		$entry.find(".history-entry-icon-area").append(node.icon);
 		if (mode === "tree") {
 			let dist_to_root = 0;
@@ -1893,7 +1890,7 @@ function show_document_history() {
 				marginInlineStart: `${dist_to_root * 8}px`,
 			});
 		}
-		if (node === current_history_node) {
+		if (node === window.globAppstate.current_history_node) {
 			$entry.addClass("current");
 			current_$entry = $entry;
 			requestAnimationFrame(() => {
@@ -1909,7 +1906,7 @@ function show_document_history() {
 					);
 			});
 		} else {
-			const history_ancestors = get_history_ancestors(current_history_node);
+			const history_ancestors = get_history_ancestors(window.globAppstate.current_history_node);
 			if (history_ancestors.indexOf(node) > -1) {
 				$entry.addClass("ancestor-of-current");
 			}
@@ -1928,7 +1925,7 @@ function show_document_history() {
 		previous_scroll_position = $history_view.scrollTop();
 		$history_view.empty();
 		rendered_$entries = [];
-		render_tree_from_node(root_history_node);
+		render_tree_from_node(window.globAppstate.root_history_node);
 		if (mode === "linear") {
 			rendered_$entries.sort(($a, $b) => {
 				if ($a.history_node.timestamp < $b.history_node.timestamp) {
@@ -1984,7 +1981,7 @@ function show_document_history() {
  * @param {boolean} [discard_document_state]
  */
 function cancel(going_to_history_node, discard_document_state) {
-	if (!history_node_to_cancel_to) {
+	if (!window.globAppstate.history_node_to_cancel_to) {
 		return;
 	}
 
@@ -1997,29 +1994,29 @@ function cancel(going_to_history_node, discard_document_state) {
 	// but only the last should be discarded due to panning. (All of them should be undone you hit Esc. But not deleted.)
 	const history_node_to_discard = (
 		discard_document_state &&
-		current_history_node.parent && // can't discard the root node
-		current_history_node !== history_node_to_cancel_to && // can't discard what will be the active node
-		current_history_node.futures.length === 0 // prevent discarding whole branches of history if you go back in history and then pan / hit Esc
-	) ? current_history_node : null;
+		window.globAppstate.current_history_node.parent && // can't discard the root node
+		window.globAppstate.current_history_node !== window.globAppstate.history_node_to_cancel_to && // can't discard what will be the active node
+		window.globAppstate.current_history_node.futures.length === 0 // prevent discarding whole branches of history if you go back in history and then pan / hit Esc
+	) ? window.globAppstate.current_history_node : null;
 
-	// console.log("history_node_to_discard", history_node_to_discard, "current_history_node", current_history_node, "history_node_to_cancel_to", history_node_to_cancel_to);
+	// console.log("history_node_to_discard", history_node_to_discard, "window.globAppstate.current_history_node", window.globAppstate.current_history_node, "window.globAppstate.history_node_to_cancel_to", window.globAppstate.history_node_to_cancel_to);
 
-	// history_node_to_cancel_to = history_node_to_cancel_to || current_history_node;
+	// window.globAppstate.history_node_to_cancel_to = window.globAppstate.history_node_to_cancel_to || window.globAppstate.current_history_node;
 	$G.triggerHandler("pointerup", ["canceling", discard_document_state]);
-	for (const selected_tool of selected_tools) {
+	for (const selected_tool of window.globAppstate.selected_tools) {
 		selected_tool.cancel?.();
 	}
 	if (!going_to_history_node) {
 		// Note: this will revert any changes from other users in multi-user sessions
 		// which isn't good, but there's no real conflict resolution in multi-user mode anyways
-		go_to_history_node(history_node_to_cancel_to, true);
+		go_to_history_node(window.globAppstate.history_node_to_cancel_to, true);
 
 		if (history_node_to_discard) {
 			const index = history_node_to_discard.parent.futures.indexOf(history_node_to_discard);
 			if (index === -1) {
 				show_error_message("History node not found. Please report this bug.");
 				console.log("history_node_to_discard", history_node_to_discard);
-				console.log("current_history_node", current_history_node);
+				console.log("window.globAppstate.current_history_node", window.globAppstate.current_history_node);
 				console.log("history_node_to_discard.parent", history_node_to_discard.parent);
 			} else {
 				history_node_to_discard.parent.futures.splice(index, 1);
@@ -2028,16 +2025,16 @@ function cancel(going_to_history_node, discard_document_state) {
 			}
 		}
 	}
-	history_node_to_cancel_to = null;
+	window.globAppstate.history_node_to_cancel_to = null;
 	update_helper_layer();
 }
 /**
  * @param {boolean} [going_to_history_node]
  */
 function meld_selection_into_canvas(going_to_history_node) {
-	selection.draw();
-	selection.destroy();
-	selection = null;
+	window.globAppstate.selection.draw();
+	window.globAppstate.selection.destroy();
+	window.globAppstate.selection = null;
 	if (!going_to_history_node) {
 		undoable({
 			name: "Deselect",
@@ -2061,7 +2058,7 @@ function meld_textbox_into_canvas(going_to_history_node) {
 			name: "Finish Text",
 			icon: get_icon_for_tool(get_tool_by_id(TOOL_TEXT)),
 		}, () => {
-			main_ctx.drawImage(textbox.canvas, textbox.x, textbox.y);
+			window.globAppstate.main_ctx.drawImage(textbox.canvas, textbox.x, textbox.y);
 			textbox.destroy();
 			textbox = null;
 		});
@@ -2074,14 +2071,14 @@ function meld_textbox_into_canvas(going_to_history_node) {
  * @param {boolean} [going_to_history_node]
  */
 function deselect(going_to_history_node) {
-	if (selection) {
+	if (window.globAppstate.selection) {
 		meld_selection_into_canvas(going_to_history_node);
 	}
 	if (textbox) {
 		meld_textbox_into_canvas(going_to_history_node);
 	}
-	for (const selected_tool of selected_tools) {
-		selected_tool.end?.(main_ctx);
+	for (const selected_tool of window.globAppstate.selected_tools) {
+		selected_tool.end?.(window.globAppstate.main_ctx);
 	}
 }
 
@@ -2089,14 +2086,14 @@ function deselect(going_to_history_node) {
  * @param {{name?: string, icon?: HTMLImageElement | HTMLCanvasElement}} [meta] - overrides certain properties of ActionMetadata
  */
 function delete_selection(meta = {}) {
-	if (selection) {
+	if (window.globAppstate.selection) {
 		undoable({
 			name: meta.name || localize("Clear Selection"), //"Delete", (I feel like "Clear Selection" is unclear, could mean "Deselect")
 			icon: meta.icon || get_help_folder_icon("p_delete.png"),
 			// soft: @TODO: conditionally soft?,
 		}, () => {
-			selection.destroy();
-			selection = null;
+			window.globAppstate.selection.destroy();
+			window.globAppstate.selection = null;
 		});
 	}
 }
@@ -2109,7 +2106,7 @@ function select_all() {
 		icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
 		soft: true,
 	}, () => {
-		selection = new OnCanvasSelection(0, 0, main_canvas.width, main_canvas.height);
+		window.globAppstate.selection = new OnCanvasSelection(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 	});
 }
 
@@ -2167,7 +2164,7 @@ function edit_copy(execCommandFallback) {
 			}
 		}
 		navigator.clipboard.writeText(text);
-	} else if (selection && selection.canvas) {
+	} else if (window.globAppstate.selection && window.globAppstate.selection.canvas) {
 		if (!navigator.clipboard || !navigator.clipboard.write) {
 			if (execCommandFallback) {
 				return try_exec_command("copy");
@@ -2177,7 +2174,7 @@ function edit_copy(execCommandFallback) {
 				return;
 			}
 		}
-		selection.canvas.toBlob((blob) => {
+		window.globAppstate.selection.canvas.toBlob((blob) => {
 			sanity_check_blob(blob, () => {
 				navigator.clipboard.write([
 					new ClipboardItem(Object.defineProperty({}, blob.type, {
@@ -2294,10 +2291,10 @@ function clear() {
 		update_title();
 
 		if (transparency) {
-			main_ctx.clearRect(0, 0, main_canvas.width, main_canvas.height);
+			window.globAppstate.main_ctx.clearRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 		} else {
-			main_ctx.fillStyle = selected_colors.background;
-			main_ctx.fillRect(0, 0, main_canvas.width, main_canvas.height);
+			window.globAppstate.main_ctx.fillStyle = selected_colors.background;
+			window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 		}
 	});
 }
@@ -2410,7 +2407,7 @@ function view_bitmap() {
 	// considering that if you right click on the image in View Bitmap mode,
 	// it shows the silly "Thumbnail" context menu item.
 	// (It also shows the selection, in a meaningless place, similar to the Thumbnail's bugs)
-	main_canvas.toBlob((blob) => {
+	window.globAppstate.main_canvas.toBlob((blob) => {
 		blob_url = URL.createObjectURL(blob);
 		const img = document.createElement("img");
 		img.src = blob_url;
@@ -2453,14 +2450,14 @@ function select_tools(tools) {
 function select_tool(tool, toggle) {
 	// deselect();
 
-	// if (!(selected_tools.length === 1 && selected_tool.deselect)) {
-	// 	return_to_tools = [...selected_tools];
+	// if (!(window.globAppstate.selected_tools.length === 1 && selected_tool.deselect)) {
+	// 	return_to_tools = [...window.globAppstate.selected_tools];
 	// }
 	// if (toggle) {
-	// 	const index = selected_tools.indexOf(tool);
+	// 	const index = window.globAppstate.selected_tools.indexOf(tool);
 	// 	if (index === -1) {
-	// 		selected_tools.push(tool);
-	// 		selected_tools.sort((a, b) => {
+	// 		window.globAppstate.selected_tools.push(tool);
+	// 		window.globAppstate.selected_tools.sort((a, b) => {
 	// 			if (tools.indexOf(a) < tools.indexOf(b)) {
 	// 				return -1;
 	// 			}
@@ -2470,17 +2467,17 @@ function select_tool(tool, toggle) {
 	// 			return 0;
 	// 		});
 	// 	} else {
-	// 		selected_tools.splice(index, 1);
+	// 		window.globAppstate.selected_tools.splice(index, 1);
 	// 	}
-	// 	if (selected_tools.length > 0) {
-	// 		selected_tool = selected_tools[selected_tools.length - 1];
+	// 	if (window.globAppstate.selected_tools.length > 0) {
+	// 		selected_tool = window.globAppstate.selected_tools[window.globAppstate.selected_tools.length - 1];
 	// 	} else {
 	// 		selected_tool = default_tool;
-	// 		selected_tools = [selected_tool];
+	// 		window.globAppstate.selected_tools = [selected_tool];
 	// 	}
 	// } else {
 	// 	selected_tool = tool;
-	// 	selected_tools = [tool];
+	// 	window.globAppstate.selected_tools = [tool];
 	// }
 
 	// if (tool.preload) {
@@ -2499,7 +2496,7 @@ function has_any_transparency(ctx) {
 	// @TODO Optimization: Assume JPEGs and some other file types are opaque.
 	// Raster file formats that SUPPORT transparency include GIF, PNG, BMP and TIFF
 	// (Yes, even BMPs support transparency!)
-	const id = ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
+	const id = ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 	for (let i = 0, l = id.data.length; i < l; i += 4) {
 		// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
 		// or other values
@@ -2525,7 +2522,7 @@ function make_stripe_pattern(reverse, colors, stripe_size = 4) {
 	pattern_canvas.width = colors.length * stripe_size;
 	pattern_canvas.height = colors.length * stripe_size;
 
-	const pattern_image_data = main_ctx.createImageData(pattern_canvas.width, pattern_canvas.height);
+	const pattern_image_data = window.globAppstate.main_ctx.createImageData(pattern_canvas.width, pattern_canvas.height);
 
 	for (let x = 0; x < pattern_canvas.width; x += 1) {
 		for (let y = 0; y < pattern_canvas.height; y += 1) {
@@ -2543,7 +2540,7 @@ function make_stripe_pattern(reverse, colors, stripe_size = 4) {
 
 	pattern_ctx.putImageData(pattern_image_data, 0, 0);
 
-	return main_ctx.createPattern(pattern_canvas, "repeat");
+	return window.globAppstate.main_ctx.createPattern(pattern_canvas, "repeat");
 }
 
 function switch_to_polychrome_palette() {
@@ -2555,17 +2552,17 @@ function make_opaque() {
 		name: "Make Opaque",
 		icon: get_help_folder_icon("p_make_opaque.png"),
 	}, () => {
-		main_ctx.save();
-		main_ctx.globalCompositeOperation = "destination-atop";
+		window.globAppstate.main_ctx.save();
+		window.globAppstate.main_ctx.globalCompositeOperation = "destination-atop";
 
-		main_ctx.fillStyle = 'white';
-		main_ctx.fillRect(0, 0, main_canvas.width, main_canvas.height);
+		window.globAppstate.main_ctx.fillStyle = 'white';
+		window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
 		// in case the selected background color is transparent/translucent
-		// main_ctx.fillStyle = "white";
-		// main_ctx.fillRect(0, 0, main_canvas.width, main_canvas.height);
+		// window.globAppstate.main_ctx.fillStyle = "white";
+		// window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
-		main_ctx.restore();
+		window.globAppstate.main_ctx.restore();
 	});
 }
 
@@ -2579,24 +2576,24 @@ function make_opaque() {
 function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_height, undoable_meta = {}) {
 	const new_width = Math.max(1, unclamped_width);
 	const new_height = Math.max(1, unclamped_height);
-	if (main_canvas.width !== new_width || main_canvas.height !== new_height) {
+	if (window.globAppstate.main_canvas.width !== new_width || window.globAppstate.main_canvas.height !== new_height) {
 		undoable({
 			name: undoable_meta.name || "Resize Canvas",
 			icon: undoable_meta.icon || get_help_folder_icon("p_stretch_both.png"),
 		}, () => {
 			try {
-				const image_data = main_ctx.getImageData(0, 0, new_width, new_height);
-				main_canvas.width = new_width;
-				main_canvas.height = new_height;
-				main_ctx.disable_image_smoothing();
+				const image_data = window.globAppstate.main_ctx.getImageData(0, 0, new_width, new_height);
+				window.globAppstate.main_canvas.width = new_width;
+				window.globAppstate.main_canvas.height = new_height;
+				window.globAppstate.main_ctx.disable_image_smoothing();
 
 				if (!transparency) {
-					main_ctx.fillStyle = selected_colors.background;
-					main_ctx.fillRect(0, 0, main_canvas.width, main_canvas.height);
+					window.globAppstate.main_ctx.fillStyle = selected_colors.background;
+					window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 				}
 
 				const temp_canvas = make_canvas(image_data);
-				main_ctx.drawImage(temp_canvas, 0, 0);
+				window.globAppstate.main_ctx.drawImage(temp_canvas, 0, 0);
 			} catch (exception) {
 				if (exception.name === "NS_ERROR_FAILURE") {
 					// or localize("There is not enough memory or resources to complete operation.")
@@ -2624,8 +2621,8 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 function resize_canvas_and_save_dimensions(unclamped_width, unclamped_height, undoable_meta = {}) {
 	resize_canvas_without_saving_dimensions(unclamped_width, unclamped_height, undoable_meta);
 	localStore.set({
-		width: main_canvas.width.toString(),
-		height: main_canvas.height.toString(),
+		width: window.globAppstate.main_canvas.width.toString(),
+		height: window.globAppstate.main_canvas.height.toString(),
 	}, (_error) => {
 		// oh well
 	});
@@ -2661,8 +2658,8 @@ function image_attributes() {
 
 	const unit_sizes_in_px = { px: 1, in: 72, cm: 28.3465 };
 	let current_unit = image_attributes.unit = image_attributes.unit || "px";
-	let width_in_px = main_canvas.width;
-	let height_in_px = main_canvas.height;
+	let width_in_px = window.globAppstate.main_canvas.width;
+	let height_in_px = window.globAppstate.main_canvas.height;
 
 	const $width_label = $(E("label")).appendTo($main).html(render_access_key(localize("&Width:")));
 	const $height_label = $(E("label")).appendTo($main).html(render_access_key(localize("&Height:")));
@@ -2733,7 +2730,7 @@ function image_attributes() {
 		const height = Number($height.val()) * unit_to_px;
 		resize_canvas_and_save_dimensions(~~width, ~~height);
 
-		if (!transparency && has_any_transparency(main_ctx)) {
+		if (!transparency && has_any_transparency(window.globAppstate.main_ctx)) {
 			make_opaque();
 		}
 
@@ -2746,8 +2743,8 @@ function image_attributes() {
 
 	// Parsing HTML with jQuery; $Button takes text (not HTML) or Node/DocumentFragment
 	$w.$Button($.parseHTML(render_access_key(localize("&Default")))[0], () => {
-		width_in_px = default_canvas_width;
-		height_in_px = default_canvas_height;
+		width_in_px = window.globAppstate.default_canvas_width;
+		height_in_px = window.globAppstate.default_canvas_height;
 		$width.val(width_in_px / unit_sizes_in_px[current_unit]);
 		$height.val(height_in_px / unit_sizes_in_px[current_unit]);
 	}).attr("aria-keyshortcuts", "Alt+D D");
@@ -2780,7 +2777,7 @@ function show_convert_to_black_and_white() {
 	$w.addClass("convert-to-black-and-white");
 	$w.$main.append("<fieldset><legend>Threshold:</legend><input type='range' min='0' max='1' step='0.01' value='0.5'></fieldset>");
 	const $slider = $w.$main.find("input[type='range']");
-	const original_canvas = make_canvas(main_canvas);
+	const original_canvas = make_canvas(window.globAppstate.main_canvas);
 	let threshold;
 	const update_threshold = () => {
 		make_or_update_undoable({
@@ -2789,8 +2786,8 @@ function show_convert_to_black_and_white() {
 			icon: get_help_folder_icon("p_monochrome.png"),
 		}, () => {
 			threshold = Number($slider.val());
-			main_ctx.copy(original_canvas);
-			threshold_black_and_white(main_ctx, threshold);
+			window.globAppstate.main_ctx.copy(original_canvas);
+			threshold_black_and_white(window.globAppstate.main_ctx, threshold);
 		});
 	};
 	update_threshold();
@@ -2801,14 +2798,14 @@ function show_convert_to_black_and_white() {
 		$w.close();
 	}, { type: "submit" }).focus();
 	$w.$Button(localize("Cancel"), () => {
-		if (current_history_node.name === "Make Monochrome") {
+		if (window.globAppstate.current_history_node.name === "Make Monochrome") {
 			undo();
 		} else {
 			undoable({
 				name: "Cancel Make Monochrome",
 				icon: get_help_folder_icon("p_color.png"),
 			}, () => {
-				main_ctx.copy(original_canvas);
+				window.globAppstate.main_ctx.copy(original_canvas);
 			});
 		}
 		$w.close();
@@ -3512,13 +3509,13 @@ function update_from_saved_file(blob) {
 			icon: get_help_folder_icon("p_save.png"),
 			assume_saved: true, // prevent setting saved to false
 		}, () => {
-			main_ctx.copy(info.image || info.image_data);
+			window.globAppstate.main_ctx.copy(info.image || info.image_data);
 		});
 	});
 }
 
 function save_selection_to_file() {
-	if (selection && selection.canvas) {
+	if (window.globAppstate.selection && window.globAppstate.selection.canvas) {
 		systemHooks.showSaveFileDialog({
 			dialogTitle: localize("Save As"),
 			defaultFileName: "selection.png",
@@ -3526,7 +3523,7 @@ function save_selection_to_file() {
 			formats: image_formats,
 			getBlob: (new_file_type) => {
 				return new Promise((resolve) => {
-					write_image_file(selection.canvas, new_file_type, (blob) => {
+					write_image_file(window.globAppstate.selection.canvas, new_file_type, (blob) => {
 						resolve(blob);
 					});
 				});

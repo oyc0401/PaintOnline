@@ -1,6 +1,6 @@
 console.log('JS 실행:','OnCanvasObject.js')
 // @ts-check
-/* global $canvas_area, $status_position, $status_size, canvas_handles, magnification */
+/* global $canvas_area, $status_position, $status_size, canvas_handles */
 import { $G, E } from "./helpers.js";
 // import $ from 'jquery'
 
@@ -36,10 +36,10 @@ class OnCanvasObject {
 		this.$el.css({
 			position: "absolute",
 			// [left_for_ltr]: magnification * (direction === "rtl" ? canvas.width - this.width - this.x : this.x) + offset_left,
-			left: magnification * this.x + offset_left,
-			top: magnification * this.y + offset_top,
-			width: magnification * this.width,
-			height: magnification * this.height,
+			left: window.globAppstate.magnification * this.x + offset_left,
+			top: window.globAppstate.magnification * this.y + offset_top,
+			width: window.globAppstate.magnification * this.width,
+			height: window.globAppstate.magnification * this.height,
 		});
 		if (updateStatus) {
 			$status_position.text(`${this.x}, ${this.y}px`);

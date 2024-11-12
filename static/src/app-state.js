@@ -239,8 +239,10 @@ state.update_helper_layer_on_pointermove_active = update_helper_layer_on_pointer
 state.pointers = pointers;
 
 
+window.globAppstate={};
+
 Object.keys(state).forEach(key => {
-		window[key] = state[key];
+		window['globAppstate'][key] = state[key];
 });
 
 export default state;

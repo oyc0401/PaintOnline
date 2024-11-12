@@ -1,6 +1,5 @@
 // @ts-check
 
-/* global AccessKeys, main_canvas */
 /* eslint-disable @stylistic/space-unary-ops */
 // import $ from "jquery";
 import { AccessKeys } from '../lib/os-gui/MenuBar.js'
@@ -403,8 +402,8 @@ function to_canvas_coords({ clientX, clientY }) {
 	}
 	const rect = window.canvas_bounding_client_rect;
 	return {
-		x: ~~((clientX - rect.left) / rect.width * main_canvas.width),
-		y: ~~((clientY - rect.top) / rect.height * main_canvas.height),
+		x: ~~((clientX - rect.left) / rect.width * window.globAppstate.main_canvas.width),
+		y: ~~((clientY - rect.top) / rect.height * window.globAppstate.main_canvas.height),
 	};
 }
 /**
@@ -414,8 +413,8 @@ function to_canvas_coords({ clientX, clientY }) {
 function from_canvas_coords({ x, y }) {
 	const rect = window.canvas_bounding_client_rect;
 	return {
-		clientX: ~~(x / main_canvas.width * rect.width + rect.left),
-		clientY: ~~(y / main_canvas.height * rect.height + rect.top),
+		clientX: ~~(x / window.globAppstate.main_canvas.width * rect.width + rect.left),
+		clientY: ~~(y / window.globAppstate.main_canvas.height * rect.height + rect.top),
 	};
 }
 // #endregion
