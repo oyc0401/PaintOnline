@@ -274,7 +274,7 @@ function update_helper_layer_immediately() {
  * @param {boolean} is_helper_layer
  */
 function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_layer) {
-	update_fill_and_stroke_colors_and_lineWidth(selected_tool);
+	//update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
 	const grid_visible = show_grid && magnification >= 4 && (window.devicePixelRatio * magnification) >= 4 && is_helper_layer;
 
@@ -395,7 +395,7 @@ function set_magnification(new_scale, anchor_point) {
 	// And actually you don't have to "imagine" zooming, you can just do the zoom.
 
 	//console.log('돋보기', new_scale);
-	window.$zoomText.text(new_scale==0.125?'12.50%':`${new_scale*100}%`);
+	//window.$zoomText.text(new_scale==0.125?'12.50%':`${new_scale*100}%`);
 	anchor_point = anchor_point ?? {
 		x: $canvas_area.scrollLeft() / magnification,
 		y: $canvas_area.scrollTop() / magnification,
