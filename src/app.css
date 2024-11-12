@@ -15,3 +15,50 @@ html, body{
 .paint-layout{
   height:100%;
 }
+
+/* 캔버스 움직이는 버튼 */
+.grab-region {
+  /* the grab-region make handles way easier to grab by extending outside the visual representation of the handle */
+  position: absolute;
+  /*background: rgba(255, 0, 0, 0.5);*/ /* debug */
+}
+.canvas-area .handle {
+  background: white;
+  border: solid black 1px;
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  z-index: 1;
+}
+
+.canvas-area .useless-handle {
+  background: transparent;
+  border:none;
+}
+
+
+.resize-ghost,
+.component-ghost {
+  pointer-events: none;
+}
+.component-ghost {
+  z-index: 5001; /* 50-5000 reserved for subwindows, which dynamically increase z-index */
+}
+
+.resize-ghost {
+  z-index: 4;
+  outline: 1px dotted #ccc;
+  mix-blend-mode: difference;
+}
+.resize-ghost.thick:after,
+.resize-ghost.thick:before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  outline: 1px dotted #ccc;
+}
+.resize-ghost.thick:after {
+  outline-offset: 1px;
+}
+.resize-ghost.thick:before {
+  outline-offset: 2px;
+}
