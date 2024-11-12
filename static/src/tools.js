@@ -1,14 +1,13 @@
 console.log('JS 실행:','tools.js')
 // @ts-check
 /* global selection:writable, stroke_size:writable, textbox:writable */
-/* global $canvas, $canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, main_canvas, main_ctx, pencil_size, pointer, pointer_active, pointer_over_canvas, pointer_previous, pointer_start, return_to_magnification, selected_colors, shift, stroke_color, transparency */
+/* global $canvas, $canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
 import {
 	deselect,
 	get_tool_by_id,
 	meld_selection_into_canvas,
-	meld_textbox_into_canvas,
 	set_magnification,
 	show_error_message,
 	undoable,
@@ -273,7 +272,7 @@ const tools = [
 			this.y_min = pointer.y;
 			this.y_max = pointer.y + 1;
 			this.points = [];
-			this.preview_canvas = make_canvas(main_canvas.width, main_canvas.height);
+			this.preview_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
 			// End prior selection, drawing it to the canvas
 
@@ -281,9 +280,9 @@ const tools = [
 		},
 		paint(_ctx, _x, _y) {
 			// Constrain the pointer to the canvas
-			pointer.x = Math.min(main_canvas.width, pointer.x);
+			pointer.x = Math.min(window.globAppstate.main_canvas.width, pointer.x);
 			pointer.x = Math.max(0, pointer.x);
-			pointer.y = Math.min(main_canvas.height, pointer.y);
+			pointer.y = Math.min(window.globAppstate.main_canvas.height, pointer.y);
 			pointer.y = Math.max(0, pointer.y);
 			// Add the point
 			this.points.push(pointer);
@@ -294,8 +293,8 @@ const tools = [
 			this.y_max = Math.max(pointer.y, this.y_max);
 
 			bresenham_line(
-				pointer_previous.x,
-				pointer_previous.y,
+				window.globAppstate.pointer_previous.x,
+				window.globAppstate.pointer_previous.y,
 				pointer.x,
 				pointer.y,
 				(x, y) => {
@@ -311,9 +310,9 @@ const tools = [
 		},
 		ffs_paint_iteration(x, y) {
 			// Constrain the inversion paint brush position to the canvas
-			x = Math.min(main_canvas.width, x);
+			x = Math.min(window.globAppstate.main_canvas.width, x);
 			x = Math.max(0, x);
-			y = Math.min(main_canvas.height, y);
+			y = Math.min(window.globAppstate.main_canvas.height, y);
 			y = Math.max(0, y);
 
 			// Find the dimensions on the canvas of the tiny square to invert
@@ -324,7 +323,7 @@ const tools = [
 			const rect_h = inversion_size;
 
 			const ctx_dest = this.preview_canvas.ctx;
-			const id_src = main_ctx.getImageData(rect_x, rect_y, rect_w, rect_h);
+			const id_src = window.globAppstate.main_ctx.getImageData(rect_x, rect_y, rect_w, rect_h);
 			const id_dest = ctx_dest.getImageData(rect_x, rect_y, rect_w, rect_h);
 
 			for (let i = 0, l = id_dest.data.length; i < l; i += 4) {
@@ -344,7 +343,7 @@ const tools = [
 			this.preview_canvas.height = 1;
 
 			const contents_within_polygon = copy_contents_within_polygon(
-				main_canvas,
+				window.globAppstate.main_canvas,
 				this.points,
 				this.x_min,
 				this.y_min,
@@ -394,7 +393,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!pointer_active && !pointer_over_canvas) {
+			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
 				return;
 			}
 			if (!this.preview_canvas) {
@@ -427,8 +426,8 @@ const tools = [
 				if (ctrl) {
 					undoable({ name: "Crop" }, () => {
 						var cropped_canvas = make_canvas(rect_width, rect_height);
-						cropped_canvas.ctx.drawImage(main_canvas, -rect_x, -rect_y);
-						main_ctx.copy(cropped_canvas);
+						cropped_canvas.ctx.drawImage(window.globAppstate.main_canvas, -rect_x, -rect_y);
+						window.globAppstate.main_ctx.copy(cropped_canvas);
 						canvas_handles.show();
 						$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
@@ -450,7 +449,7 @@ const tools = [
 					var contents_canvas = make_canvas(x_max - x_min, y_max - y_min);
 					var rect_canvas = make_canvas(x_max - x_min, y_max - y_min);
 					rect_canvas.ctx.drawImage(
-						main_canvas,
+						window.globAppstate.main_canvas,
 						// source:
 						rect_x,
 						rect_y,
@@ -542,7 +541,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!pointer_active && !pointer_over_canvas) {
+			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
 				return;
 			}
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
@@ -566,7 +565,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!pointer_active && !pointer_over_canvas) {
+			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
 				return;
 			}
 
@@ -595,7 +594,7 @@ const tools = [
 			}
 		},
 		pointerdown() {
-			this.mask_canvas = make_canvas(main_canvas.width, main_canvas.height);
+			this.mask_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 		},
 		render_from_mask(ctx, previewing) {
 			ctx.save();
@@ -632,7 +631,7 @@ const tools = [
 					icon: get_icon_for_tool(this),
 				},
 				() => {
-					this.render_from_mask(main_ctx);
+					this.render_from_mask(window.globAppstate.main_ctx);
 
 					this.mask_canvas = null;
 				},
@@ -643,10 +642,10 @@ const tools = [
 		},
 		paint(ctx, _x, _y) {
 			bresenham_line(
-				pointer_previous.x,
-				pointer_previous.y,
-				pointer.x,
-				pointer.y,
+				window.globAppstate.pointer_previous.x,
+				window.globAppstate.pointer_previous.y,
+				window.globAppstate.pointer.x,
+				window.globAppstate.pointer.y,
 				(x, y) => {
 					this.eraser_paint_iteration(ctx, x, y);
 				},
@@ -761,7 +760,7 @@ const tools = [
 			});
 		},
 		paint(ctx, x, y) {
-			if (x >= 0 && y >= 0 && x < main_canvas.width && y < main_canvas.height) {
+			if (x >= 0 && y >= 0 && x < window.globAppstate.main_canvas.width && y < window.globAppstate.main_canvas.height) {
 				const id = ctx.getImageData(~~x, ~~y, 1, 1);
 				const [r, g, b, a] = id.data;
 				this.current_color = `rgba(${r},${g},${b},${a / 255})`;
@@ -828,10 +827,10 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!pointer_active && !pointer_over_canvas) {
+			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
 				return;
 			}
-			if (pointer_active) {
+			if (window.globAppstate.pointer_active) {
 				return;
 			}
 			const prospective_magnification = this.getProspectiveMagnification();
@@ -865,8 +864,8 @@ const tools = [
 			// try to move rect into bounds without squishing
 			rect_x1 = Math.max(0, rect_x1);
 			rect_y1 = Math.max(0, rect_y1);
-			rect_x1 = Math.min(main_canvas.width - w, rect_x1);
-			rect_y1 = Math.min(main_canvas.height - h, rect_y1);
+			rect_x1 = Math.min(window.globAppstate.main_canvas.width - w, rect_x1);
+			rect_y1 = Math.min(window.globAppstate.main_canvas.height - h, rect_y1);
 
 			let rect_x2 = rect_x1 + w;
 			let rect_y2 = rect_y1 + h;
@@ -874,15 +873,15 @@ const tools = [
 			// clamp rect to bounds (with squishing)
 			rect_x1 = Math.max(0, rect_x1);
 			rect_y1 = Math.max(0, rect_y1);
-			rect_x2 = Math.min(main_canvas.width, rect_x2);
-			rect_y2 = Math.min(main_canvas.height, rect_y2);
+			rect_x2 = Math.min(window.globAppstate.main_canvas.width, rect_x2);
+			rect_y2 = Math.min(window.globAppstate.main_canvas.height, rect_y2);
 
 			const rect_w = rect_x2 - rect_x1;
 			const rect_h = rect_y2 - rect_y1;
 			const rect_x = rect_x1;
 			const rect_y = rect_y1;
 
-			const id_src = main_canvas.ctx.getImageData(
+			const id_src = window.globAppstate.main_canvas.ctx.getImageData(
 				rect_x,
 				rect_y,
 				rect_w + 1,
@@ -981,7 +980,7 @@ const tools = [
 		cursor: ["pencil", [13, 23], "crosshair"],
 		stroke_only: true,
 		get_brush() {
-			return { size: pencil_size, shape: "circle" };
+			return { size: window.globAppstate.pencil_size, shape: "circle" };
 		},
 	},
 	{
@@ -995,7 +994,7 @@ const tools = [
 		cursor: ["precise-dotted", [16, 16], "crosshair"],
 		dynamic_preview_cursor: true,
 		get_brush() {
-			return { size: brush_size, shape: brush_shape };
+			return { size: window.globAppstate.brush_size, shape: brush_shape };
 		},
 		$options: $choose_brush,
 	},
@@ -1092,8 +1091,8 @@ const tools = [
 		pointerdown(_ctx, x, y) {
 			if (this.points.length < 1) {
 				this.preview_canvas = make_canvas(
-					main_canvas.width,
-					main_canvas.height,
+					window.globAppstate.main_canvas.width,
+					window.globAppstate.main_canvas.height,
 				);
 				this.points.push({ x, y });
 				if (!$("body").hasClass("eye-gaze-mode")) {
@@ -1121,7 +1120,7 @@ const tools = [
 				this.preview_canvas.width,
 				this.preview_canvas.height,
 			);
-			this.preview_canvas.ctx.strokeStyle = stroke_color;
+			this.preview_canvas.ctx.strokeStyle = window.globAppstate.stroke_color;
 
 			// Draw curves on preview canvas
 			if (this.points.length === 4) {
@@ -1185,7 +1184,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			// if (!pointer_active && !pointer_over_canvas) { return; }
+			// if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) { return; }
 			if (!this.preview_canvas) {
 				return;
 			}
@@ -1375,8 +1374,8 @@ const tools = [
 		pointerdown(ctx, x, y) {
 			if (this.points.length < 1) {
 				this.preview_canvas = make_canvas(
-					main_canvas.width,
-					main_canvas.height,
+					window.globAppstate.main_canvas.width,
+					window.globAppstate.main_canvas.height,
 				);
 
 				// Add the first point of the polygon
@@ -1420,7 +1419,7 @@ const tools = [
 				this.preview_canvas.height,
 			);
 			if (this.$options.fill && !this.$options.stroke) {
-				this.preview_canvas.ctx.drawImage(main_canvas, 0, 0);
+				this.preview_canvas.ctx.drawImage(window.globAppstate.main_canvas, 0, 0);
 				this.preview_canvas.ctx.strokeStyle = "white";
 				this.preview_canvas.ctx.globalCompositeOperation = "difference";
 				var orig_stroke_size = stroke_size;
@@ -1428,7 +1427,7 @@ const tools = [
 				draw_line_strip(this.preview_canvas.ctx, this.points);
 				stroke_size = orig_stroke_size;
 			} else if (this.points.length > 1) {
-				this.preview_canvas.ctx.strokeStyle = stroke_color;
+				this.preview_canvas.ctx.strokeStyle = window.globAppstate.stroke_color;
 				draw_line_strip(this.preview_canvas.ctx, this.points);
 			} else {
 				draw_line(
@@ -1452,7 +1451,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			// if (!pointer_active && !pointer_over_canvas) { return; }
+			// if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) { return; }
 			if (!this.preview_canvas) {
 				return;
 			}
@@ -1471,7 +1470,7 @@ const tools = [
 					},
 					() => {
 						ctx.fillStyle = fill_color;
-						ctx.strokeStyle = stroke_color;
+						ctx.strokeStyle = window.globAppstate.stroke_color;
 
 						var orig_stroke_size = stroke_size;
 						if (this.$options.fill && !this.$options.stroke) {
@@ -1767,19 +1766,16 @@ tools.forEach((tool) => {
 			if (selection) {
 				meld_selection_into_canvas();
 			}
-			if (textbox) {
-				meld_textbox_into_canvas();
-			}
 			canvas_handles.hide();
 		};
 		tool.paint = () => {
 			rect_x = ~~Math.max(0, Math.min(drag_start_x, pointer.x));
 			rect_y = ~~Math.max(0, Math.min(drag_start_y, pointer.y));
 			rect_width =
-				~~Math.min(main_canvas.width, Math.max(drag_start_x, pointer.x) + 1) -
+				~~Math.min(window.globAppstate.main_canvas.width, Math.max(drag_start_x, pointer.x) + 1) -
 				rect_x;
 			rect_height =
-				~~Math.min(main_canvas.height, Math.max(drag_start_y, pointer.y + 1)) -
+				~~Math.min(window.globAppstate.main_canvas.height, Math.max(drag_start_y, pointer.y + 1)) -
 				rect_y;
 			$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 		};
@@ -1800,7 +1796,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!pointer_active) {
+			if (!window.globAppstate.pointer_active) {
 				return;
 			}
 			if (!pointer_has_moved) {
@@ -1811,7 +1807,7 @@ tools.forEach((tool) => {
 			ctx.translate(translate_x, translate_y);
 
 			// make the document canvas part of the helper canvas so that inversion can apply to it
-			ctx.drawImage(main_canvas, 0, 0);
+			ctx.drawImage(window.globAppstate.main_canvas, 0, 0);
 		};
 		tool.drawPreviewAboveGrid = (
 			ctx,
@@ -1822,7 +1818,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!pointer_active) {
+			if (!window.globAppstate.pointer_active) {
 				return;
 			}
 			if (!pointer_has_moved) {
@@ -1844,7 +1840,7 @@ tools.forEach((tool) => {
 	if (tool.shape) {
 		tool.shape_canvas = null;
 		tool.pointerdown = () => {
-			tool.shape_canvas = make_canvas(main_canvas.width, main_canvas.height);
+			tool.shape_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 		};
 		tool.paint = () => {
 			tool.shape_canvas.ctx.clearRect(
@@ -1853,9 +1849,9 @@ tools.forEach((tool) => {
 				tool.shape_canvas.width,
 				tool.shape_canvas.height,
 			);
-			tool.shape_canvas.ctx.fillStyle = main_ctx.fillStyle;
-			tool.shape_canvas.ctx.strokeStyle = main_ctx.strokeStyle;
-			tool.shape_canvas.ctx.lineWidth = main_ctx.lineWidth;
+			tool.shape_canvas.ctx.fillStyle = window.globAppstate.main_ctx.fillStyle;
+			tool.shape_canvas.ctx.strokeStyle = window.globAppstate.main_ctx.strokeStyle;
+			tool.shape_canvas.ctx.lineWidth = window.globAppstate.main_ctx.lineWidth;
 			tool.shape(
 				tool.shape_canvas.ctx,
 				pointer_start.x,
@@ -1878,7 +1874,7 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					main_ctx.drawImage(tool.shape_canvas, 0, 0);
+					window.globAppstate.main_ctx.drawImage(tool.shape_canvas, 0, 0);
 					tool.shape_canvas = null;
 				},
 			);
@@ -1892,7 +1888,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!pointer_active) {
+			if (!window.globAppstate.pointer_active) {
 				return;
 			}
 			if (!tool.shape_canvas) {
@@ -1911,13 +1907,13 @@ tools.forEach((tool) => {
 
 		tool.pointerdown = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = make_canvas(main_canvas.width, main_canvas.height);
+				tool.mask_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 			}
-			if (tool.mask_canvas.width !== main_canvas.width) {
-				tool.mask_canvas.width = main_canvas.width;
+			if (tool.mask_canvas.width !== window.globAppstate.main_canvas.width) {
+				tool.mask_canvas.width = window.globAppstate.main_canvas.width;
 			}
-			if (tool.mask_canvas.height !== main_canvas.height) {
-				tool.mask_canvas.height = main_canvas.height;
+			if (tool.mask_canvas.height !== window.globAppstate.main_canvas.height) {
+				tool.mask_canvas.height = window.globAppstate.main_canvas.height;
 			}
 			tool.mask_canvas.ctx.disable_image_smoothing();
 		};
@@ -1931,7 +1927,7 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					tool.render_from_mask(main_ctx);
+					tool.render_from_mask(window.globAppstate.main_ctx);
 
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
@@ -1955,7 +1951,7 @@ tools.forEach((tool) => {
 			ctx.restore();
 
 			/** @type {string | CanvasGradient | CanvasPattern} */
-			let color = stroke_color;
+			let color = window.globAppstate.stroke_color;
 			// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
 			// or other values
 			// even with privacy.resistFingerprinting set to false
@@ -1983,7 +1979,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!pointer_active && !pointer_over_canvas) {
+			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
 				return;
 			}
 
@@ -2008,13 +2004,13 @@ tools.forEach((tool) => {
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = make_canvas(main_canvas.width, main_canvas.height);
+				tool.mask_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 			}
-			if (tool.mask_canvas.width !== main_canvas.width) {
-				tool.mask_canvas.width = main_canvas.width;
+			if (tool.mask_canvas.width !== window.globAppstate.main_canvas.width) {
+				tool.mask_canvas.width = window.globAppstate.main_canvas.width;
 			}
-			if (tool.mask_canvas.height !== main_canvas.height) {
-				tool.mask_canvas.height = main_canvas.height;
+			if (tool.mask_canvas.height !== window.globAppstate.main_canvas.height) {
+				tool.mask_canvas.height = window.globAppstate.main_canvas.height;
 			}
 			tool.mask_canvas.ctx.disable_image_smoothing();
 		};
@@ -2028,7 +2024,7 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					tool.render_from_mask(main_ctx);
+					tool.render_from_mask(window.globAppstate.main_ctx);
 
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
@@ -2042,14 +2038,14 @@ tools.forEach((tool) => {
 				brush.shape,
 				brush.size,
 			);
-			tool.mask_canvas.ctx.fillStyle = stroke_color;
+			tool.mask_canvas.ctx.fillStyle = window.globAppstate.stroke_color;
 			const iterate_line =
 				brush.size > 1 ? bresenham_dense_line : bresenham_line;
 			iterate_line(
-				pointer_previous.x,
-				pointer_previous.y,
-				pointer.x,
-				pointer.y,
+				window.globAppstate.pointer_previous.x,
+				window.globAppstate.pointer_previous.y,
+				window.globAppstate.pointer.x,
+				window.globAppstate.pointer.y,
 				(x, y) => {
 					for (const point of circumference_points) {
 						tool.mask_canvas.ctx.fillStyle = "white";
@@ -2091,7 +2087,7 @@ tools.forEach((tool) => {
 			}
 
 			/** @type {string | CanvasGradient | CanvasPattern} */
-			let color = stroke_color;
+			let color = window.globAppstate.stroke_color;
 			// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
 			// or other values
 			// even with privacy.resistFingerprinting set to false
@@ -2109,8 +2105,8 @@ tools.forEach((tool) => {
 				// stamp just onto this temporary canvas so it's temporary
 				stamp_brush_canvas(
 					mask_fill_canvas.ctx,
-					pointer.x,
-					pointer.y,
+					window.globAppstate.pointer.x,
+					window.globAppstate.pointer.y,
 					brush.shape,
 					brush.size,
 				);
@@ -2129,7 +2125,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!pointer_active && !pointer_over_canvas) {
+			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
 				return;
 			}
 

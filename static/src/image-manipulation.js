@@ -3,7 +3,7 @@ import libtess from '../lib/libtess.min.js';
 // @ts-check
 // eslint-disable-next-line no-unused-vars
 /* global saved:writable, brush_size:writable, pencil_size:writable, stroke_size:writable */
-/* global $canvas_area, aliasing, localize, main_canvas, main_ctx, palette, selected_colors, selection, stroke_color, transparency */
+/* global $canvas_area, window.globAppstate.aliasing, localize, main_canvas, main_ctx, palette, selected_colors, selection, stroke_color, transparency */
 // import { localize } from "./app-localization.js";
 import { cancel, deselect, show_error_message, undoable, update_title } from "./functions.js";
 import { $G, TAU, get_help_folder_icon, get_rgba_from_color, make_canvas, memoize_synchronous_function } from "./helpers.js";
@@ -78,7 +78,7 @@ function draw_ellipse(ctx, x, y, w, h, stroke, fill) {
 	const center_x = x + w / 2;
 	const center_y = y + h / 2;
 
-	if (aliasing) {
+	if (window.globAppstate.aliasing) {
 		const points = [];
 		const step = 0.05;
 		for (let theta = 0; theta < TAU; theta += step) {
@@ -111,7 +111,7 @@ function draw_ellipse(ctx, x, y, w, h, stroke, fill) {
  */
 function draw_rounded_rectangle(ctx, x, y, width, height, radius_x, radius_y, stroke, fill) {
 
-	if (aliasing) {
+	if (window.globAppstate.aliasing) {
 		const points = [];
 		const lineTo = (x, y) => {
 			points.push({ x, y });
@@ -273,7 +273,7 @@ let line_brush_canvas;
  * @param {number} stroke_size - The line width of the stroke.
  */
 function update_brush_for_drawing_lines(stroke_size) {
-	if (aliasing && stroke_size > 1) {
+	if (window.globAppstate.aliasing && stroke_size > 1) {
 		line_brush_canvas = get_brush_canvas("circle", stroke_size);
 	}
 }
@@ -289,7 +289,7 @@ function update_brush_for_drawing_lines(stroke_size) {
  * @param {number} [stroke_size=1] - The line width of the stroke.
  */
 function draw_line_without_pattern_support(ctx, x1, y1, x2, y2, stroke_size = 1) {
-	if (aliasing) {
+	if (window.globAppstate.aliasing) {
 		if (stroke_size > 1) {
 			bresenham_line(x1, y1, x2, y2, (x, y) => {
 				ctx.drawImage(line_brush_canvas, ~~(x - line_brush_canvas.width / 2), ~~(y - line_brush_canvas.height / 2));

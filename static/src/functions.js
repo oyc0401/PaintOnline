@@ -227,7 +227,7 @@ function update_helper_layer_immediately() {
 
 	render_canvas_view(window.globAppstate.helper_layer.canvas, scale, viewport_x, viewport_y, true);
 
-	if (thumbnail_canvas && $thumbnail_window.is(":visible")) {
+	if (window.globAppstate.thumbnail_canvas && $thumbnail_window.is(":visible")) {
 		// The thumbnail can be bigger or smaller than the viewport, depending on the magnification and thumbnail window size.
 		// So can the document.
 		// Ideally it should show the very corner if scrolled all the way to the corner,
@@ -346,23 +346,6 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 		}
 	}
 
-	if (textbox) {
-		hctx.save();
-
-		hctx.scale(scale, scale);
-		hctx.translate(-viewport_x, -viewport_y);
-
-		hctx.drawImage(textbox.canvas, textbox.x, textbox.y);
-
-		hctx.restore();
-
-		if (!is_helper_layer && !textbox.dragging) {
-			// Draw the textbox outline (for the thumbnail)
-			// (The main canvas view has the OnCanvasTextBox object which has its own outline)
-			draw_selection_box(hctx, textbox.x, textbox.y, textbox.width, textbox.height, scale, -viewport_x, -viewport_y);
-		}
-	}
-
 	if (grid_visible) {
 		draw_grid(hctx, scale);
 	}
@@ -467,12 +450,6 @@ function reset_canvas_and_history() {
  * @param {ImageData | null=} options.selection_image_data - the image data for the selection, if any
  * @param {number=} options.selection_x - the x position of the selection, if any
  * @param {number=} options.selection_y - the y position of the selection, if any
- * @param {string=} options.textbox_text - the text in the textbox, if any
- * @param {number=} options.textbox_x - the x position of the textbox, if any
- * @param {number=} options.textbox_y - the y position of the textbox, if any
- * @param {number=} options.textbox_width - the width of the textbox, if any
- * @param {number=} options.textbox_height - the height of the textbox, if any
- * @param {TextToolFontOptions | null=} options.text_tool_font - the font of the Text tool (important to restore a textbox-containing state, but persists without a textbox)
  * @param {boolean=} options.tool_transparent_mode - whether transparent mode is on for Select/Free-Form Select/Text tools; otherwise box is opaque
  * @param {string | CanvasPattern=} options.foreground_color - selected foreground color (left click)
  * @param {string | CanvasPattern=} options.background_color - selected background color (right click)
@@ -490,11 +467,6 @@ function make_history_node({
 	selection_image_data = null, // the image data for the selection, if any
 	selection_x, // the x position of the selection, if any
 	selection_y, // the y position of the selection, if any
-	textbox_text, // the text in the textbox, if any
-	textbox_x, // the x position of the textbox, if any
-	textbox_y, // the y position of the textbox, if any
-	textbox_width, // the width of the textbox, if any
-	textbox_height, // the height of the textbox, if any
 	text_tool_font = null, // the font of the Text tool (important to restore a textbox-containing state, but persists without a textbox)
 	tool_transparent_mode = false, // whether transparent mode is on for Select/Free-Form Select/Text tools; otherwise box is opaque
 	foreground_color, // selected foreground color (left click)
@@ -512,11 +484,6 @@ function make_history_node({
 		selection_image_data,
 		selection_x,
 		selection_y,
-		textbox_text,
-		textbox_x,
-		textbox_y,
-		textbox_width,
-		textbox_height,
 		text_tool_font,
 		tool_transparent_mode,
 		foreground_color,
@@ -538,7 +505,7 @@ function update_title() {
 		window.setRepresentedFilename(window.globAppstate.system_file_handle ?? "");
 	}
 	if (window.setDocumentEdited) {
-		window.setDocumentEdited(!saved);
+		window.setDocumentEdited(!window.globAppstate.saved);
 	}
 }
 
@@ -781,7 +748,7 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		if (info.source_file_handle) {
 			window.globAppstate.system_file_handle = info.source_file_handle;
 		}
-		saved = true;
+		window.globAppstate.saved = true;
 		update_title();
 
 		callback?.();
@@ -840,8 +807,8 @@ function apply_file_format_and_palette_info(info) {
 	if (info.palette) {
 		window.console?.log(`Loaded palette from image file: ${info.palette.map(() => "%c█").join("")}`, ...info.palette.map((color) => `color: ${color};`));
 		palette = info.palette;
-		selected_colors.foreground = palette[0];
-		selected_colors.background = palette.length === 14 * 2 ? palette[14] : palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
+		window.globAppstate.selected_colors.foreground = palette[0];
+		window.globAppstate.selected_colors.background = palette.length === 14 * 2 ? palette[14] : palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
 		$G.trigger("option-changed");
 	} else if (monochrome && !info.monochrome) {
 		palette = default_palette;
@@ -950,7 +917,7 @@ function file_save(maybe_saved_callback = () => { }, update_from_saved = true) {
 		// we don't want to mark the file as saved, as it would prevent the user from retrying the save.
 		// So only mark the file as saved if it's definite.
 		if (success === true) {
-			saved = true;
+			window.globAppstate.saved = true;
 			update_title();
 		}
 		// However, we can still apply format-specific color reduction to the canvas,
@@ -980,7 +947,7 @@ function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true
 			});
 		},
 		savedCallbackUnreliable: ({ newFileName, newFileFormatID, newFileHandle, newBlob }) => {
-			saved = true;
+			window.globAppstate.saved = true;
 			window.globAppstate.system_file_handle = newFileHandle;
 			window.globAppstate.file_name = newFileName;
 			file_format = newFileFormatID;
@@ -1004,7 +971,7 @@ function file_print() {
  * @param {boolean} [from_session_load]
  */
 function are_you_sure(action, canceled, from_session_load) {
-	if (saved) {
+	if (window.globAppstate.saved) {
 		action();
 	} else if (from_session_load) {
 		// @FIXME: this dialog is confusingly worded in the best case.
@@ -1597,7 +1564,7 @@ function go_to_history_node(target_history_node, canceling) {
 	if (!canceling) {
 		cancel(true);
 	}
-	saved = false;
+	window.globAppstate.saved = false;
 	update_title();
 
 	window.globAppstate.main_ctx.copy(target_history_node.image_data);
@@ -1619,29 +1586,6 @@ function go_to_history_node(target_history_node, canceling) {
 			target_history_node.selection_image_data.width,
 			target_history_node.selection_image_data.height,
 			target_history_node.selection_image_data,
-		);
-	}
-	if (target_history_node.textbox_text != null) {
-		if (textbox) {
-			textbox.destroy();
-		}
-		// @# text_tool_font =
-		for (const [k, v] of Object.entries(target_history_node.text_tool_font)) {
-			text_tool_font[k] = v;
-		}
-
-		selected_colors.foreground = target_history_node.foreground_color;
-		selected_colors.background = target_history_node.background_color;
-		tool_transparent_mode = target_history_node.tool_transparent_mode;
-		$G.trigger("option-changed");
-
-		select_tool(get_tool_by_id(TOOL_TEXT));
-		textbox = new OnCanvasTextBox(
-			target_history_node.textbox_x,
-			target_history_node.textbox_y,
-			target_history_node.textbox_width,
-			target_history_node.textbox_height,
-			target_history_node.textbox_text,
 		);
 	}
 
@@ -1701,7 +1645,7 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 	}
 
 	if (!assume_saved) { // flag is used for undoable file reloading on save, for reduction in color depth
-		saved = false;
+		window.globAppstate.saved = false;
 		update_title();
 	}
 
@@ -1719,19 +1663,14 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 
 	const new_history_node = make_history_node({
 		image_data,
-		selection_image_data: selection && selection.canvas.ctx.getImageData(0, 0, selection.canvas.width, selection.canvas.height),
+		selection_image_data: window.globAppstate.selection && window.globAppstate.selection.canvas.ctx.getImageData(0, 0, window.globAppstate.selection.canvas.width, window.globAppstate.selection.canvas.height),
 		selection_x: window.globAppstate.selection && window.globAppstate.selection.x,
 		selection_y: window.globAppstate.selection && window.globAppstate.selection.y,
-		textbox_text: textbox && textbox.$editor.val(),
-		textbox_x: textbox && textbox.x,
-		textbox_y: textbox && textbox.y,
-		textbox_width: textbox && textbox.width,
-		textbox_height: textbox && textbox.height,
-		text_tool_font: JSON.parse(JSON.stringify(text_tool_font)),
-		tool_transparent_mode,
-		foreground_color: selected_colors.foreground,
-		background_color: selected_colors.background,
-		ternary_color: selected_colors.ternary,
+		text_tool_font: JSON.parse(JSON.stringify(window.globAppstate.text_tool_font)),
+		tool_transparent_mode: window.globAppstate.tool_transparent_mode,
+		foreground_color: window.globAppstate.selected_colors.foreground,
+		background_color: window.globAppstate.selected_colors.background,
+		ternary_color: window.globAppstate.selected_colors.ternary,
 		parent: window.globAppstate.current_history_node,
 		name,
 		icon,
@@ -2043,30 +1982,7 @@ function meld_selection_into_canvas(going_to_history_node) {
 		}, () => { });
 	}
 }
-/**
- * @param {boolean} [going_to_history_node]
- */
-function meld_textbox_into_canvas(going_to_history_node) {
-	const text = textbox.$editor.val();
-	if (text && !going_to_history_node) {
-		undoable({
-			name: localize("Text"),
-			icon: get_icon_for_tool(get_tool_by_id(TOOL_TEXT)),
-			soft: true,
-		}, () => { });
-		undoable({
-			name: "Finish Text",
-			icon: get_icon_for_tool(get_tool_by_id(TOOL_TEXT)),
-		}, () => {
-			window.globAppstate.main_ctx.drawImage(textbox.canvas, textbox.x, textbox.y);
-			textbox.destroy();
-			textbox = null;
-		});
-	} else {
-		textbox.destroy();
-		textbox = null;
-	}
-}
+
 /**
  * @param {boolean} [going_to_history_node]
  */
@@ -2074,9 +1990,7 @@ function deselect(going_to_history_node) {
 	if (window.globAppstate.selection) {
 		meld_selection_into_canvas(going_to_history_node);
 	}
-	if (textbox) {
-		meld_textbox_into_canvas(going_to_history_node);
-	}
+
 	for (const selected_tool of window.globAppstate.selected_tools) {
 		selected_tool.end?.(window.globAppstate.main_ctx);
 	}
@@ -2287,7 +2201,7 @@ function clear() {
 		name: localize("Clear Image"),
 		icon: get_help_folder_icon("p_blank.png"),
 	}, () => {
-		saved = false;
+		window.globAppstate.saved = false;
 		update_title();
 
 		if (transparency) {
@@ -3631,7 +3545,7 @@ export {
 	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect,
 	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_new, file_open, file_print, file_save,
 	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node,  make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
-	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
+	open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
 	try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
 };
