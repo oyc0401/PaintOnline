@@ -9,11 +9,11 @@
   import {setupApp} from "../appSetup.js"
   import {setupState} from "../setupState";
   
-  
   onMount(() => { 
       //setupState();
 
     setupApp();
+    window.setSession();
   });
 
 </script>

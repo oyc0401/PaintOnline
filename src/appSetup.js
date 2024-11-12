@@ -4,15 +4,12 @@ function setupApp() {
   const appState = window.globAppstate;
 
   const globApp = {};
-  window.globApp = globApp;
+   window.globApp = globApp;
 
   
   const $app = $(".jspaint");
-  globApp.$app = $app;
-  
-  const $V = $(".vertical");
-  const $H = $(".horizontal");
 
+  
   const $canvas_area = $(".canvas-area");
 
   const $canvas = $(appState.main_canvas).appendTo($canvas_area);
@@ -46,10 +43,9 @@ function setupApp() {
   // 위치
   const $status_position = $("status-text");
   const $status_size = $status_position;
-
-
+  
+  globApp.$app = $app;
   globApp.update_fill_and_stroke_colors_and_lineWidth = update_fill_and_stroke_colors_and_lineWidth;
-
   globApp.$canvas_area = $canvas_area;
   globApp.$canvas = $canvas;
   globApp.canvas_bounding_client_rect = appState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
