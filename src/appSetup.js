@@ -167,9 +167,9 @@ export function setupApp() {
     }
     if (e.key === "Escape") {
       // Note: Escape handled below too! (after input/textarea return condition)
-      if (textbox && textbox.$editor.is(target)) {
-        deselect();
-      }
+      // if (textbox && textbox.$editor.is(target)) {
+      //   deselect();
+      // }
     }
     if (
       // Ctrl+Shift+Y for history window,
@@ -307,18 +307,18 @@ export function setupApp() {
       e.preventDefault();
       return;
     } else if (e.ctrlKey || e.metaKey) {
-      if (textbox) {
-        switch (e.key.toUpperCase()) {
-          case "A":
-          case "Z":
-          case "Y":
-          case "I":
-          case "B":
-          case "U":
-            // Don't prevent the default. Allow text editing commands.
-            return;
-        }
-      }
+      // if (textbox) {
+      //   switch (e.key.toUpperCase()) {
+      //     case "A":
+      //     case "Z":
+      //     case "Y":
+      //     case "I":
+      //     case "B":
+      //     case "U":
+      //       // Don't prevent the default. Allow text editing commands.
+      //       return;
+      //   }
+      // }
       // Ctrl+PageDown: zoom to 400%
       // Ctrl+PageUp: zoom to 100%
       // In Chrome and Firefox, these switch to the next/previous tab,

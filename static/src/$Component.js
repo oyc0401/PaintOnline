@@ -2,7 +2,7 @@ console.log('JS 실행:','$Component.js')
 // @ts-check
 /* global $bottom, $canvas, $left, $right, $top, get_direction */
 
-import { $ToolWindow } from "./$ToolWindow.js";
+//import { $ToolWindow } from "./$ToolWindow.js";
 // import { get_direction } from "./app-localization.js";
 import { $G, E } from "./helpers.js";
 // import $ from "jquery";

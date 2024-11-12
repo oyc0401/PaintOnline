@@ -12,7 +12,6 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
-import { OnCanvasTextBox } from "./OnCanvasTextBox.js";
 // import { localize } from "./app-localization.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";

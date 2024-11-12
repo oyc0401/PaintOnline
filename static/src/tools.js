@@ -3,7 +3,6 @@ console.log('JS 실행:','tools.js')
 /* global selection:writable, stroke_size:writable, textbox:writable */
 /* global $canvas, $canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, main_canvas, main_ctx, pencil_size, pointer, pointer_active, pointer_over_canvas, pointer_previous, pointer_start, return_to_magnification, selected_colors, shift, stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
-import { OnCanvasTextBox } from "./OnCanvasTextBox.js";
 // import { get_language, localize } from "./app-localization.js";
 import {
 	deselect,
@@ -1021,38 +1020,6 @@ const tools = [
 			update_helper_layer();
 		},
 		$options: $choose_airbrush_size,
-	},
-	{
-		id: TOOL_TEXT,
-		name: localize("Text"),
-		speech_recognition: [
-			"text",
-			"type",
-			"typography",
-			"write",
-			"writing",
-			"words",
-			"text box",
-			"text-box",
-			"textbox",
-			"word",
-			"lettering",
-			"font",
-			"fonts",
-			"texts",
-		],
-		help_icon: "p_txt.gif",
-		description: localize("Inserts text into the picture."),
-		cursor: ["precise", [16, 16], "crosshair"],
-		preload() {
-			setTimeout(FontDetective.preload, 10);
-		},
-		selectBox(rect_x, rect_y, rect_width, rect_height) {
-			if (rect_width > 1 && rect_height > 1) {
-				textbox = new OnCanvasTextBox(rect_x, rect_y, rect_width, rect_height);
-			}
-		},
-		$options: $choose_transparent_mode,
 	},
 	{
 		id: TOOL_LINE,
