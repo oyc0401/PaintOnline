@@ -1,5 +1,88 @@
-function setupApp() {
-  const $ = window.$;
+import { Handles } from "./paint/src/Handles.js";
+import { default_palette, get_winter_palette } from "./paint/src/color-data.js";
+import { image_formats } from "./paint/src/file-format-data.js";
+import {
+  cancel,
+  change_url_param,
+  clear,
+  confirm_overwrite_capability,
+  delete_selection,
+  deselect,
+  edit_copy,
+  edit_cut,
+  edit_paste,
+  file_new,
+  file_open,
+  file_save,
+  file_save_as,
+  get_tool_by_id,
+  get_uris,
+  image_attributes,
+  image_flip_and_rotate,
+  image_invert_colors,
+  image_stretch_and_skew,
+  load_image_from_uri,
+  make_or_update_undoable,
+  open_from_file,
+  paste,
+  paste_image_from_file,
+  redo,
+  reset_canvas_and_history,
+  reset_file,
+  reset_selected_colors,
+  resize_canvas_and_save_dimensions,
+  resize_canvas_without_saving_dimensions,
+  save_as_prompt,
+  select_all,
+  select_tool,
+  select_tools,
+  set_magnification,
+  show_document_history,
+  show_error_message,
+  show_resource_load_error_message,
+  undo,
+  update_canvas_rect,
+  update_disable_aa,
+  update_helper_layer,
+  update_magnified_canvas_size,
+  view_bitmap,
+  write_image_file,
+} from "./paint/src/functions.js";
+import {
+  $G,
+  E,
+  TAU,
+  get_file_extension,
+  get_help_folder_icon,
+  make_canvas,
+  to_canvas_coords,
+} from "./paint/src/helpers.js";
+import { init_webgl_stuff, rotate } from "./paint/src/image-manipulation.js";
+import { menus } from "./paint/src/menus.js";
+import { showMessageBox } from "./paint/src/msgbox.js";
+import { localStore } from "./paint/src/storage.js";
+
+import {
+  TOOL_AIRBRUSH,
+  TOOL_BRUSH,
+  TOOL_CURVE,
+  TOOL_ELLIPSE,
+  TOOL_ERASER,
+  TOOL_LINE,
+  TOOL_PENCIL,
+  TOOL_POLYGON,
+  TOOL_RECTANGLE,
+  TOOL_ROUNDED_RECTANGLE,
+  TOOL_SELECT,
+  tools,
+} from "./paint/src/tools.js";
+
+
+console.log('setup app')
+
+
+export function setupApp() {
+  
 
   const appState = window.globAppstate;
 
@@ -570,10 +653,10 @@ function setupApp() {
   });
   // #endregion
 
-  window.reset_file();
-  window.reset_selected_colors();
-  window.reset_canvas_and_history(); // (with newly reset colors)
-  window.set_magnification(appState.default_magnification);
+  reset_file();
+  reset_selected_colors();
+  reset_canvas_and_history(); // (with newly reset colors)
+  set_magnification(appState.default_magnification);
 
   // this is synchronous for now, but @TODO: handle possibility of loading a document before callback
   // when switching to asynchronous storage, e.g. with localforage
@@ -1126,4 +1209,3 @@ function setupApp() {
  
 }
 
-export { setupApp };

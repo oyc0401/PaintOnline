@@ -1,4 +1,3 @@
-console.log('before_status.js!')
 
 import { showMessageBox } from './paint/src/msgbox.js';
 import { 
@@ -77,6 +76,7 @@ import { localStore } from './paint/src/storage.js';
 import { Handles } from "./paint/src/Handles.js";
 
 
+console.log('presetting')
 
 export function preSetting(){
 
@@ -89,116 +89,20 @@ export function preSetting(){
    // Temporary globals until all dependent code is converted to ES Modules
    window.showMessageBox = showMessageBox; // used by app-localization.js
 ;
-   // Temporary globals until all dependent code is converted to ES Modules
-   window.make_history_node = make_history_node; // used by app-state.js
+
+
    window.are_you_sure = are_you_sure; // used by app-localization.js, electron-injected.js
    window.show_error_message = show_error_message; // used by app-localization.js, electron-injected.js
    window.exit_fullscreen_if_ios = exit_fullscreen_if_ios; // used by app-localization.js
-   window.get_tool_by_id = get_tool_by_id; // used by app-state.js
-   // Temporary globals until all dependent code is converted to ES Modules
 
-   window.make_canvas = make_canvas; // used by app-state.js
-
-
-
-   // Temporary globals until all dependent code is converted to ES Modules
-   window.TOOL_PENCIL = TOOL_PENCIL; // used by app-state.js
    window.tools = tools;
 
-
-   // Temporary globals until all dependent code is converted to ES Modules
-   window.default_palette = default_palette; // used by app-state.js
+   window.get_tool_by_id = get_tool_by_id; // used by svelte tool button
 }
+
 
 ////////////////////////////////////////////////////////
 
-
-export function setAppParams(){
-
-   //gpt
-   // window.에 넣기
-   window.Handles = Handles;
-   //window.MenuBar = MenuBar;
-   //window.$ColorBox = $ColorBox;
-   //window.$ToolBox = $ToolBox;
-   window.default_palette = default_palette;
-   window.get_winter_palette = get_winter_palette;
-   window.image_formats = image_formats;
-
-   window.cancel = cancel;
-   window.change_url_param = change_url_param;
-   window.clear = clear;
-   window.confirm_overwrite_capability = confirm_overwrite_capability;
-   window.delete_selection = delete_selection;
-   window.deselect = deselect;
-   window.edit_copy = edit_copy;
-   window.edit_cut = edit_cut;
-   window.edit_paste = edit_paste;
-   window.file_new = file_new;
-   window.file_open = file_open;
-   window.file_save = file_save;
-   window.file_save_as = file_save_as;
-   window.get_tool_by_id = get_tool_by_id;
-   window.get_uris = get_uris;
-   window.image_attributes = image_attributes;
-   window.image_flip_and_rotate = image_flip_and_rotate;
-   window.image_invert_colors = image_invert_colors;
-   window.image_stretch_and_skew = image_stretch_and_skew;
-   window.load_image_from_uri = load_image_from_uri;
-   window.make_or_update_undoable = make_or_update_undoable;
-   window.open_from_file = open_from_file;
-   window.paste = paste;
-   window.paste_image_from_file = paste_image_from_file;
-   window.redo = redo;
-   window.reset_canvas_and_history = reset_canvas_and_history;
-   window.reset_file = reset_file;
-   window.reset_selected_colors = reset_selected_colors;
-   window.resize_canvas_and_save_dimensions = resize_canvas_and_save_dimensions;
-   window.resize_canvas_without_saving_dimensions = resize_canvas_without_saving_dimensions;
-   window.save_as_prompt = save_as_prompt;
-   window.select_all = select_all;
-   window.select_tool = select_tool;
-   window.select_tools = select_tools;
-   window.set_magnification = set_magnification;
-   window.show_document_history = show_document_history;
-   window.show_error_message = show_error_message;
-   window.show_resource_load_error_message = show_resource_load_error_message;
-   window.undo = undo;
-   window.update_canvas_rect = update_canvas_rect;
-   window.update_disable_aa = update_disable_aa;
-   window.update_helper_layer = update_helper_layer;
-   window.update_magnified_canvas_size = update_magnified_canvas_size;
-   window.view_bitmap = view_bitmap;
-   window.write_image_file = write_image_file;
-
-   window.$G = $G;
-   window.E = E;
-   window.TAU = TAU;
-   window.get_file_extension = get_file_extension;
-   window.get_help_folder_icon = get_help_folder_icon;
-   window.make_canvas = make_canvas;
-   window.to_canvas_coords = to_canvas_coords;
-
-   window.init_webgl_stuff = init_webgl_stuff;
-   window.rotate = rotate;
-
-   window.menus = menus;
-   window.showMessageBox = showMessageBox;
-   window.localStore = localStore;
-
-   window.TOOL_AIRBRUSH = TOOL_AIRBRUSH;
-   window.TOOL_BRUSH = TOOL_BRUSH;
-   window.TOOL_CURVE = TOOL_CURVE;
-   window.TOOL_ELLIPSE = TOOL_ELLIPSE;
-   window.TOOL_ERASER = TOOL_ERASER;
-   window.TOOL_LINE = TOOL_LINE;
-   window.TOOL_PENCIL = TOOL_PENCIL;
-   window.TOOL_POLYGON = TOOL_POLYGON;
-   window.TOOL_RECTANGLE = TOOL_RECTANGLE;
-   window.TOOL_ROUNDED_RECTANGLE = TOOL_ROUNDED_RECTANGLE;
-   window.TOOL_SELECT = TOOL_SELECT;
-   window.tools = tools;
-}
 
 
 

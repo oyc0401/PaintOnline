@@ -1,10 +1,91 @@
 
+
+console.log('setup-appstate')
+
+import { showMessageBox } from './paint/src/msgbox.js';
+import { 
+   are_you_sure,
+   exit_fullscreen_if_ios,
+   get_tool_by_id,
+   make_history_node,
+   show_error_message,
+   cancel,
+   change_url_param,
+   clear,
+   confirm_overwrite_capability,
+   delete_selection,
+   deselect,
+   edit_copy,
+   edit_cut,
+   edit_paste,
+   file_new,
+   file_open,
+   file_save,
+   file_save_as,
+   get_uris,
+   image_attributes,
+   image_flip_and_rotate,
+   image_invert_colors,
+   image_stretch_and_skew,
+   load_image_from_uri,
+   make_or_update_undoable,
+   open_from_file,
+   paste,
+   paste_image_from_file,
+   redo,
+   reset_canvas_and_history,
+   reset_file,
+   reset_selected_colors,
+   resize_canvas_and_save_dimensions,
+   resize_canvas_without_saving_dimensions,
+   save_as_prompt,
+   select_all,
+   select_tool,
+   select_tools,
+   set_magnification,
+   show_document_history,
+   show_resource_load_error_message,
+   undo,
+   update_canvas_rect,
+   update_disable_aa,
+   update_helper_layer,
+   update_magnified_canvas_size,
+   view_bitmap,
+   write_image_file,
+   open_from_image_info,
+   undoable,
+   update_title
+} from './paint/src/functions.js';
+
+import { 
+   make_canvas,
+   $G,
+   E,
+   TAU,
+   get_file_extension,
+   get_help_folder_icon,
+   to_canvas_coords,
+   debounce,
+   image_data_match 
+} from './paint/src/helpers.js';
+
+import { TOOL_PENCIL, tools, TOOL_AIRBRUSH, TOOL_BRUSH, TOOL_CURVE, TOOL_ELLIPSE, TOOL_ERASER, TOOL_LINE, TOOL_POLYGON, TOOL_RECTANGLE, TOOL_ROUNDED_RECTANGLE, TOOL_SELECT } from './paint/src/tools.js';
+
+import { default_palette, get_winter_palette } from './paint/src/color-data.js';
+import { image_formats } from './paint/src/file-format-data.js';
+import { init_webgl_stuff, rotate } from './paint/src/image-manipulation.js';
+import { menus } from './paint/src/menus.js';
+import { localStore } from './paint/src/storage.js';
+import { Handles } from "./paint/src/Handles.js";
+
+export const appState={};
+
 export function setupState() {
 
   const default_magnification = 1;
 
   /** @type {Tool} */
-  const default_tool = window.get_tool_by_id(window.TOOL_PENCIL);
+  const default_tool = get_tool_by_id(TOOL_PENCIL);
 
   const default_canvas_width = 683;
   const default_canvas_height = 384;
@@ -19,7 +100,7 @@ export function setupState() {
 
 
   /** @type {PixelCanvas} */
-  const main_canvas = window.make_canvas();
+  const main_canvas = make_canvas();
   main_canvas.classList.add("main-canvas");
 
   /** @type {PixelContext} */
@@ -27,7 +108,7 @@ export function setupState() {
 
 
   /** @type {(string | CanvasPattern)[]} */
-  let palette = window.default_palette;
+  let palette = default_palette;
   /** @type {(string | CanvasPattern)[]} */
   let polychrome_palette = palette;
 
@@ -116,7 +197,7 @@ export function setupState() {
   };
 
   /** @type {HistoryNode} */
-  let root_history_node = window.make_history_node({ name: "App Not Loaded Properly - Please send a bug report." }); // will be replaced
+  let root_history_node = make_history_node({ name: "App Not Loaded Properly - Please send a bug report." }); // will be replaced
   /** @type {HistoryNode} */
   let current_history_node = root_history_node;
   /** @type {HistoryNode | null} */
