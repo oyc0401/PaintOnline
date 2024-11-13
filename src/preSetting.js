@@ -76,10 +76,10 @@ import { localStore } from './paint/src/storage.js';
 import { Handles } from "./paint/src/Handles.js";
 
 
-console.log('presetting')
+
 
 export function preSetting(){
-
+   console.log('presetting')
    // Note `defaultMessageBoxTitle` handling in make_iframe_window (or now function enhance_iframe) in 98.js.org
    // https://github.com/1j01/98/blob/361bd759a6d9b71d0fad9e479840598dc0128bb6/src/iframe-windows.js#L111
    // Any other default parameters need to be handled there (as it works now)
@@ -88,7 +88,6 @@ export function preSetting(){
 
    // Temporary globals until all dependent code is converted to ES Modules
    window.showMessageBox = showMessageBox; // used by app-localization.js
-;
 
 
    window.are_you_sure = are_you_sure; // used by app-localization.js, electron-injected.js
@@ -98,6 +97,7 @@ export function preSetting(){
    window.tools = tools;
 
    window.get_tool_by_id = get_tool_by_id; // used by svelte tool button
+   window.select_tool = select_tool; // used by svelte tool button
 }
 
 
@@ -110,6 +110,7 @@ export function preSetting(){
 
 
 export function setSession(){
+   console.log('setSession')
    let {
       return_to_magnification,
       main_canvas,

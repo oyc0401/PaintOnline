@@ -34,8 +34,9 @@
 
    function setTool(toolId){
       console.log(toolId);
-          window.globAppstate.selected_tool = window.get_tool_by_id(toolId);
-         window.globAppstate.selected_tools = [window.globAppstate.selected_tool]
+      window.select_tool(window.get_tool_by_id(toolId))
+         //  window.globAppstate.selected_tool = window.get_tool_by_id(toolId);
+         // window.globAppstate.selected_tools = [window.globAppstate.selected_tool]
    }
 </script>
 

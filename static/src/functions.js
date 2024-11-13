@@ -2366,44 +2366,43 @@ function select_tools(tools) {
  * @param {boolean} [toggle]
  */
 function select_tool(tool, toggle) {
-	// deselect();
+	console.log('select_tool!');
+	deselect();
 
-	// if (!(window.globAppstate.selected_tools.length === 1 && selected_tool.deselect)) {
-	// 	return_to_tools = [...window.globAppstate.selected_tools];
-	// }
-	// if (toggle) {
-	// 	const index = window.globAppstate.selected_tools.indexOf(tool);
-	// 	if (index === -1) {
-	// 		window.globAppstate.selected_tools.push(tool);
-	// 		window.globAppstate.selected_tools.sort((a, b) => {
-	// 			if (tools.indexOf(a) < tools.indexOf(b)) {
-	// 				return -1;
-	// 			}
-	// 			if (tools.indexOf(a) > tools.indexOf(b)) {
-	// 				return +1;
-	// 			}
-	// 			return 0;
-	// 		});
-	// 	} else {
-	// 		window.globAppstate.selected_tools.splice(index, 1);
-	// 	}
-	// 	if (window.globAppstate.selected_tools.length > 0) {
-	// 		selected_tool = window.globAppstate.selected_tools[window.globAppstate.selected_tools.length - 1];
-	// 	} else {
-	// 		selected_tool = default_tool;
-	// 		window.globAppstate.selected_tools = [selected_tool];
-	// 	}
-	// } else {
-	// 	selected_tool = tool;
-	// 	window.globAppstate.selected_tools = [tool];
-	// }
+	if (!(window.globAppstate.selected_tools.length === 1 && (window.globAppstate.selected_tool.deselect)) {
+		return_to_tools = [...window.globAppstate.selected_tools];
+	}
+	if (toggle) {
+		const index = window.globAppstate.selected_tools.indexOf(tool);
+		if (index === -1) {
+			window.globAppstate.selected_tools.push(tool);
+			window.globAppstate.selected_tools.sort((a, b) => {
+				if (tools.indexOf(a) < tools.indexOf(b)) {
+					return -1;
+				}
+				if (tools.indexOf(a) > tools.indexOf(b)) {
+					return +1;
+				}
+				return 0;
+			});
+		} else {
+			window.globAppstate.selected_tools.splice(index, 1);
+		}
+		if (window.globAppstate.selected_tools.length > 0) {
+			(window.globAppstate.selected_tool = window.globAppstate.selected_tools[window.globAppstate.selected_tools.length - 1];
+		} else {
+			(window.globAppstate.selected_tool = default_tool;
+			window.globAppstate.selected_tools = [selected_tool];
+		}
+	} else {
+		window.globAppstate.selected_tool = tool;
+		window.globAppstate.selected_tools = [tool];
+	}
 
-	// if (tool.preload) {
-	// 	tool.preload();
-	// }
+	if (tool.preload) {
+		tool.preload();
+	}
 
-	// $toolbox.update_selected_tool();
-	// // $toolbox2.update_selected_tool();
 }
 
 /**
