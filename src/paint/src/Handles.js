@@ -62,6 +62,8 @@ function Handles(options) {
 			$grab_region.addClass("is-middle");
 		}
 
+		$grab_region.attr('draggable','false');	
+
 		$h.css("touch-action", "none");
 
 		let rect;
@@ -70,104 +72,113 @@ function Handles(options) {
 		const resizes_width = x_axis !== HANDLE_MIDDLE;
 		
 
-			let cursor_fname;
-			if ((x_axis === HANDLE_LEFT && y_axis === HANDLE_TOP) || (x_axis === HANDLE_RIGHT && y_axis === HANDLE_BOTTOM)) {
-				cursor_fname = "nwse-resize";
-			} else if ((x_axis === HANDLE_RIGHT && y_axis === HANDLE_TOP) || (x_axis === HANDLE_LEFT && y_axis === HANDLE_BOTTOM)) {
-				cursor_fname = "nesw-resize";
-			} else if (resizes_width) {
-				cursor_fname = "ew-resize";
-			} else if (resizes_height) {
-				cursor_fname = "ns-resize";
+		let cursor_fname;
+		if ((x_axis === HANDLE_LEFT && y_axis === HANDLE_TOP) || (x_axis === HANDLE_RIGHT && y_axis === HANDLE_BOTTOM)) {
+			cursor_fname = "nwse-resize";
+		} else if ((x_axis === HANDLE_RIGHT && y_axis === HANDLE_TOP) || (x_axis === HANDLE_LEFT && y_axis === HANDLE_BOTTOM)) {
+			cursor_fname = "nesw-resize";
+		} else if (resizes_width) {
+			cursor_fname = "ew-resize";
+		} else if (resizes_height) {
+			cursor_fname = "ns-resize";
+		}
+
+		let fallback_cursor = "";
+		if (y_axis === HANDLE_TOP) { fallback_cursor += "n"; }
+		if (y_axis === HANDLE_BOTTOM) { fallback_cursor += "s"; }
+		if (x_axis === HANDLE_LEFT) { fallback_cursor += "w"; }
+		if (x_axis === HANDLE_RIGHT) { fallback_cursor += "e"; }
+
+		fallback_cursor += "-resize";
+		const cursor = make_css_cursor(cursor_fname, [16, 16], fallback_cursor);
+		$h.add($grab_region).css({ cursor });
+
+		const drag = (event) => {
+			$resize_ghost.appendTo($object_container);
+			dragged = true;
+
+			rect = options.get_rect();
+			const m = to_canvas_coords(event);
+			let delta_x = 0;
+			let delta_y = 0;
+			let width, height;
+			// @TODO: decide between Math.floor/Math.ceil/Math.round for these values
+			if (x_axis === HANDLE_RIGHT) {
+				delta_x = 0;
+				width = ~~(m.x - rect.x);
+			} else if (x_axis === HANDLE_LEFT) {
+				delta_x = ~~(m.x - rect.x);
+				width = ~~(rect.x + rect.width - m.x);
+			} else {
+				width = ~~(rect.width);
+			}
+			if (y_axis === HANDLE_BOTTOM) {
+				delta_y = 0;
+				height = ~~(m.y - rect.y);
+			} else if (y_axis === HANDLE_TOP) {
+				delta_y = ~~(m.y - rect.y);
+				height = ~~(rect.y + rect.height - m.y);
+			} else {
+				height = ~~(rect.height);
+			}
+			let new_rect = {
+				x: rect.x + delta_x,
+				y: rect.y + delta_y,
+				width: width,
+				height: height,
+			};
+
+			new_rect.width = Math.max(1, new_rect.width);
+			new_rect.height = Math.max(1, new_rect.height);
+
+			if (options.constrain_rect) {
+				new_rect = options.constrain_rect(new_rect, x_axis, y_axis);
+			} else {
+				new_rect.x = Math.min(new_rect.x, rect.x + rect.width);
+				new_rect.y = Math.min(new_rect.y, rect.y + rect.height);
 			}
 
-			let fallback_cursor = "";
-			if (y_axis === HANDLE_TOP) { fallback_cursor += "n"; }
-			if (y_axis === HANDLE_BOTTOM) { fallback_cursor += "s"; }
-			if (x_axis === HANDLE_LEFT) { fallback_cursor += "w"; }
-			if (x_axis === HANDLE_RIGHT) { fallback_cursor += "e"; }
-
-			fallback_cursor += "-resize";
-			const cursor = make_css_cursor(cursor_fname, [16, 16], fallback_cursor);
-			$h.add($grab_region).css({ cursor });
-
-			const drag = (event) => {
-				$resize_ghost.appendTo($object_container);
-				dragged = true;
-
-				rect = options.get_rect();
-				const m = to_canvas_coords(event);
-				let delta_x = 0;
-				let delta_y = 0;
-				let width, height;
-				// @TODO: decide between Math.floor/Math.ceil/Math.round for these values
-				if (x_axis === HANDLE_RIGHT) {
-					delta_x = 0;
-					width = ~~(m.x - rect.x);
-				} else if (x_axis === HANDLE_LEFT) {
-					delta_x = ~~(m.x - rect.x);
-					width = ~~(rect.x + rect.width - m.x);
-				} else {
-					width = ~~(rect.width);
-				}
-				if (y_axis === HANDLE_BOTTOM) {
-					delta_y = 0;
-					height = ~~(m.y - rect.y);
-				} else if (y_axis === HANDLE_TOP) {
-					delta_y = ~~(m.y - rect.y);
-					height = ~~(rect.y + rect.height - m.y);
-				} else {
-					height = ~~(rect.height);
-				}
-				let new_rect = {
-					x: rect.x + delta_x,
-					y: rect.y + delta_y,
-					width: width,
-					height: height,
-				};
-
-				new_rect.width = Math.max(1, new_rect.width);
-				new_rect.height = Math.max(1, new_rect.height);
-
-				if (options.constrain_rect) {
-					new_rect = options.constrain_rect(new_rect, x_axis, y_axis);
-				} else {
-					new_rect.x = Math.min(new_rect.x, rect.x + rect.width);
-					new_rect.y = Math.min(new_rect.y, rect.y + rect.height);
-				}
-
-				$resize_ghost.css({
-					position: "absolute",
-					left:window.globAppstate.magnification * new_rect.x + get_ghost_offset_left(),
-					top: window.globAppstate.magnification * new_rect.y + get_ghost_offset_top(),
-					width: window.globAppstate.magnification * new_rect.width - 2,
-					height: window.globAppstate.magnification * new_rect.height - 2,
-				});
-				rect = new_rect;
-			};
-			$h.add($grab_region).on("pointerdown", (event) => {
-				dragged = false;
-				if (event.button === 0) {
-					$G.on("pointermove", drag);
-					$("body").css({ cursor }).addClass("cursor-bully");
-				}
-				$G.one("pointerup", () => {
-					$G.off("pointermove", drag);
-					$("body").css({ cursor: "" }).removeClass("cursor-bully");
-
-					$resize_ghost.remove();
-					if (dragged) {
-						options.set_rect(rect);
-					}
-					$handles_container.trigger("update");
-				});
+			$resize_ghost.css({
+				position: "absolute",
+				left:window.globAppstate.magnification * new_rect.x + get_ghost_offset_left(),
+				top: window.globAppstate.magnification * new_rect.y + get_ghost_offset_top(),
+				width: window.globAppstate.magnification * new_rect.width - 2,
+				height: window.globAppstate.magnification * new_rect.height - 2,
 			});
-			$h.on("mousedown selectstart", (event) => {
-				event.preventDefault();
+			rect = new_rect;
+		};
+
+		
+		$h.add($grab_region).on("pointerdown touchstart", (event) => {
+			// console.log('hand pointerdown')
+			dragged = false;
+			//if (event.button === 0) {
+				$G.on("pointermove touchmove", drag);
+				$("body").css({ cursor }).addClass("cursor-bully");
+			//}
+			$G.one("pointerup touchend touchcancel", () => {
+				//console.log('window pointerup')
+				$G.off("pointermove touchmove", drag);
+				$("body").css({ cursor: "" }).removeClass("cursor-bully");
+
+				$resize_ghost.remove();
+				if (dragged) {
+					options.set_rect(rect);
+				}
+				$handles_container.trigger("update");
 			});
+		});
+		$h.on("pointerup", (event) =>{
+			//console.log('hand pointerup')
+		});
+		$h.add($grab_region).on("mousedown selectstart", (event) => {
+			//console.log('hand selectstart')
+			event.preventDefault();
+		});
 		
 
 		const update_handle = () => {
+			//console.log('update_handle')
 			const rect = options.get_rect();
 			const hs = $h.width();
 			// const x = rect.x + get_handles_offset_left();

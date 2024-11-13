@@ -10,6 +10,10 @@ run = ["node", "build"]
 deploymentTarget = "gce"
 
 [[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
 localPort = 4173
 
 [[ports]]

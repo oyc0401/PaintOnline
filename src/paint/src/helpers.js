@@ -396,7 +396,15 @@ function rgb_to_hsl(r, g, b) {
  * @param {{ clientX: number, clientY: number }} client_point e.g. a MouseEvent
  * @returns {{ x: number, y: number }} canvas coordinates
  */
-function to_canvas_coords({ clientX, clientY }) {
+function to_canvas_coords(event) {
+	let clientX, clientY;
+	if(event.type == 'touchmove'){
+		clientX = event.touches[0].clientX;
+		clientY = event.touches[0].clientY;
+	}else{
+		clientX = event.clientX;
+		clientY = event.clientY;
+	}
 	if (clientX === undefined || clientY === undefined) {
 		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
 	}
