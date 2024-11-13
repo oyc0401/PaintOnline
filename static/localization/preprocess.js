@@ -2,7 +2,7 @@
 const fs = require("fs");
 const glob = require("glob");
 const parse_rc_file = require("./parse-rc-file");
-const { AccessKeys } = require("../lib/os-gui/MenuBar.js");
+//const { AccessKeys } = require("../lib/os-gui/MenuBar.js");
 
 const base_lang = "en";
 const available_langs = fs.readdirSync(__dirname).filter((dir) => dir.match(/^\w+(-\w+)?$/));
@@ -46,10 +46,10 @@ for (const target_lang of target_langs) {
 				} else {
 					// add_localization(base_string, target_string, 0);
 					add_localization(remove_ellipsis(base_string), remove_ellipsis(target_string), 1);
-					if (AccessKeys.has(base_string)) {
-						// add_localization(AccessKeys.remove(base_string), AccessKeys.remove(target_string), 2);
-						add_localization(remove_ellipsis(AccessKeys.remove(base_string)), remove_ellipsis(AccessKeys.remove(target_string)), 3);
-					}
+					// if (AccessKeys.has(base_string)) {
+					// 	// add_localization(AccessKeys.remove(base_string), AccessKeys.remove(target_string), 2);
+					// 	add_localization(remove_ellipsis(AccessKeys.remove(base_string)), remove_ellipsis(AccessKeys.remove(target_string)), 3);
+					// }
 				}
 			}
 		}

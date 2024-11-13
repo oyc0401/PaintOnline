@@ -26,7 +26,7 @@ import {
 	view_bitmap,
 } from "./functions.js";
 import { $G} from "./helpers.js";
-import {MENU_DIVIDER} from'../lib/os-gui/MenuBar.js'
+//import {MENU_DIVIDER} from'../lib/os-gui/MenuBar.js'
 
 const looksLikeChrome = !!(
 	window.chrome &&
@@ -76,7 +76,6 @@ const menus = {
 			},
 			description: localize("Saves the active document with a new name."),
 		},
-		MENU_DIVIDER,
 		{
 			emoji_icon: "🌍",
 			label: localize("&Language"),
@@ -102,7 +101,6 @@ const menus = {
 			description: localize("Displays information about this application."),
 			//description: localize("Displays program information, version number, and copyright."),
 		},
-		MENU_DIVIDER,
 		{
 			label: localize("E&xit"),
 			...shortcut(window.is_electron_app ? "Alt+F4" : ""), // Alt+F4 closes the browser window (in most window managers)
@@ -167,7 +165,7 @@ const menus = {
 			},
 			description: localize("Redoes the previously undone action."),
 		},
-		MENU_DIVIDER,
+		//MENU_DIVIDER,
 		{
 			label: localize("Cu&t"),
 			...shortcut("Ctrl+X"),
@@ -225,7 +223,6 @@ const menus = {
 			},
 			description: localize("Selects everything."),
 		},
-		MENU_DIVIDER,
 		{
 			label: `${localize("C&opy To")}...`,
 			speech_recognition: [],

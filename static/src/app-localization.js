@@ -1,6 +1,6 @@
 console.log('JS 실행:','app-localization.js');
 // import $ from "./lib/jquery-3.4.1.js";
-import { AccessKeys } from '../lib/os-gui/MenuBar.js'
+//import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 // @ts-check
 /* global $G, AccessKeys, are_you_sure, exit_fullscreen_if_ios, show_error_message, showMessageBox */
 
@@ -19,25 +19,25 @@ import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 	 */
 	function localize(english_text, ...interpolations) {
 		function find_localization(english_text) {
-			if (AccessKeys.has(english_text)) {
-				const without_hotkey = AccessKeys.remove(english_text);
-				if (localizations[without_hotkey]) {
-					const hotkey_def = AccessKeys.get(english_text);
-					if (localizations[without_hotkey].toUpperCase().indexOf(hotkey_def.toUpperCase()) > -1) {
-						return localizations[without_hotkey];
-					} else {
-						if (AccessKeys.has(localizations[without_hotkey])) {
-							// window.console?.warn(`Localization has differing access key hint: '${localizations[without_hotkey]}' vs '${english_text}'`);
-							// @TODO: detect differing access key more generally
-							return `${AccessKeys.remove(localizations[without_hotkey])} (${hotkey_def})`;
-						}
-						return `${localizations[without_hotkey]} (${hotkey_def})`;
-					}
-				}
-			}
-			if (localizations[english_text]) {
-				return localizations[english_text];
-			}
+			// if (AccessKeys.has(english_text)) {
+			// 	const without_hotkey = AccessKeys.remove(english_text);
+			// 	if (localizations[without_hotkey]) {
+			// 		const hotkey_def = AccessKeys.get(english_text);
+			// 		if (localizations[without_hotkey].toUpperCase().indexOf(hotkey_def.toUpperCase()) > -1) {
+			// 			return localizations[without_hotkey];
+			// 		} else {
+			// 			if (AccessKeys.has(localizations[without_hotkey])) {
+			// 				// window.console?.warn(`Localization has differing access key hint: '${localizations[without_hotkey]}' vs '${english_text}'`);
+			// 				// @TODO: detect differing access key more generally
+			// 				return `${AccessKeys.remove(localizations[without_hotkey])} (${hotkey_def})`;
+			// 			}
+			// 			return `${localizations[without_hotkey]} (${hotkey_def})`;
+			// 		}
+			// 	}
+			// }
+			// if (localizations[english_text]) {
+			// 	return localizations[english_text];
+			// }
 			return english_text;
 		}
 		function interpolate(text, interpolations) {

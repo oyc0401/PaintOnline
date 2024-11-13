@@ -6,7 +6,6 @@ import UPNG from '../lib/UPNG.js'
 import pdfjs from '../lib/pdf.js/build/pdf.js'
 import AnyPalette from '../lib/anypalette-0.6.0.js';
 // import $ from 'jquery'
-import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 
 import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
@@ -2736,221 +2735,221 @@ function image_flip_and_rotate() {
 	const $fieldset = $(E("fieldset")).appendTo($w.$main);
 	$fieldset.append(`
 		<legend>${localize("Flip or rotate")}</legend>
-		<div class="radio-wrapper">
-			<input
-				type="radio"
-				name="flip-or-rotate"
-				id="flip-horizontal"
-				value="flip-horizontal"
-				aria-keyshortcuts="Alt+F"
-				checked
-			/><label for="flip-horizontal">${render_access_key(localize("&Flip horizontal"))}</label>
-		</div>
-		<div class="radio-wrapper">
-			<input
-				type="radio"
-				name="flip-or-rotate"
-				id="flip-vertical"
-				value="flip-vertical"
-				aria-keyshortcuts="Alt+V"
-			/><label for="flip-vertical">${render_access_key(localize("Flip &vertical"))}</label>
-		</div>
-		<div class="radio-wrapper">
-			<input
-				type="radio"
-				name="flip-or-rotate"
-				id="rotate-by-angle"
-				value="rotate-by-angle"
-				aria-keyshortcuts="Alt+R"
-			/><label for="rotate-by-angle">${render_access_key(localize("&Rotate by angle"))}</label>
-		</div>
-	`);
+	// 	<div class="radio-wrapper">
+	// 		<input
+	// 			type="radio"
+	// 			name="flip-or-rotate"
+	// 			id="flip-horizontal"
+	// 			value="flip-horizontal"
+	// 			aria-keyshortcuts="Alt+F"
+	// 			checked
+	// 		/><label for="flip-horizontal">${render_access_key(localize("&Flip horizontal"))}</label>
+	// 	</div>
+	// 	<div class="radio-wrapper">
+	// 		<input
+	// 			type="radio"
+	// 			name="flip-or-rotate"
+	// 			id="flip-vertical"
+	// 			value="flip-vertical"
+	// 			aria-keyshortcuts="Alt+V"
+	// 		/><label for="flip-vertical">${render_access_key(localize("Flip &vertical"))}</label>
+	// 	</div>
+	// 	<div class="radio-wrapper">
+	// 		<input
+	// 			type="radio"
+	// 			name="flip-or-rotate"
+	// 			id="rotate-by-angle"
+	// 			value="rotate-by-angle"
+	// 			aria-keyshortcuts="Alt+R"
+	// 		/><label for="rotate-by-angle">${render_access_key(localize("&Rotate by angle"))}</label>
+	// 	</div>
+	// `);
 
-	const $rotate_by_angle = $(E("div")).appendTo($fieldset);
-	$rotate_by_angle.addClass("sub-options");
-	for (const label_with_hotkey of [
-		"&90°",
-		"&180°",
-		"&270°",
-	]) {
-		const degrees = parseInt(AccessKeys.toText(label_with_hotkey), 10);
-		$rotate_by_angle.append(`
-			<div class="radio-wrapper">
-				<input
-					type="radio"
-					name="rotate-by-angle"
-					value="${degrees}"
-					id="rotate-${degrees}"
-					aria-keyshortcuts="Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}"
-				/><label
-					for="rotate-${degrees}"
-				>${render_access_key(label_with_hotkey)}</label>
-			</div>
-		`);
-	}
-	$rotate_by_angle.append(`
-		<div class="radio-wrapper">
-			<input
-				type="radio"
-				name="rotate-by-angle"
-				value="arbitrary"
-			/><input
-				type="number"
-				min="-360"
-				max="360"
-				name="rotate-by-arbitrary-angle"
-				id="custom-degrees"
-				value=""
-				class="no-spinner inset-deep"
-				style="width: 50px"
-			/>
-			<label for="custom-degrees">${localize("Degrees")}</label>
-		</div>
-	`);
-	$rotate_by_angle.find("#rotate-90").attr({ checked: true });
-	// Disabling inputs makes them not even receive mouse events,
-	// and so pointer-events: none is needed to respond to events on the parent.
-	$rotate_by_angle.find("input").attr({ disabled: true });
-	$fieldset.find("input").on("change", () => {
-		const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
-		$rotate_by_angle.find("input").attr({
-			disabled: action !== "rotate-by-angle",
-		});
-	});
-	$rotate_by_angle.find(".radio-wrapper").on("click", (e) => {
-		// Select "Rotate by angle" and enable subfields
-		$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
-		$fieldset.find("input").triggerHandler("change");
+	// const $rotate_by_angle = $(E("div")).appendTo($fieldset);
+	// $rotate_by_angle.addClass("sub-options");
+	// for (const label_with_hotkey of [
+	// 	"&90°",
+	// 	"&180°",
+	// 	"&270°",
+	// ]) {
+	// 	const degrees = parseInt(AccessKeys.toText(label_with_hotkey), 10);
+	// 	$rotate_by_angle.append(`
+	// 		<div class="radio-wrapper">
+	// 			<input
+	// 				type="radio"
+	// 				name="rotate-by-angle"
+	// 				value="${degrees}"
+	// 				id="rotate-${degrees}"
+	// 				aria-keyshortcuts="Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}"
+	// 			/><label
+	// 				for="rotate-${degrees}"
+	// 			>${render_access_key(label_with_hotkey)}</label>
+	// 		</div>
+	// 	`);
+	// }
+	// $rotate_by_angle.append(`
+	// 	<div class="radio-wrapper">
+	// 		<input
+	// 			type="radio"
+	// 			name="rotate-by-angle"
+	// 			value="arbitrary"
+	// 		/><input
+	// 			type="number"
+	// 			min="-360"
+	// 			max="360"
+	// 			name="rotate-by-arbitrary-angle"
+	// 			id="custom-degrees"
+	// 			value=""
+	// 			class="no-spinner inset-deep"
+	// 			style="width: 50px"
+	// 		/>
+	// 		<label for="custom-degrees">${localize("Degrees")}</label>
+	// 	</div>
+	// `);
+	// $rotate_by_angle.find("#rotate-90").attr({ checked: true });
+	// // Disabling inputs makes them not even receive mouse events,
+	// // and so pointer-events: none is needed to respond to events on the parent.
+	// $rotate_by_angle.find("input").attr({ disabled: true });
+	// $fieldset.find("input").on("change", () => {
+	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
+	// 	$rotate_by_angle.find("input").attr({
+	// 		disabled: action !== "rotate-by-angle",
+	// 	});
+	// });
+	// $rotate_by_angle.find(".radio-wrapper").on("click", (e) => {
+	// 	// Select "Rotate by angle" and enable subfields
+	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
+	// 	$fieldset.find("input").triggerHandler("change");
 
-		const $wrapper = $(e.target).closest(".radio-wrapper");
-		// Focus the numerical input if this field has one
-		const num_input = $wrapper.find("input[type='number']")[0];
-		if (num_input) {
-			num_input.focus();
-		}
-		// Select the radio for this field
-		$wrapper.find("input[type='radio']").prop("checked", true);
-	});
+	// 	const $wrapper = $(e.target).closest(".radio-wrapper");
+	// 	// Focus the numerical input if this field has one
+	// 	const num_input = $wrapper.find("input[type='number']")[0];
+	// 	if (num_input) {
+	// 		num_input.focus();
+	// 	}
+	// 	// Select the radio for this field
+	// 	$wrapper.find("input[type='radio']").prop("checked", true);
+	// });
 
-	$fieldset.find("input[name='rotate-by-arbitrary-angle']").on("input", () => {
-		$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
-		$fieldset.find("input[value='arbitrary']").prop("checked", true);
-	});
+	// $fieldset.find("input[name='rotate-by-arbitrary-angle']").on("input", () => {
+	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
+	// 	$fieldset.find("input[value='arbitrary']").prop("checked", true);
+	// });
 
-	$w.$Button(localize("OK"), () => {
-		const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
-		switch (action) {
-			case "flip-horizontal":
-				flip_horizontal();
-				break;
-			case "flip-vertical":
-				flip_vertical();
-				break;
-			case "rotate-by-angle": {
-				let angle_val = $fieldset.find("input[name='rotate-by-angle']:checked").val();
-				if (angle_val === "arbitrary") {
-					angle_val = $fieldset.find("input[name='rotate-by-arbitrary-angle']").val();
-				}
-				const angle_deg = Number(angle_val);
-				const angle = angle_deg / 360 * TAU;
+	// $w.$Button(localize("OK"), () => {
+	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
+	// 	switch (action) {
+	// 		case "flip-horizontal":
+	// 			flip_horizontal();
+	// 			break;
+	// 		case "flip-vertical":
+	// 			flip_vertical();
+	// 			break;
+	// 		case "rotate-by-angle": {
+	// 			let angle_val = $fieldset.find("input[name='rotate-by-angle']:checked").val();
+	// 			if (angle_val === "arbitrary") {
+	// 				angle_val = $fieldset.find("input[name='rotate-by-arbitrary-angle']").val();
+	// 			}
+	// 			const angle_deg = Number(angle_val);
+	// 			const angle = angle_deg / 360 * TAU;
 
-				if (isNaN(angle)) {
-					please_enter_a_number();
-					return;
-				}
-				rotate(angle);
-				break;
-			}
-		}
+	// 			if (isNaN(angle)) {
+	// 				please_enter_a_number();
+	// 				return;
+	// 			}
+	// 			rotate(angle);
+	// 			break;
+	// 		}
+	// 	}
 
-		$w.close();
-	}, { type: "submit" });
-	$w.$Button(localize("Cancel"), () => {
-		$w.close();
-	});
+	// 	$w.close();
+	// }, { type: "submit" });
+	// $w.$Button(localize("Cancel"), () => {
+	// 	$w.close();
+	// });
 
-	$fieldset.find("input[type='radio']").first().focus();
+	// $fieldset.find("input[type='radio']").first().focus();
 
-	$w.center();
+	// $w.center();
 
-	handle_keyshortcuts($w);
+	// handle_keyshortcuts($w);
 }
 
-function image_stretch_and_skew() {
-	const $w = $DialogWindow(localize("Stretch and Skew"));
-	$w.addClass("stretch-and-skew");
+ function image_stretch_and_skew() {
+// 	const $w = $DialogWindow(localize("Stretch and Skew"));
+// 	$w.addClass("stretch-and-skew");
 
-	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
-	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
-	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
-	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
+// 	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
+// 	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
+// 	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
+// 	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
 
-	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
-		const $tr = $(E("tr")).appendTo($table);
-		const $img = $(E("img")).attr({
-			src: `images/transforms/${img_src}.png`,
-			width: 32,
-			height: 32,
-		}).css({
-			marginRight: "20px",
-		});
-		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
-		const $input = $(E("input")).attr({
-			type: "number",
-			min,
-			max,
-			value: default_value,
-			id: input_id,
-			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
-		}).css({
-			width: "40px",
-		}).addClass("no-spinner inset-deep");
-		$(E("td")).appendTo($tr).append($img);
-		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
-		$(E("td")).appendTo($tr).append($input);
-		$(E("td")).appendTo($tr).text(label_unit);
+// 	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
+// 		const $tr = $(E("tr")).appendTo($table);
+// 		const $img = $(E("img")).attr({
+// 			src: `images/transforms/${img_src}.png`,
+// 			width: 32,
+// 			height: 32,
+// 		}).css({
+// 			marginRight: "20px",
+// 		});
+// 		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
+// 		const $input = $(E("input")).attr({
+// 			type: "number",
+// 			min,
+// 			max,
+// 			value: default_value,
+// 			id: input_id,
+// 			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
+// 		}).css({
+// 			width: "40px",
+// 		}).addClass("no-spinner inset-deep");
+// 		$(E("td")).appendTo($tr).append($img);
+// 		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
+// 		$(E("td")).appendTo($tr).append($input);
+// 		$(E("td")).appendTo($tr).text(label_unit);
 
-		return $input;
-	};
+// 		return $input;
+// 	};
 
-	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
-	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
-	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
-	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
+// 	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
+// 	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
+// 	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
+// 	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
 
-	$w.$Button(localize("OK"), () => {
-		const x_scale = parseFloat(stretch_x.val()) / 100;
-		const y_scale = parseFloat(stretch_y.val()) / 100;
-		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
-		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
-		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
-			please_enter_a_number();
-			return;
-		}
-		try {
-			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
-		} catch (exception) {
-			if (exception.name === "NS_ERROR_FAILURE") {
-				// or localize("There is not enough memory or resources to complete operation.")
-				show_error_message(localize("Insufficient memory to perform operation."), exception);
-			} else {
-				show_error_message(localize("An unknown error has occurred."), exception);
-			}
-			// @TODO: undo and clean up undoable
-			return;
-		}
-		$w.close();
-	}, { type: "submit" });
+// 	$w.$Button(localize("OK"), () => {
+// 		const x_scale = parseFloat(stretch_x.val()) / 100;
+// 		const y_scale = parseFloat(stretch_y.val()) / 100;
+// 		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
+// 		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
+// 		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
+// 			please_enter_a_number();
+// 			return;
+// 		}
+// 		try {
+// 			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
+// 		} catch (exception) {
+// 			if (exception.name === "NS_ERROR_FAILURE") {
+// 				// or localize("There is not enough memory or resources to complete operation.")
+// 				show_error_message(localize("Insufficient memory to perform operation."), exception);
+// 			} else {
+// 				show_error_message(localize("An unknown error has occurred."), exception);
+// 			}
+// 			// @TODO: undo and clean up undoable
+// 			return;
+// 		}
+// 		$w.close();
+// 	}, { type: "submit" });
 
-	$w.$Button(localize("Cancel"), () => {
-		$w.close();
-	});
+// 	$w.$Button(localize("Cancel"), () => {
+// 		$w.close();
+// 	});
 
-	$w.$main.find("input").first().focus().select();
+// 	$w.$main.find("input").first().focus().select();
 
-	$w.center();
+// 	$w.center();
 
-	handle_keyshortcuts($w);
+// 	handle_keyshortcuts($w);
 }
 
 /**

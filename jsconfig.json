@@ -8,5 +8,6 @@
 		"src/**/*",
 		"localization/*.js",
 		"lib/os-gui/os-gui.d.ts"
-	]
+	],
+	"extends": "./.svelte-kit/tsconfig.json"
 }

@@ -8,7 +8,7 @@ console.log('JS 실행:','app.js')
 //import { $ToolBox } from "./$ToolBox.js";
 import { Handles } from "./Handles.js";
 // import $ from 'jquery';
-import {MenuBar} from '../lib/os-gui/MenuBar.js';
+//import {MenuBar} from '../lib/os-gui/MenuBar.js';
 
 // import { get_direction, localize } from "./app-localization.js";
 import { default_palette, get_winter_palette } from "./color-data.js";
@@ -102,7 +102,7 @@ import {
 //gpt
 // window.에 넣기
 window.Handles = Handles;
-window.MenuBar = MenuBar;
+//window.MenuBar = MenuBar;
 //window.$ColorBox = $ColorBox;
 //window.$ToolBox = $ToolBox;
 window.default_palette = default_palette;
