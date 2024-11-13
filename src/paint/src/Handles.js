@@ -23,6 +23,7 @@ import { $G, E, make_css_cursor, to_canvas_coords } from "./helpers.js";
  * @property {() => void} show
  * @property {HTMLElement[]} handles
  */
+
 function Handles(options) {
 	const { $handles_container, $object_container } = options; // required
 	const outset = options.outset || 0;

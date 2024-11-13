@@ -2,8 +2,6 @@ console.log('JS 실행:','error-handling-enhanced.js')
 // @ts-check
 /* global localize */
 
-import { show_error_message } from "./functions.js";
-
 // import { localize } from "./app-localization.js";
 
 // This script progressively enhances from error-handling-basic.js.

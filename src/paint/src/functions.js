@@ -25,6 +25,9 @@ import { TOOL_CURVE, TOOL_FREE_FORM_SELECT, TOOL_POLYGON, TOOL_SELECT, TOOL_TEXT
 // TODO: make sessions.js export function to initialize it
 // import { new_local_session } from "./sessions.js";
 
+
+
+
 // expresses order in the URL as well as type
 const param_types = {
 	// settings
@@ -228,7 +231,7 @@ function update_helper_layer_immediately() {
 
 	render_canvas_view(window.globAppstate.helper_layer.canvas, scale, viewport_x, viewport_y, true);
 
-	if (window.globAppstate.thumbnail_canvas && $thumbnail_window.is(":visible")) {
+	if (window.globAppstate.thumbnail_canvas && window.globAppstate.$thumbnail_window.is(":visible")) {
 		// The thumbnail can be bigger or smaller than the viewport, depending on the magnification and thumbnail window size.
 		// So can the document.
 		// Ideally it should show the very corner if scrolled all the way to the corner,
