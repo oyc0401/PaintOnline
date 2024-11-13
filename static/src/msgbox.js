@@ -121,11 +121,7 @@ function showMessageBox_implementation({
 // for 98.js.org integration.
 exports.showMessageBox = window.showMessageBox || showMessageBox_implementation;
 
-// Note `defaultMessageBoxTitle` handling in make_iframe_window (or now function enhance_iframe) in 98.js.org
-// https://github.com/1j01/98/blob/361bd759a6d9b71d0fad9e479840598dc0128bb6/src/iframe-windows.js#L111
-// Any other default parameters need to be handled there (as it works now)
 
-window.defaultMessageBoxTitle = localize("Paint");
 
 // Don't override alert, because I only use it as a fallback for global error handling.
 // If make_window_supporting_scale is not defined, then alert is used instead,
@@ -137,5 +133,4 @@ window.defaultMessageBoxTitle = localize("Paint");
 
 const { showMessageBox } = exports;
 export { showMessageBox };
-// Temporary globals until all dependent code is converted to ES Modules
-window.showMessageBox = showMessageBox; // used by app-localization.js
+

@@ -2,59 +2,6 @@ console.log('JS 실행:','functions.js')
 
 
 
-// let {
-// 	return_to_magnification,
-// 	main_canvas,
-// 	main_ctx,
-// 	palette,
-// 	polychrome_palette,
-// 	enable_palette_loading_from_indexed_images,
-// 	enable_fs_access_api,
-// 	brush_shape,
-// 	brush_size,
-// 	eraser_size,
-// 	airbrush_size,
-// 	pencil_size,
-// 	stroke_size,
-// 	tool_transparent_mode,
-// 	stroke_color,
-// 	fill_color,
-// 	pick_color_slot,
-// 	selected_tool,
-// 	selected_tools,
-// 	return_to_tools,
-// 	selected_colors,
-// 	selection,
-// 	helper_layer,
-// 	$thumbnail_window,
-// 	thumbnail_canvas,
-// 	show_grid,
-// 	show_thumbnail,
-// 	text_tool_font,
-// 	root_history_node,
-// 	current_history_node,
-// 	history_node_to_cancel_to,
-// 	undos,
-// 	redos,
-// 	file_name,
-// 	file_format,
-// 	system_file_handle,
-// 	saved,
-// 	pointer,
-// 	pointer_start,
-// 	pointer_previous,
-// 	pointer_active,
-// 	pointer_type,
-// 	pointer_buttons,
-// 	reverse,
-// 	ctrl,
-// 	shift,
-// 	button,
-// 	pointer_over_canvas,
-// 	update_helper_layer_on_pointermove_active,
-// 	pointers
-// } = window.globAppstate;
-
 import UPNG from '../lib/UPNG.js'
 import pdfjs from '../lib/pdf.js/build/pdf.js'
 import AnyPalette from '../lib/anypalette-0.6.0.js';
@@ -3604,12 +3551,3 @@ export {
 	try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
 };
-// Temporary globals until all dependent code is converted to ES Modules
-window.make_history_node = make_history_node; // used by app-state.js
-window.open_from_file = open_from_file; // used by electron-injected.js
-window.are_you_sure = are_you_sure; // used by app-localization.js, electron-injected.js
-window.show_error_message = show_error_message; // used by app-localization.js, electron-injected.js
-window.show_about_paint = show_about_paint; // used by electron-injected.js
-window.exit_fullscreen_if_ios = exit_fullscreen_if_ios; // used by app-localization.js
-window.get_tool_by_id = get_tool_by_id; // used by app-state.js
-window.sanity_check_blob = sanity_check_blob; // used by electron-injected.js

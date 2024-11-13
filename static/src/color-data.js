@@ -160,5 +160,3 @@ const get_winter_palette = () => {
 export {
 	basic_colors, custom_colors, default_palette, get_winter_palette
 };
-// Temporary globals until all dependent code is converted to ES Modules
-window.default_palette = default_palette; // used by app-state.js

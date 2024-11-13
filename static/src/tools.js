@@ -2102,8 +2102,3 @@ export {
 	TOOL_TEXT,
 	tools,
 };
-// Temporary globals until all dependent code is converted to ES Modules
-window.TOOL_PENCIL = TOOL_PENCIL; // used by app-state.js
-
-
-window.tools = tools;
