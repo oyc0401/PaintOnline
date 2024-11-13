@@ -41,9 +41,9 @@
    //////
 
     
-     let showMenu = false;
+    let showMenu = $state(false);
+     let menuPosition = $state({ top: 0, left: 0 });
      let button;
-     let menuPosition = { top: 0, left: 0 };
 
      const toggleMenu = () => {
        showMenu = !showMenu;
@@ -56,15 +56,14 @@
        }
      };
 
-     const closeMenu = () => (showMenu = false);
-
-     // 외부 클릭 시 메뉴를 닫도록 설정
-     onMount(() => {
+     // 메뉴 외부 클릭 시 닫기 위한 효과
+     $effect(() => {
        const handleClickOutside = (event) => {
          if (showMenu && !event.target.closest('.menu') && !event.target.closest('button')) {
-           closeMenu();
+           showMenu = false;
          }
        };
+
        document.addEventListener('click', handleClickOutside);
        return () => document.removeEventListener('click', handleClickOutside);
      });
@@ -100,7 +99,7 @@
       <div class="menu-button">
          <img src={FullScreenIcon} alt="full-screen" />
       </div>
-      {#if showMenu}
+       {#if showMenu}
           <div
             class="menu show"
             style="top: {menuPosition.top}px; left: {menuPosition.left}px;"
