@@ -1465,55 +1465,17 @@ async function choose_file_to_paste() {
  */
 function paste(img_or_canvas) {
 
-	if (img_or_canvas.width > window.globAppstate.main_canvas.width || img_or_canvas.height > window.globAppstate.main_canvas.height) {
-		const message = localize("The image in the clipboard is larger than the bitmap.") + "\n" +
-			localize("Would you like the bitmap enlarged?");
-		showMessageBox({
-			message,
-			iconID: "question",
-			windowOptions: {
-				icons: {
-					16: "images/windows-16x16.png",
-					32: "images/windows-32x32.png",
-				},
-			},
-			buttons: [
-				{
-					// label: "Enlarge",
-					label: localize("Yes"),
-					value: "enlarge",
-					default: true,
-				},
-				{
-					// label: "Crop",
-					label: localize("No"),
-					value: "crop",
-				},
-				{
-					label: localize("Cancel"),
-					value: "cancel",
-				},
-			],
-		}).then((result) => {
-			if (result === "enlarge") {
-				// The resize gets its own undoable, as in mspaint
-				resize_canvas_and_save_dimensions(
-					Math.max(window.globAppstate.main_canvas.width, img_or_canvas.width),
-					Math.max(window.globAppstate.main_canvas.height, img_or_canvas.height),
-					{
-						name: "Enlarge Canvas For Paste",
-						icon: get_help_folder_icon("p_stretch_both.png"),
-					}
-				);
-				do_the_paste();
-				window.globApp.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
-			} else if (result === "crop") {
-				do_the_paste();
-			}
-		});
-	} else {
-		do_the_paste();
-	}
+	// The resize gets its own undoable, as in mspaint
+	resize_canvas_and_save_dimensions(
+		Math.max(window.globAppstate.main_canvas.width, img_or_canvas.width),
+		Math.max(window.globAppstate.main_canvas.height, img_or_canvas.height),
+		{
+			name: "Enlarge Canvas For Paste",
+			icon: get_help_folder_icon("p_stretch_both.png"),
+		}
+	);
+	do_the_paste();
+	window.globApp.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
 
 	function do_the_paste() {
 		deselect();
