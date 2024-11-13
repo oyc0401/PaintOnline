@@ -302,9 +302,9 @@ function $Component(title, className, orientation, $el) {
 		$("body").addClass("dragging");
 		$("body").css({ cursor: "default" }).addClass("cursor-bully");
 
-		$G.on("pointermove", drag_update_position);
-		$G.one("pointerup", (e) => {
-			$G.off("pointermove", drag_update_position);
+		$(window).on("pointermove", drag_update_position);
+		$(window).one("pointerup", (e) => {
+			$(window).off("pointermove", drag_update_position);
 			drag_onpointerup(e);
 			$("body").removeClass("dragging");
 			$("body").css({ cursor: "" }).removeClass("cursor-bully");
@@ -388,7 +388,7 @@ function $Component(title, className, orientation, $el) {
 		$ghost?.remove();
 		$ghost = null;
 
-		$G.trigger("resize");
+		$(window).trigger("resize");
 	};
 
 	$c.dock = ($dock_to) => {

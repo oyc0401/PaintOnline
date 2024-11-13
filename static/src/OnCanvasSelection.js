@@ -4,7 +4,7 @@ console.log('JS 실행:','OnCanvasSelection.js')
 import { Handles } from "./Handles.js";
 import { OnCanvasObject } from "./OnCanvasObject.js";
 import { get_tool_by_id, make_or_update_undoable, undoable, update_helper_layer } from "./functions.js";
-import { $G, get_icon_for_tool, get_rgba_from_color, make_canvas, make_css_cursor, to_canvas_coords } from "./helpers.js";
+import {  get_icon_for_tool, get_rgba_from_color, make_canvas, make_css_cursor, to_canvas_coords } from "./helpers.js";
 import { replace_colors_with_swatch } from "./image-manipulation.js";
 import { TOOL_SELECT } from "./tools.js";
 // import $ from 'jquery'
@@ -36,7 +36,7 @@ class OnCanvasSelection extends OnCanvasObject {
 				this.update_tool_transparent_mode();
 			}
 		};
-		$G.on("option-changed", this._on_option_changed);
+		$(window).on("option-changed", this._on_option_changed);
 
 		this.instantiate(image_source);
 	}
@@ -128,11 +128,11 @@ class OnCanvasSelection extends OnCanvasObject {
 				const cy = e.clientY - rect.top;
 				mox = ~~(cx / rect.width * this.canvas.width);
 				moy = ~~(cy / rect.height * this.canvas.height);
-				$G.on("pointermove", pointermove);
+				$(window).on("pointermove", pointermove);
 				this.dragging = true;
 				update_helper_layer(); // for thumbnail, which draws textbox outline if it's not being dragged
-				$G.one("pointerup", () => {
-					$G.off("pointermove", pointermove);
+				$(window).one("pointerup", () => {
+					$(window).off("pointermove", pointermove);
 					this.dragging = false;
 					update_helper_layer(); // for thumbnail, which draws selection outline if it's not being dragged
 				});
@@ -217,7 +217,7 @@ class OnCanvasSelection extends OnCanvasObject {
 			window.globAppstate.main_ctx.drawImage(colored_cutout, this.x, this.y);
 		}
 
-		$G.triggerHandler("session-update"); // autosave
+		$(window).triggerHandler("session-update"); // autosave
 		update_helper_layer();
 	}
 	update_tool_transparent_mode() {
@@ -309,7 +309,7 @@ class OnCanvasSelection extends OnCanvasObject {
 	}
 	destroy() {
 		super.destroy();
-		$G.off("option-changed", this._on_option_changed);
+		$(window).off("option-changed", this._on_option_changed);
 		update_helper_layer(); // @TODO: under-grid specific helper layer?
 	}
 }

@@ -57,7 +57,7 @@ function setupApp() {
 
  
 
-  $G.on("resize", () => {
+  $(window).on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
     update_canvas_rect();
     update_disable_aa();
@@ -69,7 +69,7 @@ function setupApp() {
     update_magnified_canvas_size();
   });
 
-  $G.on("scroll focusin", () => {
+  $(window).on("scroll focusin", () => {
     window.scrollTo(0, 0);
   });
 
@@ -166,8 +166,8 @@ function setupApp() {
   // #endregion
 
   // #region Keyboard Shortcuts
-  $G.on("keydown", (e) => {
-    // typecast to HTMLElement because e.target is incorrectly given as Window, due to $G wrapping window
+  $(window).on("keydown", (e) => {
+    // typecast to HTMLElement because e.target is incorrectly given as Window, due to wrapping window
     const target = /** @type {HTMLElement} */ (
       /** @type {unknown} */ (e.target)
     );
@@ -320,7 +320,7 @@ function setupApp() {
           );
         }
 
-        $G.trigger("option-changed");
+        $(window).trigger("option-changed");
         if (appState.button !== undefined && appState.pointer) {
           // pointer may only be needed for tests
 
@@ -447,7 +447,7 @@ function setupApp() {
       alt_zooming = false;
     }
   });
-  // $G.on("wheel", (e) => {
+  // $(window).on("wheel", (e) => {
   addEventListener(
     "wheel",
     (e) => {
@@ -492,7 +492,7 @@ function setupApp() {
   // #endregion
 
   // #region Clipboard Handling
-  $G.on("cut copy paste", (e) => {
+  $(window).on("cut copy paste", (e) => {
     if (e.isDefaultPrevented()) {
       return;
     }
@@ -785,7 +785,7 @@ function setupApp() {
     update_helper_layer(e);
 
     if (!appState.update_helper_layer_on_pointermove_active) {
-      $G.on("pointermove", update_helper_layer);
+      $(window).on("pointermove", update_helper_layer);
       appState.update_helper_layer_on_pointermove_active = true;
     }
   });
@@ -800,7 +800,7 @@ function setupApp() {
       !appState.pointer_active &&
       appState.update_helper_layer_on_pointermove_active
     ) {
-      $G.off("pointermove", update_helper_layer);
+      $(window).off("pointermove", update_helper_layer);
       appState.update_helper_layer_on_pointermove_active = false;
     }
   });
@@ -883,12 +883,12 @@ function setupApp() {
       return;
     }
   });
-  $G.on("pointerup pointercancel", (event) => {
+  $(window).on("pointerup pointercancel", (event) => {
     appState.pointers = appState.pointers.filter(
       (pointer) => pointer.pointerId !== event.pointerId,
     );
   });
-  $G.on("pointermove", (event) => {
+  $(window).on("pointermove", (event) => {
     for (const pointer of appState.pointers) {
       if (pointer.pointerId === event.pointerId) {
         pointer.x = event.clientX;
@@ -959,7 +959,7 @@ function setupApp() {
     appState.pointer_active = !!(e.buttons & (1 | 2)); // as far as tools are concerned
     appState.pointer_type = e.pointerType;
     appState.pointer_buttons = e.buttons;
-    $G.one("pointerup", (e) => {
+    $(window).one("pointerup", (e) => {
       appState.pointer_active = false;
       update_helper_layer(e);
 
@@ -967,7 +967,7 @@ function setupApp() {
         !appState.pointer_over_canvas &&
         appState.update_helper_layer_on_pointermove_active
       ) {
-        $G.off("pointermove", update_helper_layer);
+        $(window).off("pointermove", update_helper_layer);
         appState.update_helper_layer_on_pointermove_active = false;
       }
     });
@@ -1003,9 +1003,9 @@ function setupApp() {
         }
       });
 
-      $G.on("pointermove", canvas_pointer_move);
+      $(window).on("pointermove", canvas_pointer_move);
 
-      $G.one("pointerup", (e, canceling, no_undoable) => {
+      $(window).one("pointerup", (e, canceling, no_undoable) => {
         appState.button = undefined;
         appState.reverse = false;
 
@@ -1030,7 +1030,7 @@ function setupApp() {
             select_tools(appState.return_to_tools);
           }
         }
-        $G.off("pointermove", canvas_pointer_move);
+        $(window).off("pointermove", canvas_pointer_move);
         for (const interval_id of interval_ids) {
           clearInterval(interval_id);
         }
@@ -1082,8 +1082,8 @@ function setupApp() {
   // }
 
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
-  $G.on("blur", () => {
-    $G.triggerHandler("pointerup");
+  $(window).on("blur", () => {
+    $(window).triggerHandler("pointerup");
   });
 
   // #region Fullscreen Handling for iOS
@@ -1104,8 +1104,8 @@ function setupApp() {
     );
   }
   $("html").toggleClass("ios", iOS());
-  $G.on("fullscreenchange webkitfullscreenchange", () => {
-    // const fullscreen = $G.is(":fullscreen") || $G.is(":-webkit-full-screen"); // gives "Script error."
+  $(window).on("fullscreenchange webkitfullscreenchange", () => {
+    // const fullscreen = $(window).is(":fullscreen") || $(window).is(":-webkit-full-screen"); // gives "Script error."
     const fullscreen = !!(
       document.fullscreenElement || document.webkitFullscreenElement
     );

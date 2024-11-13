@@ -6,12 +6,22 @@
   import { onMount } from 'svelte';
   import {setupApp} from "../appSetup.js"
   import {setupState} from "../setupState";
+  let preSetting;
   
-  onMount(() => { 
-    setupState();
+  onMount( async() => { 
+    // 클라이언트 환경에서만 동적으로 import
+    const module = await import('../preSetting');
+    const {preSetting,setAppParams,setSession} = module;
 
+    // preSetting 함수나 객체를 여기서 사용
+   preSetting();
+ 
+    setupState();
+    
+    setAppParams();
     setupApp();
-    window.setSession();
+
+   setSession();
   });
 
 </script>

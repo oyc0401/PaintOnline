@@ -11,11 +11,10 @@ deploymentTarget = "gce"
 
 [[ports]]
 localPort = 4173
-externalPort = 80
-exposeLocalhost = true
 
 [[ports]]
 localPort = 5173
+externalPort = 80
 
 
 #entrypoint = "index.js"
