@@ -14,10 +14,9 @@
 	--window-frame-inactive-color: #9396a5;
 	--window-titlebar-text-color: #ffffff;
 	--help-window-resizer-color: #aaaaaa;
-	--canvas-area-background-color: #D5DEEC;
+	--canvas-area-background-color: #7b7b7b;
 	--canvas-area-border-color: #808080;
-	--window-background-color: #F5F6F7;
-	--window-status-bar-color: #F0F0F0;
+	--window-background-color: #ffffff;
 	--window-text-color: #000000;
 	--menu-background-color: #ffffff;
 	--menu-text-color: #000000;
@@ -72,12 +71,11 @@ body {
 	box-shadow: 0 0 0 1px white;
 }
 .canvas-area .handle {
-	background: white;
-	border: solid black 1px;
+	background: #000080;
 }
 .canvas-area .useless-handle {
-	background: transparent;
-	border:none;
+	background: #fff;
+	box-shadow: 1px 1px 0 #000080 inset;
 }
 .resize-ghost {
 	outline: 1px dotted #ccc;
@@ -357,9 +355,9 @@ body {
 	box-shadow: 0px -2px 1px 0px blue;
 }
 .tool-icon {
+	background-image: url("../../images/modern/vista-tools.png");
 	background-repeat: no-repeat;
-	background-image: url("../../images/modern/modern-light-tools.svg");
-	background-position: calc(-16px * (var(--icon-index) * 2 + 1)) -16px;
+	background-position: calc(-16px * var(--icon-index)) 0;
 }
 .tool-icon.use-svg {
 	background-image: url("../../images/modern/modern-light-tools.svg");
@@ -398,201 +396,20 @@ body {
 	background: url(../../images/classic/eye-gaze-unpause.svg);
 }
 
-
-
-
-/* win10 공간 oyc0401*/
-
-/* .cursor-position{
-	width:19px;
-	height:23px;
-	background-repeat: no-repeat;
-	background-image: url("../../images/win10/cursor_position.png");
-	background-position: center;
-} */
-
-.shape-size{
-	width:19px;
-	height:23px;
-	background-repeat: no-repeat;
-	background-image: url("../../images/win10/shape_size.png");
-	background-position: center;
-}
-
-.save-icon{
-	width:19px;
-	height:23px;
-	background-repeat: no-repeat;
-	background-image: url("../../images/win10/save_icon.png");
-	background-position: center;
-}
-
-.screen-size{
-	width:19px;
-	height:23px;
-	background-repeat: no-repeat;
-	background-image: url("../../images/win10/screen_size.png");
-	background-position: center;
-}
-
 .menus,
 .component-area,
 .status-area {
 	background: var(--window-background-color);
 	color: var(--window-text-color);
 }
-
-.status-coordinates {
-	flex: 0 0 153px;
-	min-width: 0px;
-	padding-left: 3px;
-}
-
-.status-area{
-	border-top: 1px solid #D7D7D7;
-	background: var(--window-status-bar-color);
-	padding-bottom:1px;
-	padding-top:1px;
-}
 .status-field {
-	height: 23px;
-	line-height: 23px;
-	font-size:12px;
+	height: 1.5rem;
+	line-height: 1.5rem;
 }
 .status-text {
 	padding-left: 8px;
 }
 
-.status-divider{
-	padding-left:1px;
-	margin-right:2px;
-	background:#D7D7D7;
-	height:23px;
-}
-
-.status-divider.start{
-	margin-left:2px;
-}
-
-.status-divider.end{
-	margin-left:0px;
-	margin-right:0px;
-}
-
-.status-spacer{
-	flex:1;
-}
-
-
-/* zoom */
-.zoom-box{
-	display:flex;
-	flex-direction:row;
-	width:185px;
-	padding-left: 9px;
-	padding-right:3px;
-	justify-content:end;
-}
-
-.zoom-text{
-padding-right:7px;
-	width:40px;
-	 text-align: right;
-}
-
-.slider-area{
-	width:75px;
-}
-.zoom-button{
-	width:16px;
-	height:16px;
-	margin-top:4px;
-	background: transparent;
-	background-repeat: no-repeat;
-	background-position: center;
-}
-
-.zoom-button.zoom-in{
-	background-image: url("../../images/win10/zoom_in_button.png") !important;
-}
-.zoom-button.zoom-in:hover{
-	background-image: url("../../images/win10/zoom_in_button_hover.png") !important;
-}
-.zoom-button.zoom-in:active{
-	background-image: url("../../images/win10/zoom_in_button_active.png") !important;
-}
-.zoom-button.zoom-out{
-	background-image: url("../../images/win10/zoom_out_button.png") !important;
-}
-.zoom-button.zoom-out:hover{
-	background-image: url("../../images/win10/zoom_out_button_hover.png") !important;
-}
-.zoom-button.zoom-out:active{
-	background-image: url("../../images/win10/zoom_out_button_active.png") !important;
-}
-.ui-slider {
-	height: 2px /* 전체 슬라이더 바의 높이 */!important;
-	background-color: transparent !important;
-	border-top: 1px solid #D6D6D6 !important; /* 위쪽 테두리 */
-	border-bottom: 1px solid #D6D6D6 !important; /* 아래쪽 테두리 */
-	border-left: none !important; /* 왼쪽 테두리 제거 */
-	border-right: none !important; /* 오른쪽 테두리 제거 */
-	border-radius: 0 !important; /* 각진 모서리 */
-	margin-top:8px;
-}
-
-
-.ui-slider-handle {
-	width: 10px !important;
-	height: 17px !important;
-	 background-color: transparent !important;
-	border-radius: 0px !important;
-	border: none !important;
-	margin-top:-2px !important;
-	border:none !important;
-	transform: translateX(50%);
-	/* background-repeat: no-repeat;
-	background-image: url("../../images/slider_pointer.svg") !important;
-	background-position: center; */
-}
-
-.ui-slider-handle:focus,
-.ui-slider-handle:active {
-	outline: none; /* 포커스 시 테두리 제거 */
-	box-shadow: none; /* 필요 시 그림자도 제거 */
-	 /* background-color: transparent !important;
-	background-image: url("../../images/slider_pointer_disabled.svg") !important; */
-}
-
-/* 핸들이 활성화되었을 때 색상 변경 */
-.custom-handle:active svg polygon {
-	fill: #CCCCCC; /* 활성화 시 빨간색으로 변경 */
-}
-
-.added-slider{
-	height:23px;
-}
-.added-slider.left{width:4px;	margin-left:10px;}
-.added-slider.right{width:5px; margin-right:12px;}
-.added-slider-content{
-	margin-top:8px;
-	width:100%;
-	height:2px;
-	border-top: 1px solid #D6D6D6;
-	border-bottom: 1px solid #D6D6D6;
-	background:#E7EAEA;
-}
-.added-slider-content.left{	border-left: 1px solid #D6D6D6;}
-.added-slider-content.right{	border-right: 1px solid #D6D6D6;}
-
-
-
-
-
-
-
-
-/* 원래있던거 */
 body,
 .canvas-area {
 	background: var(--canvas-area-background-color);

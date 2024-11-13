@@ -52,6 +52,7 @@ import {
 	$choose_transparent_mode,
 } from "./tool-options.js";
 
+
 // import $ from 'jquery';
 // This is for linting stuff at the bottom.
 // It has to be defined per file, so I'm defining it up top and immediately disabling it.
@@ -240,9 +241,9 @@ const tools = [
 
 			// Note: MS Paint in Windows 98 shows the difference between the starting point and the current mouse position
 			// An absolute bounding box seems more useful though.
-			$status_size.text(
-				`${this.x_max - this.x_min}x${this.y_max - this.y_min}`,
-			);
+			// $status_size.text(
+			// 	`${this.x_max - this.x_min}x${this.y_max - this.y_min}`,
+			// );
 		},
 		ffs_paint_iteration(x, y) {
 			// Constrain the inversion paint brush position to the canvas
@@ -364,7 +365,7 @@ const tools = [
 						var cropped_canvas = make_canvas(rect_width, rect_height);
 						cropped_canvas.ctx.drawImage(window.globAppstate.main_canvas, -rect_x, -rect_y);
 						window.globAppstate.main_ctx.copy(cropped_canvas);
-						canvas_handles.show();
+						window.globApp.canvas_handles.show();
 						$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
 				} else if (free_form_selection) {
@@ -749,10 +750,10 @@ const tools = [
 			};
 
 			if (button == 2) {
-				return nextout[magnification];
+				return nextout[window.globAppstate.magnification];
 			}
 
-			return nextZoom[magnification];
+			return nextZoom[window.globAppstate.magnification];
 		},
 		drawPreviewAboveGrid(
 			ctx,
@@ -776,7 +777,7 @@ const tools = [
 			// use specific zoom-in/zoom-out as fallback,
 			// even though the custom cursor image is less descriptive
 			// because there's no generic "zoom" css cursor
-			if (prospective_magnification < magnification) {
+			if (prospective_magnification < window.globAppstate.magnification) {
 				$canvas.css({
 					cursor: make_css_cursor("magnifier", [16, 16], "zoom-out"),
 				});
@@ -786,7 +787,7 @@ const tools = [
 				});
 			}
 
-			if (prospective_magnification < magnification) {
+			if (prospective_magnification < window.globAppstate.magnification) {
 				return;
 			} // hide if would be zooming out
 
@@ -871,7 +872,7 @@ const tools = [
 			// ctx.strokeRect(rect_x1, rect_y1, rect_w, rect_h);
 		},
 		pointerdown(_ctx, x, y) {
-			const prev_magnification = magnification;
+			const prev_magnification = window.globAppstate.magnification;
 			const prospective_magnification =
 				this.getProspectiveMagnification(window.globAppstate.button);
 
@@ -881,14 +882,14 @@ const tools = [
 
 			//console.log("이전배율:", prev_magnification);
 			
-			if (magnification > prev_magnification) {
+			if (window.globAppstate.magnification > prev_magnification) {
 			
 				// (new) viewport size in document coords
-				const w = $canvas_area.width() / magnification;
-				const h = $canvas_area.height() / magnification;
+				const w = $canvas_area.width() / window.globAppstate.magnification;
+				const h = $canvas_area.height() / window.globAppstate.magnification;
 				
 				$canvas_area.scrollLeft(
-					((x - w / 2) * magnification),
+					((x - w / 2) * window.globAppstate.magnification),
 				);
 				// Nevermind, canvas, isn't aligned to the right in RTL layout!
 				// if (get_direction() === "rtl") {
@@ -898,7 +899,7 @@ const tools = [
 				// 	$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
 				// }
 				$canvas_area.scrollTop(
-					((y - h / 2) * magnification),
+					((y - h / 2) * window.globAppstate.magnification),
 				);
 
 				//console.log("스크롤 이동",((x - w / 2) * magnification),((y - h / 2) * magnification));
@@ -1021,7 +1022,7 @@ const tools = [
 					},
 				);
 				this.points = [];
-				$status_size.text("");
+				//$status_size.text("");
 			}
 		},
 		pointerdown(_ctx, x, y) {
@@ -1107,7 +1108,7 @@ const tools = [
 			// (and is afraid of the number zero)
 			const signed_width = x - this.points[0].x || 1;
 			const signed_height = y - this.points[0].y || 1;
-			$status_size.text(`${signed_width} x ${signed_height}px`);
+			//$status_size.text(`${signed_width} x ${signed_height}px`);
 			// I don't know how helpful this is, might be more useful to show the number of points:
 			// $status_size.text(`${this.points.length} / 4 points`);
 		},
@@ -1133,12 +1134,12 @@ const tools = [
 		},
 		cancel() {
 			this.points = [];
-			$status_size.text("");
+			//$status_size.text("");
 		},
 		end() {
 			this.points = [];
 			update_helper_layer();
-			$status_size.text("");
+			//$status_size.text("");
 		},
 		$options: $choose_stroke_size,
 	},
@@ -1449,10 +1450,10 @@ const tools = [
 			}
 			const signed_width = x_max - x_min || 1;
 			const signed_height = y_max - y_min || 1;
-			$status_size.text(`${signed_width} x ${signed_height}px`);
+			//$status_size.text(`${signed_width} x ${signed_height}px`);
 		},
 		reset() {
-			$status_size.text("");
+			//$status_size.text("");
 			this.points = [];
 			this.last_click_pointerdown = {
 				x: -Infinity,
@@ -1702,7 +1703,7 @@ tools.forEach((tool) => {
 			if (window.globAppstate.selection) {
 				meld_selection_into_canvas();
 			}
-			canvas_handles.hide();
+			window.globApp.canvas_handles.hide();
 		};
 		tool.paint = () => {
 			rect_x = ~~Math.max(0, Math.min(drag_start_x, window.globAppstate.pointer.x));
@@ -1713,15 +1714,15 @@ tools.forEach((tool) => {
 			rect_height =
 				~~Math.min(window.globAppstate.main_canvas.height, Math.max(drag_start_y, window.globAppstate.pointer.y + 1)) -
 				rect_y;
-			$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
+			//$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
-			canvas_handles.show();
+			window.globApp.canvas_handles.show();
 			tool.selectBox(rect_x, rect_y, rect_width, rect_height);
 		};
 		tool.cancel = () => {
-			canvas_handles.show();
+			window.globApp.canvas_handles.show();
 		};
 		tool.drawPreviewUnderGrid = (
 			ctx,
@@ -1797,7 +1798,7 @@ tools.forEach((tool) => {
 			);
 			const signed_width = window.globAppstate.pointer.x - window.globAppstate.pointer_start.x || 1;
 			const signed_height = window.globAppstate.pointer.y - window.globAppstate.pointer_start.y || 1;
-			$status_size.text(`${signed_width} x ${signed_height}px`);
+			//$status_size.text(`${signed_width} x ${signed_height}px`);
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key

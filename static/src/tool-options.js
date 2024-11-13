@@ -290,9 +290,9 @@ const $choose_brush = $Choose(
 
 		return cb_canvas;
 	}, ({ shape, size }) => {
-		brush_shape = shape;
-		brush_size = size;
-	}, ({ shape, size }) => brush_shape === shape && brush_size === size
+		window.globAppstate.brush_shape = shape;
+		window.globAppstate.brush_size = size;
+	}, ({ shape, size }) => window.globAppstate.brush_shape === shape && window.globAppstate.brush_size === size
 ).addClass("choose-brush");
 
 const $choose_eraser_size = $Choose(
@@ -307,9 +307,9 @@ const $choose_eraser_size = $Choose(
 		return ce_canvas;
 	},
 	(size) => {
-		eraser_size = size;
+		window.globAppstate.eraser_size = size;
 	},
-	(size) => eraser_size === size
+	(size) => window.globAppstate.eraser_size === size
 ).addClass("choose-eraser");
 
 const $choose_stroke_size = $Choose(
@@ -324,9 +324,9 @@ const $choose_stroke_size = $Choose(
 		return cs_canvas;
 	},
 	(size) => {
-		stroke_size = size;
+		window.globAppstate.stroke_size = size;
 	},
-	(size) => stroke_size === size
+	(size) => window.globAppstate.stroke_size === size
 ).addClass("choose-stroke-size");
 
 const magnifications = [1, 2, 6, 8, 10];
@@ -351,7 +351,7 @@ const $choose_magnification = $Choose(
 	(scale) => {
 		set_magnification(scale);
 	},
-	(scale) => scale === magnification,
+	(scale) => scale === window.globAppstate.magnification,
 	true,
 ).addClass("choose-magnification")
 	.css({ position: "relative" }); // positioning context for .secret-option `position: "absolute"` canvas
@@ -388,9 +388,9 @@ const $choose_airbrush_size = $Choose(
 		);
 	},
 	(size) => {
-		airbrush_size = size;
+		window.globAppstate.airbrush_size = size;
 	},
-	(size) => size === airbrush_size,
+	(size) => size === window.globAppstate.airbrush_size,
 	true,
 ).addClass("choose-airbrush-size");
 
@@ -410,9 +410,9 @@ const $choose_transparent_mode = $Choose(
 		);
 	},
 	(option) => {
-		tool_transparent_mode = option;
+		window.globAppstate.tool_transparent_mode = option;
 	},
-	(option) => option === tool_transparent_mode,
+	(option) => option === window.globAppstate.tool_transparent_mode,
 	true,
 ).addClass("choose-transparent-mode");
 

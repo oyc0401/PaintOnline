@@ -55,12 +55,10 @@
    </div>
    <div class="menus">
       <div class="menu-button"><img src={MenuIcon} alt="menu" /></div>
-      <div class="menu-button"><img src={SelectionIcon} alt="selection" /></div>
+      <div class="menu-button" on:click={()=>{setTool(TOOL_SELECT)}}><img src={SelectionIcon} alt="selection" /></div>
       <div class="menu-button" on:click={()=>{setTool(TOOL_PENCIL)}}><img src={PenIcon} alt="tools" /></div>
-      <div class="menu-button" on:click={()=>{setTool(TOOL_BRUSH)}}>
-         <img src={BrushIcon} alt="brush" />
-      </div>
-      <div class="menu-button"><img src={RectangleIcon} alt="shapes" /></div>
+      <div class="menu-button" on:click={()=>{setTool(TOOL_BRUSH)}}><img src={BrushIcon} alt="brush" /></div>
+      <div class="menu-button" on:click={()=>{setTool(TOOL_RECTANGLE)}}><img src={RectangleIcon} alt="shapes" /></div>
       <div class="menu-button"><img src={LineIcon} alt="line" /></div>
       <div class="menu-button"><img src={ColorIcon} alt="color" /></div>
       <div class="flex-1"></div>
