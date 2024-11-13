@@ -87,8 +87,8 @@ export function setupState() {
   /** @type {Tool} */
   const default_tool = get_tool_by_id(TOOL_PENCIL);
 
-  const default_canvas_width = 683;
-  const default_canvas_height = 384;
+  const default_canvas_width = 330;
+  const default_canvas_height = 450;
   let my_canvas_width = default_canvas_width;
   let my_canvas_height = default_canvas_height;
 
