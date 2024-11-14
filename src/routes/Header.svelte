@@ -36,7 +36,11 @@
    
   function setTool(toolId){
     console.log(toolId);
-    window.select_tool(window.get_tool_by_id(toolId));
+    const toolObj = window.svelteApp.get_tool_by_id(toolId);
+    window.svelteApp.select_tool(toolObj);
+    window.globApp.$canvas.css({
+        cursor: window.svelteApp.make_css_cursor(...toolObj.cursor),
+      });
   }
 
   

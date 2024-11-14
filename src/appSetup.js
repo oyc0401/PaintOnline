@@ -56,6 +56,7 @@ import {
   get_help_folder_icon,
   make_canvas,
   to_canvas_coords,
+  make_css_cursor
 } from "./paint/src/helpers.js";
 import { init_webgl_stuff, rotate } from "./paint/src/image-manipulation.js";
 import { menus } from "./paint/src/menus.js";
@@ -135,6 +136,10 @@ export function setupApp() {
   globApp.canvas_handles = canvas_handles;
   globApp.$status_position = $status_position;
   globApp.$status_size = $status_size;
+
+  $canvas.css({
+     cursor: make_css_cursor(...window.globAppstate.default_tool.cursor),
+   });
 
 
 

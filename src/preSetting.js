@@ -63,7 +63,8 @@ import {
    get_help_folder_icon,
    to_canvas_coords,
    debounce,
-   image_data_match 
+   image_data_match,
+   make_css_cursor
 } from './paint/src/helpers.js';
 
 import { TOOL_PENCIL, tools, TOOL_AIRBRUSH, TOOL_BRUSH, TOOL_CURVE, TOOL_ELLIPSE, TOOL_ERASER, TOOL_LINE, TOOL_POLYGON, TOOL_RECTANGLE, TOOL_ROUNDED_RECTANGLE, TOOL_SELECT } from './paint/src/tools.js';
@@ -96,8 +97,14 @@ export function preSetting(){
 
    window.tools = tools;
 
-   window.get_tool_by_id = get_tool_by_id; // used by svelte tool button
-   window.select_tool = select_tool; // used by svelte tool button
+   
+
+   window.svelteApp={};
+   window.svelteApp.get_tool_by_id = get_tool_by_id; // used by svelte tool button
+   window.svelteApp.select_tool = select_tool; // used by svelte tool button
+   window.svelteApp.make_css_cursor = make_css_cursor;
+
+   
 }
 
 

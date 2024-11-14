@@ -66,7 +66,7 @@ import {
    get_help_folder_icon,
    to_canvas_coords,
    debounce,
-   image_data_match 
+   image_data_match
 } from './paint/src/helpers.js';
 
 import { TOOL_PENCIL, tools, TOOL_AIRBRUSH, TOOL_BRUSH, TOOL_CURVE, TOOL_ELLIPSE, TOOL_ERASER, TOOL_LINE, TOOL_POLYGON, TOOL_RECTANGLE, TOOL_ROUNDED_RECTANGLE, TOOL_SELECT } from './paint/src/tools.js';
@@ -86,7 +86,7 @@ export function setupState() {
 
   /** @type {Tool} */
   const default_tool = get_tool_by_id(TOOL_PENCIL);
-
+  
   const default_canvas_width = 330;
   const default_canvas_height = 450;
   let my_canvas_width = default_canvas_width;
