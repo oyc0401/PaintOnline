@@ -46,8 +46,22 @@
   
   let selectedMenuId = $state(2);
   let selectedToolIds = $state(Array(7).fill(0));
+
+  let foregroundColor = $state('white');
+  let backgroundColor = $state('black');
+  
   let buttons = Array(7);
   let toolList;
+
+  function setForegroundColor(color){
+    foregroundColor=color;
+    window.globAppstate.selected_colors.foreground=color;
+  }
+
+  function setBackgroundColor(color){
+    backgroundColor=color;
+    window.globAppstate.selected_colors.background=color;
+  }
   
   const openMenu = (id) => {
     if(!showMenu){
@@ -125,12 +139,12 @@
         { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ console.log('3px')} },
       ]},
       { menuName:'', keep: false, subMenus: [
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ console.log('흰색')} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ console.log('검정')} },
-        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ console.log('빨강')} },
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ console.log('노랑')} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ console.log('연한파랑')} },
-        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ console.log('투명')} },
+        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('white') } },
+        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('black')} },
+        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('red')} },
+        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('yellow')} },
+        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(0,255,0,0.5)')} },
+        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(255,255,255,0)')} },
       ]}
     ]
      
