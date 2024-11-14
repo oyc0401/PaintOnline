@@ -45,7 +45,8 @@
   let menuPosition = $state({ top: 0, left: 0 });
   let selectedToolIds = $state(Array(7).fill(0));
   let buttons = Array(7);
-
+  let toolList;
+  
   const openMenu = (id) => {
     if(!showMenu){
       showMenu=true;
@@ -64,18 +65,34 @@
        };
     }
     
+    if(0 < menuId && menuId<5){
+
+      setTool(toolList[menuId][selectedToolIds[menuId]]);
+    }
+    
   }
+
+  function menuItemClick(menuId, idx){
+    if(0 < menuId && menuId<5){
+      selectedToolIds[menuId] = idx;
+
+       setTool(toolList[menuId][idx]);
+    }
+    
+  }
+  
+  
 
  // 외부 클릭 시 메뉴를 닫도록 설정
   onMount(() => {
-    const toolList={
+    toolList={
       0: ['menu'],
       1: [TOOL_SELECT,TOOL_FREE_FORM_SELECT],
       2: [TOOL_PENCIL,TOOL_ERASER,TOOL_FILL,TOOL_PICK_COLOR,TOOL_MAGNIFIER],
       3: [TOOL_BRUSH,TOOL_AIRBRUSH],
-      4: [TOOL_RECTANGLE,TOOL_ROUNDED_RECTANGLE,TOOL_RECTANGLE,TOOL_POLYGON,TOOL_ELLIPSE,TOOL_LINE,TOOL_CURVE],
-      5: ['stroke'],
-      6: ['color'],
+      4: [TOOL_RECTANGLE,TOOL_ROUNDED_RECTANGLE,TOOL_ELLIPSE,TOOL_POLYGON,TOOL_LINE,TOOL_CURVE],
+      5: ['stroke','stroke2','stroke3','stroke4'],
+      6: ['color','color2','color3','color4','color5','color6'],
     }
      
     const handleClickOutside = (event) => {
@@ -145,25 +162,91 @@
           style="top: {menuPosition.top}px; left: {menuPosition.left}px;"
         >
           {#if menuId == 0}
-            <p>1번도구</p>
+            <div class:selected-menu={selectedToolIds[0] === 0} on:click={()=>{menuItemClick(0, 0)}}>
+              <p>새창</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[0] === 1} on:click={()=>{menuItemClick(0, 1)}}>
+              <p>열기</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[0] === 2} on:click={()=>{menuItemClick(0, 2)}}>
+              <p>저장</p>
+            </div>
           {/if}
           {#if menuId == 1}
-            <p>2번도구</p>
+            <div class:selected-menu={selectedToolIds[1] === 0} on:click={()=>{menuItemClick(1, 0)}}>
+              <p>사각형으로 선택</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[1] === 1} on:click={()=>{menuItemClick(1, 1)}}>
+              <p>자유형으로 선택</p>
+            </div>
           {/if}
           {#if menuId == 2}
-            <p>3번도구</p>
+            <div class:selected-menu={selectedToolIds[2] === 0} on:click={()=>{menuItemClick(2, 0)}}>
+              <p>연필</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[2] === 1} on:click={()=>{menuItemClick(2, 1)}}>
+              <p>지우개</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[2] === 2} on:click={()=>{menuItemClick(2, 2)}}>
+              <p>칠하기</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[2] === 3} on:click={()=>{menuItemClick(2, 3)}}>
+              <p>돋보기</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[2] === 4} on:click={()=>{menuItemClick(2, 4)}}>
+              <p>pick color</p>
+            </div>
           {/if}
           {#if menuId == 3}
-            <p>4번도구</p>
+            <div class:selected-menu={selectedToolIds[3] === 0} on:click={()=>{menuItemClick(3, 0)}}>
+              <p>브러쉬</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[3] === 1} on:click={()=>{menuItemClick(3, 1)}}>
+              <p>스프레이</p>
+            </div>
           {/if}
           {#if menuId == 4}
-            <p>5번도구</p>
+            <div class:selected-menu={selectedToolIds[4] === 0} on:click={()=>{menuItemClick(4, 0)}}>
+              <p>사각형</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[4] === 1} on:click={()=>{menuItemClick(4, 1)}}>
+              <p>둥근 사각형</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[4] === 2} on:click={()=>{menuItemClick(4, 2)}}>
+              <p>원형</p>
+            </div>
+            
           {/if}
           {#if menuId == 5}
-            <p>6번도구</p>
+            <div class:selected-menu={selectedToolIds[5] === 0} on:click={()=>{menuItemClick(5, 0)}}>
+              <p>1px</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[5] === 1} on:click={()=>{menuItemClick(5, 1)}}>
+              <p>2px</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[5] === 2} on:click={()=>{menuItemClick(5, 2)}}>
+              <p>3px</p>
+            </div>
           {/if}
           {#if menuId == 6}
-            <p>7번도구</p>
+            <div class:selected-menu={selectedToolIds[6] === 0} on:click={()=>{menuItemClick(6, 0)}}>
+              <p>흰색</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[6] === 1} on:click={()=>{menuItemClick(6, 1)}}>
+              <p>검정색</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[6] === 2} on:click={()=>{menuItemClick(6, 2)}}>
+              <p>빨강</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[6] === 3} on:click={()=>{menuItemClick(6, 3)}}>
+              <p>노랑</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[6] === 4} on:click={()=>{menuItemClick(6, 4)}}>
+              <p>연한파랑</p>
+            </div>
+            <div class:selected-menu={selectedToolIds[6] === 5} on:click={()=>{menuItemClick(6, 5)}}>
+              <p>투명</p>
+            </div>
           {/if}
         </div>
       {/if}
@@ -172,16 +255,21 @@
 </header>
 
 <style>
-    .menu {
-       position: absolute;
-       background-color: #fff;
-       border: 1px solid #ccc;
-       padding: 8px;
-       display: none;
-       z-index: 10;
-     }
+  .menu {
+     position: absolute;
+     background-color: #fff;
+     border: 1px solid #ccc;
+     padding: 8px;
+     display: none;
+     z-index: 10;
+   }
 
-     .menu.show {
-       display: block;
-     }
+   .menu.show {
+     display: block;
+   }
+
+  .selected-menu{
+    background: gray;
+    font-weight: 700;
+  }
 </style>
