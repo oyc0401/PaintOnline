@@ -139,8 +139,8 @@
         { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ console.log('3px')} },
       ]},
       { menuName:'', keep: false, subMenus: [
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('white') } },
         { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('black')} },
+        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('white') } },
         { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('red')} },
         { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('yellow')} },
         { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(0,255,0,0.5)')} },
@@ -283,10 +283,10 @@
           {/if}
           {#if menuId == 6}
             <div class:selected-tool={selectedToolIds[6] === 0} on:click={()=>{menuItemClick(6, 0)}}>
-              <p>흰색</p>
+              <p>검정색</p>
             </div>
             <div class:selected-tool={selectedToolIds[6] === 1} on:click={()=>{menuItemClick(6, 1)}}>
-              <p>검정색</p>
+              <p>흰색</p>
             </div>
             <div class:selected-tool={selectedToolIds[6] === 2} on:click={()=>{menuItemClick(6, 2)}}>
               <p>빨강</p>
