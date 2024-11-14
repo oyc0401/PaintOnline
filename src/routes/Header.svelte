@@ -118,8 +118,8 @@
         { id: TOOL_PENCIL, icon: LineIcon, onclick: ()=>{ setTool(TOOL_PENCIL)} },
         { id: TOOL_ERASER, icon: LineIcon, onclick: ()=>{ setTool(TOOL_ERASER)} },
         { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setTool(TOOL_FILL)} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setTool(TOOL_PICK_COLOR)} },
         { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setTool(TOOL_MAGNIFIER)} },
+        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setTool(TOOL_PICK_COLOR)} },
       ]},
       { menuName:'', keep: true, subMenus: [
         { id: TOOL_BRUSH, icon: LineIcon, onclick: ()=>{ setTool(TOOL_BRUSH)} },

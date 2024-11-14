@@ -1,7 +1,7 @@
 console.log('JS 실행:','tools.js')
 // @ts-check
 /* global selection:writable, window.globAppstate.stroke_size:writable, textbox:writable */
-/* global $canvas, $canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, window.globAppstate.pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
+/* global window.globApp.$canvas, window.globApp.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, window.globAppstate.pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
 
@@ -14,6 +14,7 @@ import {
 	undoable,
 	update_helper_layer,
 } from "./functions.js";
+
 import {
 	$G,
 	E,
@@ -23,6 +24,7 @@ import {
 	make_canvas,
 	make_css_cursor,
 } from "./helpers.js";
+
 import {
 	bresenham_dense_line,
 	bresenham_line,
@@ -366,7 +368,7 @@ const tools = [
 						cropped_canvas.ctx.drawImage(window.globAppstate.main_canvas, -rect_x, -rect_y);
 						window.globAppstate.main_ctx.copy(cropped_canvas);
 						window.globApp.canvas_handles.show();
-						$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
+						window.globApp.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
 				} else if (free_form_selection) {
 					// for silly multitools feature,
@@ -778,11 +780,11 @@ const tools = [
 			// even though the custom cursor image is less descriptive
 			// because there's no generic "zoom" css cursor
 			if (prospective_magnification < window.globAppstate.magnification) {
-				$canvas.css({
+				window.globApp.$canvas.css({
 					cursor: make_css_cursor("magnifier", [16, 16], "zoom-out"),
 				});
 			} else {
-				$canvas.css({
+				window.globApp.$canvas.css({
 					cursor: make_css_cursor("magnifier", [16, 16], "zoom-in"),
 				});
 			}
@@ -792,8 +794,8 @@ const tools = [
 			} // hide if would be zooming out
 
 			// prospective viewport size in document coords
-			const w = $canvas_area.width() / prospective_magnification;
-			const h = $canvas_area.height() / prospective_magnification;
+			const w = window.globApp.$canvas_area.width() / prospective_magnification;
+			const h = window.globApp.$canvas_area.height() / prospective_magnification;
 
 			let rect_x1 = ~~(x - w / 2);
 			let rect_y1 = ~~(y - h / 2);
@@ -885,25 +887,25 @@ const tools = [
 			if (window.globAppstate.magnification > prev_magnification) {
 			
 				// (new) viewport size in document coords
-				const w = $canvas_area.width() / window.globAppstate.magnification;
-				const h = $canvas_area.height() / window.globAppstate.magnification;
+				const w = window.globApp.$canvas_area.width() / window.globAppstate.magnification;
+				const h = window.globApp.$canvas_area.height() / window.globAppstate.magnification;
 				
-				$canvas_area.scrollLeft(
+				window.globApp.$canvas_area.scrollLeft(
 					((x - w / 2) * window.globAppstate.magnification),
 				);
 				// Nevermind, canvas, isn't aligned to the right in RTL layout!
 				// if (get_direction() === "rtl") {
 				// 	// scrollLeft coordinates can be negative for RTL
-				// 	$canvas_area.scrollLeft((x - w/2 - canvas.width) * magnification / prev_magnification + $canvas_area.innerWidth());
+				// 	window.globApp.$canvas_area.scrollLeft((x - w/2 - canvas.width) * magnification / prev_magnification + window.globApp.$canvas_area.innerWidth());
 				// } else {
-				// 	$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
+				// 	window.globApp.$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
 				// }
-				$canvas_area.scrollTop(
+				window.globApp.$canvas_area.scrollTop(
 					((y - h / 2) * window.globAppstate.magnification),
 				);
 
 				//console.log("스크롤 이동",((x - w / 2) * magnification),((y - h / 2) * magnification));
-				$canvas_area.trigger("scroll");
+				window.globApp.$canvas_area.trigger("scroll");
 			}
 		},
 		$options: $choose_magnification,

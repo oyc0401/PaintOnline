@@ -1,5 +1,8 @@
 console.log('JS 실행:','image-manipulation.js')
 import libtess from '../lib/libtess.min.js';
+
+
+
 // @ts-check
 // eslint-disable-next-line no-unused-vars
 /* global saved:writable, brush_size:writable, pencil_size:writable, stroke_size:writable */
@@ -394,8 +397,8 @@ function draw_fill_without_pattern_support(ctx, start_x, start_y, fill_r, fill_g
 	// maybe do something fancier like special-casing large chunks of single-color image
 	// (octree? or just have a higher level stack of chunks to fill and check at if a chunk is homogeneous)
 
-	const c_width = main_canvas.width;
-	const c_height = main_canvas.height;
+	const c_width = window.globAppstate.main_canvas.width;
+	const c_height = window.globAppstate.main_canvas.height;
 	start_x = Math.max(0, Math.min(Math.floor(start_x), c_width));
 	start_y = Math.max(0, Math.min(Math.floor(start_y), c_height));
 	const stack = [[start_x, start_y]];
@@ -530,8 +533,8 @@ function draw_fill_separately(source_ctx, dest_ctx, start_x, start_y, fill_r, fi
 	if (fill_a === 0) {
 		throw new Error("Filling with alpha of zero is not supported. Zero alpha is used for detecting whether a pixel has been visited.");
 	}
-	const c_width = main_canvas.width;
-	const c_height = main_canvas.height;
+	const c_width = window.globAppstate.main_canvas.width;
+	const c_height = window.globAppstate.main_canvas.height;
 	start_x = Math.max(0, Math.min(Math.floor(start_x), c_width));
 	start_y = Math.max(0, Math.min(Math.floor(start_y), c_height));
 	const stack = [[start_x, start_y]];
@@ -766,7 +769,7 @@ function draw_noncontiguous_fill_separately(source_ctx, dest_ctx, x, y) {
  * @param {(original_canvas: PixelCanvas, original_ctx: PixelContext, new_canvas: PixelCanvas, new_ctx: PixelContext) => void} fn - The image transformation function to apply.
  */
 function apply_image_transformation(meta, fn) {
-	const original_canvas = selection ? selection.source_canvas : main_canvas;
+	const original_canvas = window.globAppstate.selection ? window.globAppstate.selection.source_canvas : window.globAppstate.main_canvas;
 
 	const new_canvas = make_canvas(original_canvas.width, original_canvas.height);
 
@@ -775,13 +778,13 @@ function apply_image_transformation(meta, fn) {
 
 	fn(original_canvas, original_ctx, new_canvas, new_ctx);
 
-	if (selection) {
+	if (window.globAppstate.selection) {
 		undoable({
 			name: `${meta.name} (${localize("Selection")})`,
 			icon: meta.icon,
 			soft: true,
 		}, () => {
-			selection.replace_source_canvas(new_canvas);
+			window.globAppstate.selection.replace_source_canvas(new_canvas);
 		});
 	} else {
 		deselect();
@@ -790,13 +793,13 @@ function apply_image_transformation(meta, fn) {
 			name: meta.name,
 			icon: meta.icon,
 		}, () => {
-			saved = false;
+			window.globAppstate.saved = false;
 			update_title();
 
-			main_ctx.copy(new_canvas);
+			window.globAppstate.main_ctx.copy(new_canvas);
 
 			// $canvas.trigger("update"); // update handles
-			$canvas_area.trigger("resize"); // update handles and magnified canvas size (CSS width/height)
+			window.globApp.$canvas_area.trigger("resize"); // update handles and magnified canvas size (CSS width/height)
 		});
 	}
 }
@@ -887,8 +890,8 @@ function rotate(angle) {
 				new_canvas.height = bb_h;
 				new_ctx.disable_image_smoothing();
 
-				if (!transparency) {
-					new_ctx.fillStyle = selected_colors.background;
+				if (!window.globAppstate.transparency) {
+					new_ctx.fillStyle = window.globAppstate.selected_colors.background;
 					new_ctx.fillRect(0, 0, new_canvas.width, new_canvas.height);
 				}
 
@@ -955,8 +958,8 @@ function stretch_and_skew(x_scale, y_scale, h_skew, v_skew) {
 		new_canvas.height = Math.max(1, bb_h);
 		new_ctx.disable_image_smoothing();
 
-		if (!transparency) {
-			new_ctx.fillStyle = selected_colors.background;
+		if (!window.globAppstate.transparency) {
+			new_ctx.fillStyle = window.globAppstate.selected_colors.background;
 			new_ctx.fillRect(0, 0, new_canvas.width, new_canvas.height);
 		}
 
@@ -1122,7 +1125,7 @@ function draw_bezier_curve(ctx, start_x, start_y, control_1_x, control_1_y, cont
 	const min_y = Math.min(start_y, control_1_y, control_2_y, end_y);
 	const max_x = Math.max(start_x, control_1_x, control_2_x, end_x);
 	const max_y = Math.max(start_y, control_1_y, control_2_y, end_y);
-	draw_with_swatch(ctx, min_x, min_y, max_x, max_y, stroke_color, (op_ctx_2d) => {
+	draw_with_swatch(ctx, min_x, min_y, max_x, max_y, window.globAppstate.stroke_color, (op_ctx_2d) => {
 		draw_bezier_curve_without_pattern_support(op_ctx_2d, start_x, start_y, control_1_x, control_1_y, control_2_x, control_2_y, end_x, end_y, stroke_size);
 	});
 }
@@ -1142,7 +1145,7 @@ function draw_line(ctx, x1, y1, x2, y2, stroke_size) {
 	const min_y = Math.min(y1, y2);
 	const max_x = Math.max(x1, x2);
 	const max_y = Math.max(y1, y2);
-	draw_with_swatch(ctx, min_x, min_y, max_x, max_y, stroke_color, (op_ctx_2d) => {
+	draw_with_swatch(ctx, min_x, min_y, max_x, max_y, window.globAppstate.stroke_color, (op_ctx_2d) => {
 		draw_line_without_pattern_support(op_ctx_2d, x1, y1, x2, y2, stroke_size);
 	});
 	// also works:
@@ -1466,16 +1469,16 @@ export function init_webgl_stuff() {
 
 function clamp_brush_sizes() {
 	const max_size = 100;
-	if (brush_size > max_size) {
-		brush_size = max_size;
+	if (window.globAppstate.brush_size > max_size) {
+		window.globAppstate.brush_size = max_size;
 		show_error_message(`Brush size clamped to ${max_size}`);
 	}
-	if (pencil_size > max_size) {
-		pencil_size = max_size;
+	if (window.globAppstate.pencil_size > max_size) {
+		window.globAppstate.pencil_size = max_size;
 		show_error_message(`Pencil size clamped to ${max_size}`);
 	}
-	if (stroke_size > max_size) {
-		stroke_size = max_size;
+	if (window.globAppstate.stroke_size > max_size) {
+		window.globAppstate.stroke_size = max_size;
 		show_error_message(`Stroke size clamped to ${max_size}`);
 	}
 }
@@ -1517,8 +1520,8 @@ function draw_polygon_or_line_strip(ctx, points, stroke, fill, close_path) {
 	// otherwise update_brush_for_drawing_lines calls render_brush calls draw_ellipse calls draw_polygon calls draw_polygon_or_line_strip
 	// trying to use the same op_canvas
 	// (also, avoiding infinite recursion by checking for stroke; assuming brushes will never have outlines)
-	if (stroke && stroke_size > 1) {
-		update_brush_for_drawing_lines(stroke_size);
+	if (stroke && window.globAppstate.stroke_size > 1) {
+		update_brush_for_drawing_lines(window.globAppstate.stroke_size);
 	}
 
 	const stroke_color = ctx.strokeStyle;
@@ -1572,8 +1575,8 @@ function draw_polygon_or_line_strip(ctx, points, stroke, fill, close_path) {
 		ctx.drawImage(op_canvas_2d, x_min, y_min);
 	}
 	if (stroke) {
-		if (stroke_size > 1) {
-			const stroke_margin = ~~(stroke_size * 1.1);
+		if (window.globAppstate.stroke_size > 1) {
+			const stroke_margin = ~~(window.globAppstate.stroke_size * 1.1);
 
 			const op_canvas_x = x_min - stroke_margin;
 			const op_canvas_y = y_min - stroke_margin;
@@ -1590,7 +1593,7 @@ function draw_polygon_or_line_strip(ctx, points, stroke, fill, close_path) {
 					point_a.y - op_canvas_y,
 					point_b.x - op_canvas_x,
 					point_b.y - op_canvas_y,
-					stroke_size
+					window.globAppstate.stroke_size
 				);
 			}
 
@@ -1653,7 +1656,7 @@ export function copy_contents_within_polygon(canvas, points, x_min, y_min, x_max
  * @param {(ctx: CanvasRenderingContext2D) => void} callback
  */
 export function draw_with_swatch(ctx, x_min, y_min, x_max, y_max, swatch, callback) {
-	const stroke_margin = ~~(stroke_size * 1.1);
+	const stroke_margin = ~~(window.globAppstate.stroke_size * 1.1);
 
 	x_max = Math.max(x_max, x_min + 1);
 	y_max = Math.max(y_max, y_min + 1);
