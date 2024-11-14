@@ -151,7 +151,7 @@ function update_magnified_canvas_size() {
 }
 
 function update_canvas_rect() {
-	window.canvas_bounding_client_rect = window.globAppstate.main_canvas.getBoundingClientRect();
+		window.globApp.canvas_bounding_client_rect = window.globAppstate.main_canvas.getBoundingClientRect();
 
 	update_helper_layer();
 }

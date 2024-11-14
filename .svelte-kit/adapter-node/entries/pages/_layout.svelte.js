@@ -1,10 +1,12 @@
-import { c as create_ssr_component } from "../../chunks/ssr.js";
+import { S as slot } from "../../chunks/index.js";
 const app = "";
 const paint = "";
 const styles = "";
-const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  return `<div class="paint-layout">${slots.default ? slots.default({}) : ``}</div>`;
-});
+function _layout($$payload, $$props) {
+  $$payload.out += `<div class="paint-layout"><!---->`;
+  slot($$payload, $$props, "default", {}, null);
+  $$payload.out += `<!----></div>`;
+}
 export {
-  Layout as default
+  _layout as default
 };

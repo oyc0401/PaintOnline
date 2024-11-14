@@ -11,7 +11,6 @@ deploymentTarget = "gce"
 
 [[ports]]
 localPort = 3000
-externalPort = 3000
 
 [[ports]]
 localPort = 4173
@@ -19,6 +18,15 @@ localPort = 4173
 [[ports]]
 localPort = 5173
 externalPort = 80
+
+[rules]
+
+[rules.formatter]
+
+[rules.formatter.fileExtensions]
+
+[rules.formatter.fileExtensions.".js"]
+id = "module:nodejs-20/formatter:prettier"
 
 
 #entrypoint = "index.js"

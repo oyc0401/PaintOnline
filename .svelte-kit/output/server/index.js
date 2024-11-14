@@ -1,9 +1,8 @@
-import { b as base, a as assets, r as reset, p as public_env, o as options, s as set_private_env, c as set_public_env, g as get_hooks } from "./chunks/internal.js";
+import { n as noop, D as DEV } from "./chunks/index.js";
+import { s as safe_not_equal, b as base, a as assets, r as reset, p as public_env, o as options, c as set_private_env, d as set_public_env, g as get_hooks } from "./chunks/internal.js";
 import * as devalue from "devalue";
-import { n as noop, s as safe_not_equal } from "./chunks/ssr.js";
 import { parse, serialize } from "cookie";
 import * as set_cookie_parser from "set-cookie-parser";
-const DEV = false;
 const SVELTE_KIT_ASSETS = "/_svelte_kit_assets";
 const ENDPOINT_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
 const PAGE_METHODS = ["GET", "POST", "HEAD"];
@@ -905,7 +904,7 @@ function readable(value, start) {
   };
 }
 function writable(value, start = noop) {
-  let stop;
+  let stop = null;
   const subscribers = /* @__PURE__ */ new Set();
   function set(new_value) {
     if (safe_not_equal(value, new_value)) {
@@ -926,7 +925,10 @@ function writable(value, start = noop) {
     }
   }
   function update(fn) {
-    set(fn(value));
+    set(fn(
+      /** @type {T} */
+      value
+    ));
   }
   function subscribe(run, invalidate = noop) {
     const subscriber = [run, invalidate];
@@ -934,7 +936,10 @@ function writable(value, start = noop) {
     if (subscribers.size === 1) {
       stop = start(set, update) || noop;
     }
-    run(value);
+    run(
+      /** @type {T} */
+      value
+    );
     return () => {
       subscribers.delete(subscriber);
       if (subscribers.size === 0 && stop) {

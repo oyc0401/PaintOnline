@@ -147,6 +147,7 @@ export function setupApp() {
 
   $(window).on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
+    
     update_canvas_rect();
     update_disable_aa();
   });
@@ -154,6 +155,7 @@ export function setupApp() {
     update_canvas_rect();
   });
   $canvas_area.on("resize", () => {
+    console.log('resize');
     update_magnified_canvas_size();
   });
 
@@ -187,7 +189,7 @@ export function setupApp() {
         // Note: don't use FS Access API in Electron app because:
         // 1. it's faulty (permissions problems, 0 byte files maybe due to the perms problems)
         // 2. we want to save the file.path, which the dt.files code path takes care of
-        if (window.FileSystemHandle && !window.is_electron_app) {
+        if (window.FileSystemHandle) {
           for (const item of dt.items) {
             // kind will be "file" for file/directory entries.
             if (item.kind === "file") {
@@ -525,21 +527,12 @@ export function setupApp() {
   });
   // #endregion
 
-  // #region Alt+Mousewheel Zooming (and also some dev helper that I haven't used in years)
-  let alt_zooming = false;
-  addEventListener("keyup", (e) => {
-    if (e.key === "Alt" && alt_zooming) {
-      e.preventDefault(); // prevent menu bar from activating in Firefox from zooming
-    }
-    if (!e.altKey) {
-      alt_zooming = false;
-    }
-  });
-  // $(window).on("wheel", (e) => {
+
   addEventListener(
     "wheel",
     (e) => {
-      if (e.altKey) {
+      //console.log(e);
+      if (e.altKey || e.ctrlKey) {
         e.preventDefault();
         let new_magnification = appState.magnification;
         if (e.deltaY < 0) {
@@ -549,30 +542,7 @@ export function setupApp() {
         }
         new_magnification = Math.max(0.5, Math.min(new_magnification, 80));
         set_magnification(new_magnification, to_canvas_coords(e));
-        alt_zooming = true;
         return;
-      }
-      if (e.ctrlKey || e.metaKey) {
-        return;
-      }
-      // for reference screenshot mode (development helper):
-      if (location.hash.match(/compare-reference/i)) {
-        // including compare-reference-tool-windows
-        // const delta_opacity = Math.sign(e.originalEvent.deltaY) * -0.1; // since attr() is not supported other than for content, this increment must match CSS
-        const delta_opacity = Math.sign(e.deltaY) * -0.2; // since attr() is not supported other than for content, this increment must match CSS
-        let old_opacity = parseFloat($("body").attr("data-reference-opacity"));
-        if (!isFinite(old_opacity)) {
-          old_opacity = 0.5;
-        }
-        const new_opacity = Math.max(
-          0,
-          Math.min(1, old_opacity + delta_opacity),
-        );
-        $("body").attr("data-reference-opacity", new_opacity);
-        // prevent scrolling, keeping the screenshot lined up
-        // e.preventDefault(); // doesn't work
-        // $canvas_area.scrollTop(0); // doesn't work with smooth scrolling
-        // $canvas_area.scrollLeft(0);
       }
     },
     { passive: false },

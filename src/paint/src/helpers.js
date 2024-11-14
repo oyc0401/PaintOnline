@@ -408,7 +408,7 @@ function to_canvas_coords(event) {
 	if (clientX === undefined || clientY === undefined) {
 		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
 	}
-	const rect = window.canvas_bounding_client_rect;
+	const rect = window.globApp.canvas_bounding_client_rect;
 	return {
 		x: ~~((clientX - rect.left) / rect.width * window.globAppstate.main_canvas.width),
 		y: ~~((clientY - rect.top) / rect.height * window.globAppstate.main_canvas.height),
@@ -419,7 +419,7 @@ function to_canvas_coords(event) {
  * @returns {{ clientX: number, clientY: number }} client coordinates
  */
 function from_canvas_coords({ x, y }) {
-	const rect = window.canvas_bounding_client_rect;
+	const rect = window.globApp.canvas_bounding_client_rect;
 	return {
 		clientX: ~~(x / window.globAppstate.main_canvas.width * rect.width + rect.left),
 		clientY: ~~(y / window.globAppstate.main_canvas.height * rect.height + rect.top),

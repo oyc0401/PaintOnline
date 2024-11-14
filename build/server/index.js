@@ -1,4 +1,4 @@
-import { c as create_ssr_component, s as setContext, v as validate_component, m as missing_component, n as noop, a as safe_not_equal } from './chunks/ssr-9482a327.js';
+import { r as render, g as get, f as flush_sync, d as define_property, a as active_reaction, i as is_runes, D as DERIVED, B as BLOCK_EFFECT, b as derived_sources, s as state_unsafe_mutation, c as increment_version, e as DIRTY, h as set_signal_status, C as CLEAN, U as UNOWNED, j as schedule_effect, k as init_operations, l as get_first_child, H as HYDRATION_START, m as get_next_sibling, n as HYDRATION_ERROR, o as HYDRATION_END, p as hydration_failed, q as clear_text_content, t as array_from, u as effect_root, v as push, w as setContext, x as pop, y as active_effect, z as BRANCH_EFFECT, A as new_deps, E as untracked_writes, F as set_untracked_writes, M as MAYBE_DIRTY, G as set_active_reaction, I as set_active_effect, J as is_array, K as create_text, L as branch, N as push$1, O as pop$1, P as component_context, Q as DEV, R as noop } from './chunks/index-9d2e608b.js';
 
 let base = "";
 let assets = base;
@@ -13,81 +13,512 @@ function set_private_env(environment) {
 function set_public_env(environment) {
   public_env = environment;
 }
-function afterUpdate() {
+function equals(value) {
+  return value === this.v;
 }
-const Root = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let { stores } = $$props;
-  let { page } = $$props;
-  let { constructors } = $$props;
-  let { components = [] } = $$props;
-  let { form } = $$props;
-  let { data_0 = null } = $$props;
-  let { data_1 = null } = $$props;
+function safe_not_equal(a, b) {
+  return a != a ? b == b : a !== b || a !== null && typeof a === "object" || typeof a === "function";
+}
+function safe_equals(value) {
+  return !safe_not_equal(value, this.v);
+}
+function source(v) {
+  return {
+    f: 0,
+    // TODO ideally we could skip this altogether, but it causes type errors
+    v,
+    reactions: null,
+    equals,
+    version: 0
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function mutable_source(initial_value, immutable = false) {
+  const s = source(initial_value);
+  if (!immutable) {
+    s.equals = safe_equals;
+  }
+  return s;
+}
+function set(source2, value) {
+  if (active_reaction !== null && is_runes() && (active_reaction.f & (DERIVED | BLOCK_EFFECT)) !== 0 && // If the source was created locally within the current derived, then
+  // we allow the mutation.
+  (derived_sources === null || !derived_sources.includes(source2))) {
+    state_unsafe_mutation();
+  }
+  return internal_set(source2, value);
+}
+function internal_set(source2, value) {
+  if (!source2.equals(value)) {
+    source2.v = value;
+    source2.version = increment_version();
+    mark_reactions(source2, DIRTY);
+    if (active_effect !== null && (active_effect.f & CLEAN) !== 0 && (active_effect.f & BRANCH_EFFECT) === 0) {
+      if (new_deps !== null && new_deps.includes(source2)) {
+        set_signal_status(active_effect, DIRTY);
+        schedule_effect(active_effect);
+      } else {
+        if (untracked_writes === null) {
+          set_untracked_writes([source2]);
+        } else {
+          untracked_writes.push(source2);
+        }
+      }
+    }
+  }
+  return value;
+}
+function mark_reactions(signal, status) {
+  var reactions = signal.reactions;
+  if (reactions === null)
+    return;
+  var length = reactions.length;
+  for (var i = 0; i < length; i++) {
+    var reaction = reactions[i];
+    var flags = reaction.f;
+    if ((flags & DIRTY) !== 0)
+      continue;
+    set_signal_status(reaction, status);
+    if ((flags & (CLEAN | UNOWNED)) !== 0) {
+      if ((flags & DERIVED) !== 0) {
+        mark_reactions(
+          /** @type {Derived} */
+          reaction,
+          MAYBE_DIRTY
+        );
+      } else {
+        schedule_effect(
+          /** @type {Effect} */
+          reaction
+        );
+      }
+    }
+  }
+}
+function hydration_mismatch(location) {
+  {
+    console.warn("hydration_mismatch");
+  }
+}
+let hydrating = false;
+function set_hydrating(value) {
+  hydrating = value;
+}
+let hydrate_node;
+function set_hydrate_node(node) {
+  if (node === null) {
+    hydration_mismatch();
+    throw HYDRATION_ERROR;
+  }
+  return hydrate_node = node;
+}
+function hydrate_next() {
+  return set_hydrate_node(
+    /** @type {TemplateNode} */
+    get_next_sibling(hydrate_node)
+  );
+}
+const all_registered_events = /* @__PURE__ */ new Set();
+const root_event_handles = /* @__PURE__ */ new Set();
+function handle_event_propagation(event) {
+  var handler_element = this;
+  var owner_document = (
+    /** @type {Node} */
+    handler_element.ownerDocument
+  );
+  var event_name = event.type;
+  var path = event.composedPath?.() || [];
+  var current_target = (
+    /** @type {null | Element} */
+    path[0] || event.target
+  );
+  var path_idx = 0;
+  var handled_at = event.__root;
+  if (handled_at) {
+    var at_idx = path.indexOf(handled_at);
+    if (at_idx !== -1 && (handler_element === document || handler_element === /** @type {any} */
+    window)) {
+      event.__root = handler_element;
+      return;
+    }
+    var handler_idx = path.indexOf(handler_element);
+    if (handler_idx === -1) {
+      return;
+    }
+    if (at_idx <= handler_idx) {
+      path_idx = at_idx;
+    }
+  }
+  current_target = /** @type {Element} */
+  path[path_idx] || event.target;
+  if (current_target === handler_element)
+    return;
+  define_property(event, "currentTarget", {
+    configurable: true,
+    get() {
+      return current_target || owner_document;
+    }
+  });
+  var previous_reaction = active_reaction;
+  var previous_effect = active_effect;
+  set_active_reaction(null);
+  set_active_effect(null);
+  try {
+    var throw_error;
+    var other_errors = [];
+    while (current_target !== null) {
+      var parent_element = current_target.assignedSlot || current_target.parentNode || /** @type {any} */
+      current_target.host || null;
+      try {
+        var delegated = current_target["__" + event_name];
+        if (delegated !== void 0 && !/** @type {any} */
+        current_target.disabled) {
+          if (is_array(delegated)) {
+            var [fn, ...data] = delegated;
+            fn.apply(current_target, [event, ...data]);
+          } else {
+            delegated.call(current_target, event);
+          }
+        }
+      } catch (error) {
+        if (throw_error) {
+          other_errors.push(error);
+        } else {
+          throw_error = error;
+        }
+      }
+      if (event.cancelBubble || parent_element === handler_element || parent_element === null) {
+        break;
+      }
+      current_target = parent_element;
+    }
+    if (throw_error) {
+      for (let error of other_errors) {
+        queueMicrotask(() => {
+          throw error;
+        });
+      }
+      throw throw_error;
+    }
+  } finally {
+    event.__root = handler_element;
+    delete event.currentTarget;
+    set_active_reaction(previous_reaction);
+    set_active_effect(previous_effect);
+  }
+}
+function assign_nodes(start, end) {
+  var effect = (
+    /** @type {Effect} */
+    active_effect
+  );
+  if (effect.nodes_start === null) {
+    effect.nodes_start = start;
+    effect.nodes_end = end;
+  }
+}
+const PASSIVE_EVENTS = ["touchstart", "touchmove"];
+function is_passive_event(name) {
+  return PASSIVE_EVENTS.includes(name);
+}
+function mount(component, options2) {
+  return _mount(component, options2);
+}
+function hydrate(component, options2) {
+  init_operations();
+  options2.intro = options2.intro ?? false;
+  const target = options2.target;
+  const was_hydrating = hydrating;
+  const previous_hydrate_node = hydrate_node;
+  try {
+    var anchor = (
+      /** @type {TemplateNode} */
+      get_first_child(target)
+    );
+    while (anchor && (anchor.nodeType !== 8 || /** @type {Comment} */
+    anchor.data !== HYDRATION_START)) {
+      anchor = /** @type {TemplateNode} */
+      get_next_sibling(anchor);
+    }
+    if (!anchor) {
+      throw HYDRATION_ERROR;
+    }
+    set_hydrating(true);
+    set_hydrate_node(
+      /** @type {Comment} */
+      anchor
+    );
+    hydrate_next();
+    const instance = _mount(component, { ...options2, anchor });
+    if (hydrate_node === null || hydrate_node.nodeType !== 8 || /** @type {Comment} */
+    hydrate_node.data !== HYDRATION_END) {
+      hydration_mismatch();
+      throw HYDRATION_ERROR;
+    }
+    set_hydrating(false);
+    return (
+      /**  @type {Exports} */
+      instance
+    );
+  } catch (error) {
+    if (error === HYDRATION_ERROR) {
+      if (options2.recover === false) {
+        hydration_failed();
+      }
+      init_operations();
+      clear_text_content(target);
+      set_hydrating(false);
+      return mount(component, options2);
+    }
+    throw error;
+  } finally {
+    set_hydrating(was_hydrating);
+    set_hydrate_node(previous_hydrate_node);
+  }
+}
+const document_listeners = /* @__PURE__ */ new Map();
+function _mount(Component, { target, anchor, props = {}, events, context, intro = true }) {
+  init_operations();
+  var registered_events = /* @__PURE__ */ new Set();
+  var event_handle = (events2) => {
+    for (var i = 0; i < events2.length; i++) {
+      var event_name = events2[i];
+      if (registered_events.has(event_name))
+        continue;
+      registered_events.add(event_name);
+      var passive = is_passive_event(event_name);
+      target.addEventListener(event_name, handle_event_propagation, { passive });
+      var n = document_listeners.get(event_name);
+      if (n === void 0) {
+        document.addEventListener(event_name, handle_event_propagation, { passive });
+        document_listeners.set(event_name, 1);
+      } else {
+        document_listeners.set(event_name, n + 1);
+      }
+    }
+  };
+  event_handle(array_from(all_registered_events));
+  root_event_handles.add(event_handle);
+  var component = void 0;
+  var unmount2 = effect_root(() => {
+    var anchor_node = anchor ?? target.appendChild(create_text());
+    branch(() => {
+      if (context) {
+        push$1({});
+        var ctx = (
+          /** @type {ComponentContext} */
+          component_context
+        );
+        ctx.c = context;
+      }
+      if (events) {
+        props.$$events = events;
+      }
+      if (hydrating) {
+        assign_nodes(
+          /** @type {TemplateNode} */
+          anchor_node,
+          null
+        );
+      }
+      component = Component(anchor_node, props) || {};
+      if (hydrating) {
+        active_effect.nodes_end = hydrate_node;
+      }
+      if (context) {
+        pop$1();
+      }
+    });
+    return () => {
+      for (var event_name of registered_events) {
+        target.removeEventListener(event_name, handle_event_propagation);
+        var n = (
+          /** @type {number} */
+          document_listeners.get(event_name)
+        );
+        if (--n === 0) {
+          document.removeEventListener(event_name, handle_event_propagation);
+          document_listeners.delete(event_name);
+        } else {
+          document_listeners.set(event_name, n);
+        }
+      }
+      root_event_handles.delete(event_handle);
+      mounted_components.delete(component);
+      if (anchor_node !== anchor) {
+        anchor_node.parentNode?.removeChild(anchor_node);
+      }
+    };
+  });
+  mounted_components.set(component, unmount2);
+  return component;
+}
+let mounted_components = /* @__PURE__ */ new WeakMap();
+function unmount(component) {
+  const fn = mounted_components.get(component);
+  if (fn) {
+    fn();
+  }
+}
+function asClassComponent$1(component) {
+  return class extends Svelte4Component {
+    /** @param {any} options */
+    constructor(options2) {
+      super({
+        component,
+        ...options2
+      });
+    }
+  };
+}
+class Svelte4Component {
+  /** @type {any} */
+  #events;
+  /** @type {Record<string, any>} */
+  #instance;
+  /**
+   * @param {ComponentConstructorOptions & {
+   *  component: any;
+   * }} options
+   */
+  constructor(options2) {
+    var sources = /* @__PURE__ */ new Map();
+    var add_source = (key, value) => {
+      var s = /* @__PURE__ */ mutable_source(value);
+      sources.set(key, s);
+      return s;
+    };
+    const props = new Proxy(
+      { ...options2.props || {}, $$events: {} },
+      {
+        get(target, prop) {
+          return get(sources.get(prop) ?? add_source(prop, Reflect.get(target, prop)));
+        },
+        has(target, prop) {
+          get(sources.get(prop) ?? add_source(prop, Reflect.get(target, prop)));
+          return Reflect.has(target, prop);
+        },
+        set(target, prop, value) {
+          set(sources.get(prop) ?? add_source(prop, value), value);
+          return Reflect.set(target, prop, value);
+        }
+      }
+    );
+    this.#instance = (options2.hydrate ? hydrate : mount)(options2.component, {
+      target: options2.target,
+      anchor: options2.anchor,
+      props,
+      context: options2.context,
+      intro: options2.intro ?? false,
+      recover: options2.recover
+    });
+    if (!options2?.props?.$$host || options2.sync === false) {
+      flush_sync();
+    }
+    this.#events = props.$$events;
+    for (const key of Object.keys(this.#instance)) {
+      if (key === "$set" || key === "$destroy" || key === "$on")
+        continue;
+      define_property(this, key, {
+        get() {
+          return this.#instance[key];
+        },
+        /** @param {any} value */
+        set(value) {
+          this.#instance[key] = value;
+        },
+        enumerable: true
+      });
+    }
+    this.#instance.$set = /** @param {Record<string, any>} next */
+    (next) => {
+      Object.assign(props, next);
+    };
+    this.#instance.$destroy = () => {
+      unmount(this.#instance);
+    };
+  }
+  /** @param {Record<string, any>} props */
+  $set(props) {
+    this.#instance.$set(props);
+  }
+  /**
+   * @param {string} event
+   * @param {(...args: any[]) => any} callback
+   * @returns {any}
+   */
+  $on(event, callback) {
+    this.#events[event] = this.#events[event] || [];
+    const cb = (...args) => callback.call(this, ...args);
+    this.#events[event].push(cb);
+    return () => {
+      this.#events[event] = this.#events[event].filter(
+        /** @param {any} fn */
+        (fn) => fn !== cb
+      );
+    };
+  }
+  $destroy() {
+    this.#instance.$destroy();
+  }
+}
+function asClassComponent(component) {
+  const component_constructor = asClassComponent$1(component);
+  const _render = (props, { context } = {}) => {
+    const result = render(component, { props, context });
+    return {
+      css: { code: "", map: null },
+      head: result.head,
+      html: result.body
+    };
+  };
+  component_constructor.render = _render;
+  return component_constructor;
+}
+function Root($$payload, $$props) {
+  push();
+  let {
+    stores,
+    page,
+    constructors,
+    components = [],
+    form,
+    data_0 = null,
+    data_1 = null
+  } = $$props;
   {
     setContext("__svelte__", stores);
   }
-  afterUpdate(stores.page.notify);
-  if ($$props.stores === void 0 && $$bindings.stores && stores !== void 0)
-    $$bindings.stores(stores);
-  if ($$props.page === void 0 && $$bindings.page && page !== void 0)
-    $$bindings.page(page);
-  if ($$props.constructors === void 0 && $$bindings.constructors && constructors !== void 0)
-    $$bindings.constructors(constructors);
-  if ($$props.components === void 0 && $$bindings.components && components !== void 0)
-    $$bindings.components(components);
-  if ($$props.form === void 0 && $$bindings.form && form !== void 0)
-    $$bindings.form(form);
-  if ($$props.data_0 === void 0 && $$bindings.data_0 && data_0 !== void 0)
-    $$bindings.data_0(data_0);
-  if ($$props.data_1 === void 0 && $$bindings.data_1 && data_1 !== void 0)
-    $$bindings.data_1(data_1);
-  let $$settled;
-  let $$rendered;
-  let previous_head = $$result.head;
-  do {
-    $$settled = true;
-    $$result.head = previous_head;
-    {
-      stores.page.set(page);
-    }
-    $$rendered = `  ${constructors[1] ? `${validate_component(constructors[0] || missing_component, "svelte:component").$$render(
-      $$result,
-      { data: data_0, this: components[0] },
-      {
-        this: ($$value) => {
-          components[0] = $$value;
-          $$settled = false;
-        }
+  {
+    stores.page.set(page);
+  }
+  if (constructors[1]) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    constructors[0]?.($$payload, {
+      data: data_0,
+      children: ($$payload2) => {
+        $$payload2.out += `<!---->`;
+        constructors[1]?.($$payload2, { data: data_1, form });
+        $$payload2.out += `<!---->`;
       },
-      {
-        default: () => {
-          return `${validate_component(constructors[1] || missing_component, "svelte:component").$$render(
-            $$result,
-            { data: data_1, form, this: components[1] },
-            {
-              this: ($$value) => {
-                components[1] = $$value;
-                $$settled = false;
-              }
-            },
-            {}
-          )}`;
-        }
-      }
-    )}` : `${validate_component(constructors[0] || missing_component, "svelte:component").$$render(
-      $$result,
-      { data: data_0, form, this: components[0] },
-      {
-        this: ($$value) => {
-          components[0] = $$value;
-          $$settled = false;
-        }
-      },
-      {}
-    )}`} ${``}`;
-  } while (!$$settled);
-  return $$rendered;
-});
+      $$slots: { default: true }
+    });
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<!---->`;
+    constructors[0]?.($$payload, { data: data_0, form });
+    $$payload.out += `<!---->`;
+  }
+  $$payload.out += `<!--]--> `;
+  {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]-->`;
+  pop();
+}
+const root = asClassComponent(Root);
 const options = {
   app_template_contains_nonce: false,
   csp: { "mode": "auto", "directives": { "upgrade-insecure-requests": false, "block-all-mixed-content": false }, "reportOnly": { "upgrade-insecure-requests": false, "block-all-mixed-content": false } },
@@ -99,126 +530,10 @@ const options = {
   hooks: null,
   // added lazily, via `get_hooks`
   preload_strategy: "modulepreload",
-  root: Root,
+  root,
   service_worker: false,
   templates: {
-    app: ({ head, body, assets: assets2, nonce, env }) => '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8" />\n    <link rel="icon" href="' + assets2 + `/favicon.png" />
-    <meta name="viewport" content="width=device-width" />
-    <head>
-      <meta charset="utf-8" />
-      <title>JS Paint</title>
-
-   
-
-      <!-- <link href="styles/normalize.css" rel="stylesheet" type="text/css" />
-      <link
-        href="styles/layout.css"
-        class="flippable-layout-stylesheet"
-        rel="stylesheet"
-        type="text/css"
-      />
-      <link
-        href="styles/print.css"
-        rel="stylesheet"
-        type="text/css"
-        media="print"
-      />
-      <link
-        href="lib/os-gui/build/layout.css"
-        class="flippable-layout-stylesheet"
-        rel="stylesheet"
-        type="text/css"
-      /> -->
-      <!-- <link href="lib/os-gui/build/windows-98.css" rel="stylesheet" type="text/css"> -->
-      <!-- <link href="lib/os-gui/build/windows-default.css" rel="stylesheet" type="text/css" title="Windows Default"> -->
-      <!-- <link href="lib/os-gui/build/peggys-pastels.css" rel="alternate stylesheet" type="text/css" title="Peggy's Pastels"> -->
-      <!-- <link
-        href="lib/tracky-mouse/core/tracky-mouse.css"
-        rel="stylesheet"
-        type="text/css"
-      /> -->
-      <!--
-      @TODO: bring these styles into OS-GUI.
-      This is a custom build of 98.css https://github.com/jdan/98.css
-      for checkboxes, radio buttons, sliders, and fieldsets,
-      excluding e.g. scrollbars, buttons, and windows (already in OS-GUI),
-      and integrating with the theme CSS vars used by OS-GUI,
-      and with some RTLCSS tweaks.
-      Text inputs and dropdowns are styled in classic.css, but should also be included in OS-GUI at some point.
-      This is not an @import in classic.css because it needs RTLCSS and I'm not applying RTLCSS to themes yet.
-      So I added .not-for-modern logic to theme.js to exclude these styles depending on the theme.
-    -->
-      <!-- <link
-        href="lib/98.css/98.custom-build.css"
-        class="flippable-layout-stylesheet not-for-modern"
-        rel="stylesheet"
-        type="text/css"
-      />
- -->
-
-
-      <!-- 모던 css -->
-      <!-- <link
-        href="styles/themes/modern.css"
-        rel="stylesheet"
-        type="text/css"
-      /> -->
-
-      <link rel="apple-touch-icon" href="images/icons/apple-icon-180x180.png" />
-      <!-- Chrome will pick the largest image for some reason, instead of the most appropriate one. -->
-      <!-- <link rel="icon" type="image/png" sizes="192x192" href="images/icons/192x192.png">
-      <link rel="icon" type="image/png" sizes="32x32" href="images/icons/32x32.png">
-      <link rel="icon" type="image/png" sizes="96x96" href="images/icons/96x96.png"> -->
-      <!-- <link rel="icon" type="image/png" sizes="16x16" href="images/icons/16x16.png"> -->
-      <link rel="shortcut icon" href="favicon.ico" />
-      <link
-        rel="mask-icon"
-        href="images/icons/safari-pinned-tab.svg"
-        color="red"
-      />
-      <!-- <link rel="manifest" href="manifest.webmanifest" /> -->
-      <meta name="msapplication-TileColor" content="#008080" />
-      <meta
-        name="msapplication-TileImage"
-        content="images/icons/ms-icon-144x144.png"
-      />
-      <meta name="theme-color" content="#000080" />
-
-      <meta name="viewport" content="width=device-width, user-scalable=no" />
-
-      <meta
-        name="description"
-        content="Classic MS Paint in the browser, with extra features"
-      />
-      <meta property="og:image:width" content="279" />
-      <meta property="og:image:height" content="279" />
-      <meta
-        property="og:description"
-        content="Classic MS Paint in the browser, with extra features."
-      />
-      <meta property="og:title" content="JS Paint" />
-      <meta property="og:url" content="https://jspaint.app" />
-      <meta
-        property="og:image"
-        content="https://jspaint.app/images/icons/og-image-279x279.jpg"
-      />
-      <meta name="twitter:title" content="JS Paint" />
-      <meta
-        name="twitter:description"
-        content="Classic MS Paint in the browser, with extra features"
-      />
-      <meta
-        name="twitter:image"
-        content="https://jspaint.app/images/meta/twitter-card-plz-no-crop.png"
-      />
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@isaiahodhner" />
-      <meta name="twitter:creator" content="@isaiahodhner" />
-
-      <script  type="module" src="src/error-handling-basic.js"><\/script>
-    </head>
-    
-    ` + head + '\n  </head>\n\n  \n  <body data-sveltekit-preload-data="hover">\n    <script type="module" src="lib/jquery-3.4.1.min.js"><\/script>\n    \n\n    <script type="module" src="src/app-localization.js"><\/script>\n\n      <script type="module" src="src/before_status.js"><\/script>\n    \n      <script type="module" src="src/error-handling-enhanced.js"><\/script>\n    \n      <script type="module" src="src/app.js"><\/script>\n      <script type="module" src="src/sessions.js"><\/script>\n    \n    <div style="height:100%">' + body + "</div>\n  </body>\n</html>\n",
+    app: ({ head, body, assets: assets2, nonce, env }) => '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8" />\n    <link rel="icon" href="' + assets2 + '/favicon.png" />\n    <meta name="viewport" content="width=device-width" />\n    <head>\n      <meta charset="utf-8" />\n      <title>JS Paint</title>\n\n\n      <link rel="apple-touch-icon" href="images/icons/apple-icon-180x180.png" />\n      <!-- Chrome will pick the largest image for some reason, instead of the most appropriate one. -->\n      <!-- <link rel="icon" type="image/png" sizes="192x192" href="images/icons/192x192.png">\n      <link rel="icon" type="image/png" sizes="32x32" href="images/icons/32x32.png">\n      <link rel="icon" type="image/png" sizes="96x96" href="images/icons/96x96.png"> -->\n      <!-- <link rel="icon" type="image/png" sizes="16x16" href="images/icons/16x16.png"> -->\n      <link rel="shortcut icon" href="favicon.ico" />\n      <link\n        rel="mask-icon"\n        href="images/icons/safari-pinned-tab.svg"\n        color="red"\n      />\n      <!-- <link rel="manifest" href="manifest.webmanifest" /> -->\n      <meta name="msapplication-TileColor" content="#008080" />\n      <meta\n        name="msapplication-TileImage"\n        content="images/icons/ms-icon-144x144.png"\n      />\n      <meta name="theme-color" content="#000080" />\n\n      <meta name="viewport" content="width=device-width, user-scalable=no" />\n\n      <meta\n        name="description"\n        content="Classic MS Paint in the browser, with extra features"\n      />\n      <meta property="og:image:width" content="279" />\n      <meta property="og:image:height" content="279" />\n      <meta\n        property="og:description"\n        content="Classic MS Paint in the browser, with extra features."\n      />\n      <meta property="og:title" content="JS Paint" />\n      <meta property="og:url" content="https://jspaint.app" />\n      <meta\n        property="og:image"\n        content="https://jspaint.app/images/icons/og-image-279x279.jpg"\n      />\n      <meta name="twitter:title" content="JS Paint" />\n      <meta\n        name="twitter:description"\n        content="Classic MS Paint in the browser, with extra features"\n      />\n      <meta\n        name="twitter:image"\n        content="https://jspaint.app/images/meta/twitter-card-plz-no-crop.png"\n      />\n      <meta name="twitter:card" content="summary_large_image" />\n      <meta name="twitter:site" content="@isaiahodhner" />\n      <meta name="twitter:creator" content="@isaiahodhner" />\n\n    </head>\n    \n    ' + head + '\n  </head>\n\n  \n  <body data-sveltekit-preload-data="hover" oncontextmenu="return false">\n    <script type="module" src="lib/jquery-3.4.1.min.js"><\/script>\n    <script type="module" src="src/app-localization.js"><\/script>\n    \n    <div style="height:100%">' + body + "</div>\n  </body>\n</html>\n",
     error: ({ status, message }) => '<!doctype html>\n<html lang="en">\n	<head>\n		<meta charset="utf-8" />\n		<title>' + message + `</title>
 
 		<style>
@@ -290,7 +605,7 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-  version_hash: "zgmi6z"
+  version_hash: "6mxlf7"
 };
 function get_hooks() {
   return {};
@@ -1408,7 +1723,6 @@ function requireSetCookie () {
 
 var setCookieExports = requireSetCookie();
 
-const DEV = false;
 const SVELTE_KIT_ASSETS = "/_svelte_kit_assets";
 const ENDPOINT_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
 const PAGE_METHODS = ["GET", "POST", "HEAD"];
@@ -2300,7 +2614,7 @@ function readable(value, start) {
   };
 }
 function writable(value, start = noop) {
-  let stop;
+  let stop = null;
   const subscribers = /* @__PURE__ */ new Set();
   function set(new_value) {
     if (safe_not_equal(value, new_value)) {
@@ -2321,7 +2635,10 @@ function writable(value, start = noop) {
     }
   }
   function update(fn) {
-    set(fn(value));
+    set(fn(
+      /** @type {T} */
+      value
+    ));
   }
   function subscribe(run, invalidate = noop) {
     const subscriber = [run, invalidate];
@@ -2329,7 +2646,10 @@ function writable(value, start = noop) {
     if (subscribers.size === 1) {
       stop = start(set, update) || noop;
     }
-    run(value);
+    run(
+      /** @type {T} */
+      value
+    );
     return () => {
       subscribers.delete(subscriber);
       if (subscribers.size === 0 && stop) {

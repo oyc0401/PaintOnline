@@ -118,61 +118,6 @@ export function preSetting(){
 
 export function setSession(){
    console.log('setSession')
-   let {
-      return_to_magnification,
-      main_canvas,
-      main_ctx,
-      palette,
-      polychrome_palette,
-      enable_palette_loading_from_indexed_images,
-      enable_fs_access_api,
-      brush_shape,
-      brush_size,
-      eraser_size,
-      airbrush_size,
-      pencil_size,
-      stroke_size,
-      tool_transparent_mode,
-      stroke_color,
-      fill_color,
-      pick_color_slot,
-      selected_tool,
-      selected_tools,
-      return_to_tools,
-      selected_colors,
-      selection,
-      helper_layer,
-      $thumbnail_window,
-      thumbnail_canvas,
-      show_grid,
-      show_thumbnail,
-      text_tool_font,
-      root_history_node,
-      current_history_node,
-      history_node_to_cancel_to,
-      undos,
-      redos,
-      file_name,
-      file_format,
-      system_file_handle,
-      saved,
-      pointer,
-      pointer_start,
-      pointer_previous,
-      pointer_active,
-      pointer_type,
-      pointer_buttons,
-      reverse,
-      ctrl,
-      shift,
-      button,
-      pointer_over_canvas,
-      update_helper_layer_on_pointermove_active,
-      pointers
-   } = window.globAppstate;
-
-   console.log('함수 실행:','setSession')
-
 
    // import { localize } from "./app-localization.js";
 
@@ -195,7 +140,7 @@ export function setSession(){
 
    const match_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
    const canvas_has_any_apparent_image_data = () =>
-      main_canvas.ctx.getImageData(0, 0, main_canvas.width, main_canvas.height).data.some((v) => v > match_threshold);
+      window.globAppstate.main_canvas.ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height).data.some((v) => v > match_threshold);
 
    let $recovery_window;
    function show_recovery_window(no_longer_blank) {
@@ -243,8 +188,8 @@ export function setSession(){
          redo();
       });
       const update_buttons_disabled = () => {
-         $undo.prop("disabled", undos.length < 1);
-         $redo.prop("disabled", redos.length < 1);
+         $undo.prop("disabled", window.globAppstate.undos.length < 1);
+         $redo.prop("disabled", window.globAppstate.redos.length < 1);
       };
       $G.on("session-update.session-hook", update_buttons_disabled);
       update_buttons_disabled();
@@ -257,7 +202,7 @@ export function setSession(){
       $w.find("button:enabled").focus();
    }
 
-   let last_undos_length = undos.length;
+   let last_undos_length = window.globAppstate.undos.length;
    function handle_data_loss() {
       const window_is_open = $recovery_window && !$recovery_window.closed;
       let save_paused = false;
@@ -267,12 +212,12 @@ export function setSession(){
          }
          save_paused = true;
       } else if (window_is_open) {
-         if (undos.length > last_undos_length) {
+         if (window.globAppstate.undos.length > last_undos_length) {
             show_recovery_window(true);
          }
          save_paused = true;
       }
-      last_undos_length = undos.length;
+      last_undos_length = window.globAppstate.undos.length;
       return save_paused;
    }
 
@@ -288,7 +233,7 @@ export function setSession(){
                return;
             }
             log(`Saving image to storage: ${ls_key}`);
-            localStore.set(ls_key, main_canvas.toDataURL("image/png"), (err) => {
+            localStore.set(ls_key, window.globAppstate.main_canvas.toDataURL("image/png"), (err) => {
                if (err) {
                   // @ts-ignore (quotaExceeded is added by storage.js)
                   // if (err.quotaExceeded) {
@@ -382,10 +327,10 @@ export function setSession(){
          this.id = session_id;
          this._fb_listeners = [];
 
-         file_name = `[Loading ${this.id}]`;
+         window.globAppstate.file_name = `[Loading ${this.id}]`;
          update_title();
          const on_firebase_loaded = () => {
-            file_name = `[${this.id}]`;
+            window.globAppstate.file_name = `[${this.id}]`;
             update_title();
             this.start();
          };
@@ -406,7 +351,7 @@ export function setSession(){
             });
             script.addEventListener("error", () => {
                show_error_message("Failed to load Firebase; the document will not load, and changes will not be saved.");
-               file_name = `[Failed to load ${this.id}]`;
+               window.globAppstate.file_name = `[Failed to load ${this.id}]`;
                update_title();
             });
             script.src = "lib/firebase.js";
@@ -503,7 +448,7 @@ export function setSession(){
                      $(cursor_image).one("load", draw_cursor);
                   }
                   // Update the cursor element
-                  const canvas_rect = window.canvas_bounding_client_rect;
+                  const canvas_rect = window.globApp.canvas_bounding_client_rect;
                   $cursor.css({
                      display: "block",
                      position: "absolute",
@@ -522,7 +467,7 @@ export function setSession(){
                return;
             }
             // Sync the data from this client to the server (one-way)
-            const uri = main_canvas.toDataURL();
+            const uri = window.globAppstate.main_canvas.toDataURL();
             if (previous_uri !== uri) {
                // log("clear pointer operations to set data", pointer_operations);
                // pointer_operations = [];
@@ -562,7 +507,7 @@ export function setSession(){
 
                   const test_canvas = make_canvas(img);
                   const image_data_remote = test_canvas.ctx.getImageData(0, 0, test_canvas.width, test_canvas.height);
-                  const image_data_local = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
+                  const image_data_local = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
                   if (!image_data_match(image_data_remote, image_data_local, 5)) {
                      ignore_session_update = true;
@@ -571,7 +516,7 @@ export function setSession(){
                         icon: get_help_folder_icon("p_database.png"),
                      }, () => {
                         // Write the image data to the canvas
-                        main_ctx.copy(img);
+                        window.globAppstate.main_ctx.copy(img);
                         $canvas_area.trigger("resize");
                      });
                      ignore_session_update = false;
@@ -595,7 +540,7 @@ export function setSession(){
             }
          }, (error) => {
             show_error_message("Failed to retrieve data from Firebase. The document will not load, and changes will not be saved.", error);
-            file_name = `[Failed to load ${this.id}]`;
+            window.globAppstate.file_name = `[Failed to load ${this.id}]`;
             update_title();
          });
          // Update the cursor status
@@ -678,7 +623,7 @@ export function setSession(){
       constructor(session_id) {
          this.id = session_id;
 
-         file_name = `[Loading ${this.id}]`;
+         window.globAppstate.file_name = `[Loading ${this.id}]`;
          update_title();
          this.start();
 
@@ -694,7 +639,7 @@ export function setSession(){
             return;
          }
          // Sync the data from this client to the server (one-way)
-         const uri = main_canvas.toDataURL();
+         const uri = window.globAppstate.main_canvas.toDataURL();
          if (this._previous_uri !== uri) {
             // log("clear pointer operations to set data", pointer_operations);
             // pointer_operations = [];
@@ -734,11 +679,11 @@ export function setSession(){
                }
             } catch (error) {
                show_error_message("Failed to load image document from the server.", error);
-               file_name = `[Failed to load ${this.id}]`;
+               window.globAppstate.file_name = `[Failed to load ${this.id}]`;
                update_title();
                return; // Uh, TODO: retry?
             }
-            file_name = `[${this.id}]`;
+            window.globAppstate.file_name = `[${this.id}]`;
             update_title();
             this.handle_data_snapshot(received_image_data_uri, this._poll_fetch_start_time);
             // @ts-ignore  (stupid @types/node interference, with their setTimeout typing)
@@ -772,7 +717,7 @@ export function setSession(){
 
                const test_canvas = make_canvas(img);
                const image_data_remote = test_canvas.ctx.getImageData(0, 0, test_canvas.width, test_canvas.height);
-               const image_data_local = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
+               const image_data_local = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
                if (!image_data_match(image_data_remote, image_data_local, 5)) {
                   this._ignore_session_update = true;
@@ -781,7 +726,7 @@ export function setSession(){
                      icon: get_help_folder_icon("p_database.png"),
                   }, () => {
                      // Write the image data to the canvas
-                     main_ctx.copy(img);
+                     window.globAppstate.main_ctx.copy(img);
                      $canvas_area.trigger("resize");
                   });
                   this._ignore_session_update = false;

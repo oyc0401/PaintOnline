@@ -751,11 +751,21 @@ const tools = [
 				0.125: 0.125,
 			};
 
-			if (button == 2) {
-				return nextout[window.globAppstate.magnification];
+			function getClosestZoom(currentZoom) {
+					const zoomLevels = Object.keys(nextZoom).map(Number).sort((a, b) => a - b);
+					for (let i = zoomLevels.length - 1; i >= 0; i--) {
+							if (currentZoom >= zoomLevels[i]) {
+									return zoomLevels[i];
+							}
+					}
+					return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
 			}
 
-			return nextZoom[window.globAppstate.magnification];
+			if (button == 2) {
+				return nextout[getClosestZoom(window.globAppstate.magnification)];
+			}
+
+			return nextZoom[getClosestZoom(window.globAppstate.magnification)];
 		},
 		drawPreviewAboveGrid(
 			ctx,
@@ -773,7 +783,7 @@ const tools = [
 				return;
 			}
 			const prospective_magnification = this.getProspectiveMagnification();
-
+			console.log(prospective_magnification,window.globAppstate.magnification)
 			//console.log("scale:", scale);
 			// hacky place to put this but whatever
 			// use specific zoom-in/zoom-out as fallback,
@@ -820,6 +830,7 @@ const tools = [
 			const rect_x = rect_x1;
 			const rect_y = rect_y1;
 
+			
 			const id_src = window.globAppstate.main_canvas.ctx.getImageData(
 				rect_x,
 				rect_y,
