@@ -97,7 +97,8 @@ export function setupApp() {
   const $canvas = $(appState.main_canvas).appendTo($canvas_area);
 
   $canvas.css("touch-action", "none");
- 
+  $canvas_area.css("touch-action", "none");
+  
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
     $object_container: $canvas_area,
@@ -563,7 +564,7 @@ export function setupApp() {
     "wheel",
     (e) => {
       //console.log(e);  || e.ctrlKey
-      if (e.altKey) {
+      if (e.altKey || e.ctrlKey) {
         e.preventDefault();
         let new_magnification = appState.magnification;
         if (e.deltaY < 0) {

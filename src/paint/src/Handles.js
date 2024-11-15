@@ -151,8 +151,6 @@ function Handles(options) {
 				height: height,
 			};
 
-			console.log(new_rect)
-
 			new_rect.width = Math.max(1, new_rect.width);
 			new_rect.height = Math.max(1, new_rect.height);
 

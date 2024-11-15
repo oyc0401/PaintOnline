@@ -149,10 +149,11 @@ function update_magnified_canvas_size() {
 	const div = targetDpr / dpr;
 	const dprScale=window.globAppstate.magnification * div;
 	
-	update_canvas_rect();
 
 	window.globApp.$canvas.css("width", window.globAppstate.main_canvas.width * dprScale);
 	window.globApp.$canvas.css("height", window.globAppstate.main_canvas.height * dprScale);
+	
+	update_canvas_rect();
 }
 
 function update_canvas_rect() {

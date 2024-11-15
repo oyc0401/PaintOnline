@@ -29,7 +29,7 @@
       />
       <meta name="theme-color" content="#000080" />
 
-      <meta name="viewport" content="width=device-width, user-scalable=no" />
+      <meta name="viewport" content="width=device-width" />
 
       <meta
         name="description"
@@ -94,7 +94,7 @@
 
   
   <body data-sveltekit-preload-data="hover" oncontextmenu="return false">
-    <!-- <div class="log-box" id="logBox"></div>
+    <div class="log-box" id="logBox"></div>
     <script>
       // 로그 박스에 메시지를 추가하는 함수
       function addLogMessage(message, isError = false) {
@@ -111,20 +111,26 @@
       const originalLog = console.log;
       const originalError = console.error;
 
-      console.log = function(message) {
-        originalLog.apply(console, arguments);
-        addLogMessage(message);
+      function formatLogArguments(args) {
+        return Array.from(args)
+          .map(arg => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+          .join(" ");
+      }
+
+      console.log = function (...args) {
+        originalLog.apply(console, args);
+        addLogMessage(formatLogArguments(args));
       };
 
-      console.error = function(message) {
-        originalError.apply(console, arguments);
-        addLogMessage(message, true);
+      console.error = function (...args) {
+        originalError.apply(console, args);
+        addLogMessage(formatLogArguments(args), true);
       };
 
       // 테스트 메시지
-      console.log("이것은 일반 로그 메시지입니다.");
-      console.error("이것은 에러 메시지입니다.");
-    </script> -->
+      console.log("이것은 일반 로그 메시지입니다.", { key: "value" }, 42);
+      console.error("이것은 에러 메시지입니다.", ["배열", "테스트"], null);
+    </script>
     
     <script type="module" src="lib/jquery-3.4.1.min.js"></script>
     <script type="module" src="src/app-localization.js"></script>
