@@ -12,6 +12,18 @@ import { $G, E } from "./helpers.js";
 // 	$status_position,
 // 	$status_size ,
 // }= window.globApp;
+function roundDPR(dpr) {
+	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
+	let closest = values[0];
+
+	for (let i = 1; i < values.length; i++) {
+		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
+			closest = values[i];
+		}
+	}
+
+	return closest;
+}
 
 class OnCanvasObject {
 	/**
@@ -26,6 +38,8 @@ class OnCanvasObject {
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.initwidth = width;
+		this.initheight = height;
 		this.hideMainCanvasHandles = hideMainCanvasHandles;
 		this.$el = $(E("div")).addClass("on-canvas-object").appendTo(window.globApp.$canvas_area);
 		if (this.hideMainCanvasHandles) {
@@ -42,13 +56,25 @@ class OnCanvasObject {
 		// const offset_left = parseFloat($canvas_area.css(`padding-${left_for_ltr}`));
 		const offset_left = parseFloat(window.globApp.$canvas_area.css("padding-left"));
 		const offset_top = parseFloat(window.globApp.$canvas_area.css("padding-top"));
+		
+		const dpr = window.devicePixelRatio;
+		const targetDpr = roundDPR(dpr);
+		const div = targetDpr / dpr;
+		const dprMagnification=window.globAppstate.magnification * div;
+		// console.log('dpr:',dpr)
+		// console.log('targetDpr:',targetDpr)
+		// console.log('div:',div)
+		// console.log('dprMagnification:',dprMagnification)
+		
+		// console.log('before:', this.height)
+		// console.log('next:', dprMagnification * this.height)
 		this.$el.css({
 			position: "absolute",
 			// [left_for_ltr]: magnification * (direction === "rtl" ? canvas.width - this.width - this.x : this.x) + offset_left,
-			left: window.globAppstate.magnification * this.x + offset_left,
-			top: window.globAppstate.magnification * this.y + offset_top,
-			width: window.globAppstate.magnification * this.width,
-			height: window.globAppstate.magnification * this.height,
+			left: dprMagnification* this.x + offset_left,
+			top: dprMagnification * this.y + offset_top,
+			width: dprMagnification * this.width,
+			height: dprMagnification * this.height,
 		});
 		if (updateStatus) {
 			window.globApp.$status_position.text(`${this.x}, ${this.y}px`);

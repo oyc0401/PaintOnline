@@ -79,8 +79,6 @@ import {
 } from "./paint/src/tools.js";
 
 
-console.log('setup app')
-
 
 export function setupApp() {
   
@@ -155,7 +153,6 @@ export function setupApp() {
     update_canvas_rect();
   });
   $canvas_area.on("resize", () => {
-    console.log('resize');
     update_magnified_canvas_size();
   });
 
@@ -525,22 +522,57 @@ export function setupApp() {
       // put nothing below! note return above
     }
   });
-  // #endregion
 
+  console.log('dpr:',window.devicePixelRatio)
+  // #endregion
+  const nextZoom = {
+    0.125: 0.25,
+    0.25: 0.5,
+    0.5: 1,
+    1: 2,
+    2: 3,
+    3: 4,
+    4: 5,
+    5: 6,
+    6: 7,
+    7: 8,
+    8: 8,
+  };
+
+  const nextout = {
+    8: 7,
+    7: 6,
+    6: 5,
+    5: 4,
+    4: 3,
+    3: 2,
+    2: 1,
+    1: 0.5,
+    0.5: 0.125,
+    0.125: 0.125,
+  };
+  function getClosestZoom(currentZoom) {
+      const zoomLevels = Object.keys(nextZoom).map(Number).sort((a, b) => a - b);
+      for (let i = zoomLevels.length - 1; i >= 0; i--) {
+          if (currentZoom >= zoomLevels[i]) {
+              return zoomLevels[i];
+          }
+      }
+      return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
+  }
 
   addEventListener(
     "wheel",
     (e) => {
-      //console.log(e);
-      if (e.altKey || e.ctrlKey) {
+      //console.log(e);  || e.ctrlKey
+      if (e.altKey) {
         e.preventDefault();
         let new_magnification = appState.magnification;
         if (e.deltaY < 0) {
-          new_magnification *= 1.5;
+          new_magnification = nextZoom[getClosestZoom(window.globAppstate.magnification)]
         } else {
-          new_magnification /= 1.5;
+          new_magnification =nextout[getClosestZoom(window.globAppstate.magnification)]
         }
-        new_magnification = Math.max(0.5, Math.min(new_magnification, 80));
         set_magnification(new_magnification, to_canvas_coords(e));
         return;
       }
@@ -961,16 +993,17 @@ export function setupApp() {
       );
       const difference_in_distance = distance - last_zoom_pointer_distance;
       let new_magnification = appState.magnification;
+       
+
       if (Math.abs(difference_in_distance) > 60) {
         last_zoom_pointer_distance = distance;
         if (difference_in_distance > 0) {
-          new_magnification *= 1.5;
+           new_magnification = nextZoom[getClosestZoom(window.globAppstate.magnification)];
         } else {
-          new_magnification /= 1.5;
+          new_magnification = nextout[getClosestZoom(window.globAppstate.magnification)];
         }
       }
-      new_magnification = Math.max(0.5, Math.min(new_magnification, 40));
-      if (new_magnification != magnification) {
+      if (new_magnification != appState.magnification) {
         set_magnification(
           new_magnification,
           to_canvas_coords({ clientX: current_pos.x, clientY: current_pos.y }),

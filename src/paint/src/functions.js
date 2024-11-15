@@ -144,8 +144,13 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 }
 
 function update_magnified_canvas_size() {
-	window.globApp.$canvas.css("width", window.globAppstate.main_canvas.width * window.globAppstate.magnification);
-	window.globApp.$canvas.css("height", window.globAppstate.main_canvas.height * window.globAppstate.magnification);
+	const dpr = window.devicePixelRatio;
+	const targetDpr = roundDPR(dpr);
+	const div = targetDpr / dpr;
+	const dprScale=window.globAppstate.magnification * div;
+	
+	window.globApp.$canvas.css("width", window.globAppstate.main_canvas.width * dprScale);
+	window.globApp.$canvas.css("height", window.globAppstate.main_canvas.height * dprScale);
 
 	update_canvas_rect();
 }
@@ -209,12 +214,18 @@ function update_helper_layer_immediately() {
 	// 		Math.floor(Math.max((window.globApp.$canvas_area.scrollLeft() - window.globApp.$canvas_area.innerWidth()) / magnification + canvas.width - margin, 0)) :
 	// 		Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / magnification - margin, 0));
 	const viewport_y = Math.floor(Math.max(window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
-	const viewport_x2 = Math.floor(Math.min(viewport_x + window.globApp.$canvas_area.width() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.width));
-	const viewport_y2 = Math.floor(Math.min(viewport_y + window.globApp.$canvas_area.height() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.height));
+	const viewport_x2 = Math.floor(Math.min(viewport_x + window.globApp.$canvas_area.width() / window.globAppstate.magnification * window.devicePixelRatio + margin * 2, window.globAppstate.main_canvas.width));
+	const viewport_y2 = Math.floor(Math.min(viewport_y + window.globApp.$canvas_area.height() / window.globAppstate.magnification * window.devicePixelRatio + margin * 2, window.globAppstate.main_canvas.height));
 	const viewport_width = viewport_x2 - viewport_x;
 	const viewport_height = viewport_y2 - viewport_y;
 	const resolution_width = viewport_width * scale;
 	const resolution_height = viewport_height * scale;
+
+	console.log('viewport_x:',viewport_x," / viewport_y:",viewport_y)
+	console.log('viewport_x2:',viewport_x2," / viewport_y2:",viewport_y2)
+	console.log('viewport_width:',viewport_width," / viewport_height:",viewport_height)
+	console.log('resolution_width:',resolution_width," / resolution_height:",resolution_height)
+	
 	if (
 		window.globAppstate.helper_layer.canvas.width !== resolution_width ||
 		window.globAppstate.helper_layer.canvas.height !== resolution_height
@@ -368,6 +379,19 @@ function update_disable_aa() {
 	window.globApp.$canvas_area.toggleClass("disable-aa-for-things-at-main-canvas-scale", dots_per_canvas_px >= 3 || round);
 }
 
+function roundDPR(dpr) {
+	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
+	let closest = values[0];
+
+	for (let i = 1; i < values.length; i++) {
+		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
+			closest = values[i];
+		}
+	}
+
+	return closest;
+}
+
 /**
  * @param {number} new_scale
  * @param {{x: number, y: number}} [anchor_point] - uses canvas coordinates; default is the top-left of the window.globApp.$canvas_area viewport
@@ -379,6 +403,7 @@ function set_magnification(new_scale, anchor_point) {
 
 	//console.log('돋보기', new_scale);
 	//window.$zoomText.text(new_scale==0.125?'12.50%':`${new_scale*100}%`);
+
 	anchor_point = anchor_point ?? {
 		x: window.globApp.$canvas_area.scrollLeft() / window.globAppstate.magnification,
 		y: window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification,

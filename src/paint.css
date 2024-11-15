@@ -1079,7 +1079,7 @@ body {
   }
 }
 .disable-aa-for-things-at-main-canvas-scale .main-canvas,
-.disable-aa-for-things-at-main-canvas-scale .selection canvas {
+.disable-aa-for-things-at-main-canvas-scale .selection canvas,canvas {
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
   image-rendering: pixelated;

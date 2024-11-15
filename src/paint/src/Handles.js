@@ -23,6 +23,19 @@ import { $G, E, make_css_cursor, to_canvas_coords } from "./helpers.js";
  * @property {() => void} show
  * @property {HTMLElement[]} handles
  */
+function roundDPR(dpr) {
+	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
+	let closest = values[0];
+
+	for (let i = 1; i < values.length; i++) {
+		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
+			closest = values[i];
+		}
+	}
+
+	return closest;
+}
+
 
 function Handles(options) {
 	const { $handles_container, $object_container } = options; // required
@@ -145,13 +158,18 @@ function Handles(options) {
 				new_rect.x = Math.min(new_rect.x, rect.x + rect.width);
 				new_rect.y = Math.min(new_rect.y, rect.y + rect.height);
 			}
-
+			
+			const dpr = window.devicePixelRatio;
+			const targetDpr = roundDPR(dpr);
+			const div = targetDpr / dpr;
+			const dprMagnification = window.globAppstate.magnification * div;
+			
 			$resize_ghost.css({
 				position: "absolute",
-				left:window.globAppstate.magnification * new_rect.x + get_ghost_offset_left(),
-				top: window.globAppstate.magnification * new_rect.y + get_ghost_offset_top(),
-				width: window.globAppstate.magnification * new_rect.width - 2,
-				height: window.globAppstate.magnification * new_rect.height - 2,
+				left :dprMagnification * new_rect.x + get_ghost_offset_left(),
+				top: dprMagnification * new_rect.y + get_ghost_offset_top(),
+				width: dprMagnification * new_rect.width - 2,
+				height: dprMagnification * new_rect.height - 2,
 			});
 			rect = new_rect;
 		};
