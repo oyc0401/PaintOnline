@@ -148,6 +148,7 @@ function update_magnified_canvas_size() {
 	const targetDpr = roundDPR(dpr);
 	const div = targetDpr / dpr;
 	const dprScale=window.globAppstate.magnification * div;
+	//console.log('업데이트!')
 	
 
 	window.globApp.$canvas.css("width", window.globAppstate.main_canvas.width * dprScale);
@@ -206,25 +207,20 @@ function update_helper_layer_immediately() {
 		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
-	
-	if($('.helper-layer canvas').attr('width') != $('.main-canvas').attr('width') 
-		 || $('.helper-layer canvas').attr('height') != $('.main-canvas').attr('height')) {
+	// window.globAppstate.helper_layer.canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
+	// window.globAppstate.helper_layer.canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
+	if(window.globAppstate.helper_layer.canvas.width != window.globAppstate.main_canvas.width
+		 || window.globAppstate.helper_layer.canvas.height != window.globAppstate.main_canvas.height) {
 		console.log('같지않음')
-		
 
-		window.globAppstate.helper_layer.canvas.width = window.globAppstate.my_canvas_width;
-		window.globAppstate.helper_layer.canvas.height = window.globAppstate.my_canvas_height;
+		window.globAppstate.helper_layer.canvas.width = window.globAppstate.main_canvas.width
+		window.globAppstate.helper_layer.canvas.height = window.globAppstate.main_canvas.height
 		window.globAppstate.helper_layer.canvas.ctx.disable_image_smoothing();
-		window.globAppstate.helper_layer.width =  $('.main-canvas').attr('width')
-		window.globAppstate.helper_layer.height = $('.main-canvas').attr('height')
+		window.globAppstate.helper_layer.width =  window.globAppstate.main_canvas.width
+		window.globAppstate.helper_layer.height = window.globAppstate.main_canvas.height;
 		window.globAppstate.helper_layer.x = 0;
 		window.globAppstate.helper_layer.y = 0;
 		window.globAppstate.helper_layer.position();
-
-		$('.helper-layer canvas').attr({
-			width:  $('.main-canvas').attr('width'),
-			height:  $('.main-canvas').attr('height')
-		});
 	}
 	
 	render_canvas_view(window.globAppstate.helper_layer.canvas, 1, 0, 0, true);
@@ -362,8 +358,15 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 }
 function update_disable_aa() {
 	const dots_per_canvas_px = window.devicePixelRatio * window.globAppstate.magnification;
-	const round = Math.floor(dots_per_canvas_px) === dots_per_canvas_px;
-	window.globApp.$canvas_area.toggleClass("disable-aa-for-things-at-main-canvas-scale", dots_per_canvas_px >= 3 || round);
+	if (dots_per_canvas_px >= 1) {
+		window.globApp.$canvas_area
+				.addClass("pixeled-canvas")
+				.removeClass("smooth-canvas");
+	} else {
+		window.globApp.$canvas_area
+				.addClass("smooth-canvas")
+				.removeClass("pixeled-canvas");
+	}
 }
 
 function roundDPR(dpr) {
@@ -443,6 +446,7 @@ function reset_canvas_and_history() {
 	});
 	window.globAppstate.history_node_to_cancel_to = null;
 
+	console.log('캔버스 리셋!')
 	window.globAppstate.main_canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
 	window.globAppstate.main_canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
 	window.globAppstate.main_ctx.disable_image_smoothing();
@@ -450,7 +454,7 @@ function reset_canvas_and_history() {
 	window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
 	window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
-
+	
 	window.globApp.$canvas_area.trigger("resize");
 	$G.triggerHandler("history-update"); // update history view
 }
@@ -2473,6 +2477,7 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 			icon: undoable_meta.icon || get_help_folder_icon("p_stretch_both.png"),
 		}, () => {
 			try {
+				console.log('리사이즈')
 				const image_data = window.globAppstate.main_ctx.getImageData(0, 0, new_width, new_height);
 				window.globAppstate.main_canvas.width = new_width;
 				window.globAppstate.main_canvas.height = new_height;

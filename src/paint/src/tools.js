@@ -725,8 +725,6 @@ const tools = [
 
 		getProspectiveMagnification: (button = 1) => {
 			const nextZoom = {
-				0.125: 0.25,
-				0.25: 0.5,
 				0.5: 1,
 				1: 2,
 				2: 3,
@@ -747,8 +745,7 @@ const tools = [
 				3: 2,
 				2: 1,
 				1: 0.5,
-				0.5: 0.125,
-				0.125: 0.125,
+				0.5: 0.5,
 			};
 
 			function getClosestZoom(currentZoom) {

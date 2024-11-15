@@ -147,6 +147,7 @@ export function setupApp() {
     
     update_canvas_rect();
     update_disable_aa();
+    update_magnified_canvas_size();
   });
   $canvas_area.on("scroll", () => {
     update_canvas_rect();
@@ -522,11 +523,9 @@ export function setupApp() {
     }
   });
 
-  console.log('dpr:',window.devicePixelRatio)
+  //console.log('dpr:',window.devicePixelRatio)
   // #endregion
   const nextZoom = {
-    0.125: 0.25,
-    0.25: 0.5,
     0.5: 1,
     1: 2,
     2: 3,
@@ -547,8 +546,7 @@ export function setupApp() {
     3: 2,
     2: 1,
     1: 0.5,
-    0.5: 0.125,
-    0.125: 0.125,
+    0.5: 0.5,
   };
   function getClosestZoom(currentZoom) {
       const zoomLevels = Object.keys(nextZoom).map(Number).sort((a, b) => a - b);
