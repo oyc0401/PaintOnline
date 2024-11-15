@@ -37,6 +37,7 @@ function roundDPR(dpr) {
 }
 
 
+
 function Handles(options) {
 	const { $handles_container, $object_container } = options; // required
 	const outset = options.outset || 0;
@@ -123,6 +124,7 @@ function Handles(options) {
 			let delta_x = 0;
 			let delta_y = 0;
 			let width, height;
+			
 			// @TODO: decide between Math.floor/Math.ceil/Math.round for these values
 			if (x_axis === HANDLE_RIGHT) {
 				delta_x = 0;
@@ -148,6 +150,8 @@ function Handles(options) {
 				width: width,
 				height: height,
 			};
+
+			console.log(new_rect)
 
 			new_rect.width = Math.max(1, new_rect.width);
 			new_rect.height = Math.max(1, new_rect.height);
@@ -198,11 +202,21 @@ function Handles(options) {
 			//console.log('hand selectstart')
 			event.preventDefault();
 		});
+
+		
+
+		
 		
 
 		const update_handle = () => {
+			const dpr = window.devicePixelRatio;
+			const targetDpr = roundDPR(dpr);
+			const div = targetDpr / dpr;
+			
 			//console.log('update_handle')
 			const rect = options.get_rect();
+			rect.width *= div;
+			rect.height *= div
 			const hs = $h.width();
 			// const x = rect.x + get_handles_offset_left();
 			// const y = rect.y + get_handles_offset_top();

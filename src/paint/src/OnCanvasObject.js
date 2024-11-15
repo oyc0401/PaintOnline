@@ -61,14 +61,7 @@ class OnCanvasObject {
 		const targetDpr = roundDPR(dpr);
 		const div = targetDpr / dpr;
 		const dprMagnification=window.globAppstate.magnification * div;
-		// console.log('dpr:',dpr)
-		// console.log('targetDpr:',targetDpr)
-		// console.log('div:',div)
-		// console.log('dprMagnification:',dprMagnification)
-		
-		// console.log('before:', this.height)
-		// console.log('next:', dprMagnification * this.height)
-		
+
 		this.$el.css({
 			position: "absolute",
 			// [left_for_ltr]: magnification * (direction === "rtl" ? canvas.width - this.width - this.x : this.x) + offset_left,

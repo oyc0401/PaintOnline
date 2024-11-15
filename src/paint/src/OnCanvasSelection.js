@@ -76,32 +76,13 @@ class OnCanvasSelection extends OnCanvasObject {
 				this.canvas = make_canvas(this.source_canvas);
 				this.cut_out_background();
 			}
-
-			function roundDPR(dpr) {
-				const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
-				let closest = values[0];
-
-				for (let i = 1; i < values.length; i++) {
-					if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
-						closest = values[i];
-					}
-				}
-
-				return closest;
-			}
-
-			const dpr = window.devicePixelRatio;
-			const targetDpr = roundDPR(dpr);
-			const div = targetDpr / dpr;
-			const dprMagnification=window.globAppstate.magnification * div;
-
 			
 			this.$el.append(this.canvas);
 			this.handles = new Handles({
 				$handles_container: this.$el,
 				$object_container: window.globApp.$canvas_area,
 				outset: 2,
-				get_rect: () => ({ x: this.x, y: this.y, width: this.width*div, height: this.height*div }),
+				get_rect: () => ({ x: this.x, y: this.y, width: this.width, height: this.height }),
 				set_rect: ({ x, y, width, height }) => {
 					undoable({
 						name: "Resize Selection",
