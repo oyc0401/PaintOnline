@@ -191,7 +191,7 @@ function update_helper_layer(e) {
 	});
 }
 function update_helper_layer_immediately() {
-	// window.console?.log("Update helper layer NOW");
+	//window.console?.log("Update helper layer NOW");
 	if (info_for_updating_pointer) {
 		const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
 		info_for_updating_pointer.clientX *= rescale;
@@ -213,8 +213,6 @@ function update_helper_layer_immediately() {
 
 	
 	const margin = 15;
-	const viewport_x = Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / window.globAppstate.magnification - margin, 0));
-	const viewport_y = Math.floor(Math.max(window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
 
 	window.globAppstate.helper_layer.canvas.width = window.globAppstate.my_canvas_width;
 	window.globAppstate.helper_layer.canvas.height = window.globAppstate.my_canvas_height;
@@ -224,6 +222,10 @@ function update_helper_layer_immediately() {
 	window.globAppstate.helper_layer.x = 0;
 	window.globAppstate.helper_layer.y = 0;
 	window.globAppstate.helper_layer.position();
+	$('.helper-layer canvas').attr({
+		width: window.globAppstate.helper_layer.width,
+		height: window.globAppstate.helper_layer.height
+	});
 	
 	render_canvas_view(window.globAppstate.helper_layer.canvas, 1, 0, 0, true);
 
