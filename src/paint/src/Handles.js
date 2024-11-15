@@ -162,7 +162,7 @@ function Handles(options) {
 			const dpr = window.devicePixelRatio;
 			const targetDpr = roundDPR(dpr);
 			const div = targetDpr / dpr;
-			const dprMagnification = window.globAppstate.magnification * div;
+			const dprMagnification=window.globAppstate.magnification * div;
 			
 			$resize_ghost.css({
 				position: "absolute",

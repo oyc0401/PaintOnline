@@ -149,14 +149,14 @@ function update_magnified_canvas_size() {
 	const div = targetDpr / dpr;
 	const dprScale=window.globAppstate.magnification * div;
 	
+	update_canvas_rect();
+
 	window.globApp.$canvas.css("width", window.globAppstate.main_canvas.width * dprScale);
 	window.globApp.$canvas.css("height", window.globAppstate.main_canvas.height * dprScale);
-
-	update_canvas_rect();
 }
 
 function update_canvas_rect() {
-		window.globApp.canvas_bounding_client_rect = window.globAppstate.main_canvas.getBoundingClientRect();
+	window.globApp.canvas_bounding_client_rect = window.globAppstate.main_canvas.getBoundingClientRect();
 
 	update_helper_layer();
 }
@@ -214,18 +214,12 @@ function update_helper_layer_immediately() {
 	// 		Math.floor(Math.max((window.globApp.$canvas_area.scrollLeft() - window.globApp.$canvas_area.innerWidth()) / magnification + canvas.width - margin, 0)) :
 	// 		Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / magnification - margin, 0));
 	const viewport_y = Math.floor(Math.max(window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
-	const viewport_x2 = Math.floor(Math.min(viewport_x + window.globApp.$canvas_area.width() / window.globAppstate.magnification * window.devicePixelRatio + margin * 2, window.globAppstate.main_canvas.width));
-	const viewport_y2 = Math.floor(Math.min(viewport_y + window.globApp.$canvas_area.height() / window.globAppstate.magnification * window.devicePixelRatio + margin * 2, window.globAppstate.main_canvas.height));
+	const viewport_x2 = Math.floor(Math.min(viewport_x + window.globApp.$canvas_area.width() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.width));
+	const viewport_y2 = Math.floor(Math.min(viewport_y + window.globApp.$canvas_area.height() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.height));
 	const viewport_width = viewport_x2 - viewport_x;
 	const viewport_height = viewport_y2 - viewport_y;
 	const resolution_width = viewport_width * scale;
 	const resolution_height = viewport_height * scale;
-
-	console.log('viewport_x:',viewport_x," / viewport_y:",viewport_y)
-	console.log('viewport_x2:',viewport_x2," / viewport_y2:",viewport_y2)
-	console.log('viewport_width:',viewport_width," / viewport_height:",viewport_height)
-	console.log('resolution_width:',resolution_width," / resolution_height:",resolution_height)
-	
 	if (
 		window.globAppstate.helper_layer.canvas.width !== resolution_width ||
 		window.globAppstate.helper_layer.canvas.height !== resolution_height
