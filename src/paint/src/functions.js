@@ -205,36 +205,26 @@ function update_helper_layer_immediately() {
 		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
+	const dpr = window.devicePixelRatio;
+	const targetDpr = roundDPR(dpr);
+	const div = targetDpr / dpr;
+	const dprMagnification=window.globAppstate.magnification * div;
+
+	
 	const margin = 15;
 	const viewport_x = Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / window.globAppstate.magnification - margin, 0));
-	// Nevermind, canvas, isn't aligned to the right in RTL layout!
-	// const viewport_x =
-	// 	get_direction() === "rtl" ?
-	// 		// Note: window.globApp.$canvas_area.scrollLeft() can return negative numbers for RTL layout
-	// 		Math.floor(Math.max((window.globApp.$canvas_area.scrollLeft() - window.globApp.$canvas_area.innerWidth()) / magnification + canvas.width - margin, 0)) :
-	// 		Math.floor(Math.max(window.globApp.$canvas_area.scrollLeft() / magnification - margin, 0));
 	const viewport_y = Math.floor(Math.max(window.globApp.$canvas_area.scrollTop() / window.globAppstate.magnification - margin, 0));
-	const viewport_x2 = Math.floor(Math.min(viewport_x + window.globApp.$canvas_area.width() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.width));
-	const viewport_y2 = Math.floor(Math.min(viewport_y + window.globApp.$canvas_area.height() / window.globAppstate.magnification + margin * 2, window.globAppstate.main_canvas.height));
-	const viewport_width = viewport_x2 - viewport_x;
-	const viewport_height = viewport_y2 - viewport_y;
-	const resolution_width = viewport_width * scale;
-	const resolution_height = viewport_height * scale;
-	if (
-		window.globAppstate.helper_layer.canvas.width !== resolution_width ||
-		window.globAppstate.helper_layer.canvas.height !== resolution_height
-	) {
-		window.globAppstate.helper_layer.canvas.width = resolution_width;
-		window.globAppstate.helper_layer.canvas.height = resolution_height;
-		window.globAppstate.helper_layer.canvas.ctx.disable_image_smoothing();
-		window.globAppstate.helper_layer.width = viewport_width;
-		window.globAppstate.helper_layer.height = viewport_height;
-	}
-	window.globAppstate.helper_layer.x = viewport_x;
-	window.globAppstate.helper_layer.y = viewport_y;
-	window.globAppstate.helper_layer.position();
 
-	render_canvas_view(window.globAppstate.helper_layer.canvas, scale, viewport_x, viewport_y, true);
+	window.globAppstate.helper_layer.canvas.width = window.globAppstate.my_canvas_width;
+	window.globAppstate.helper_layer.canvas.height = window.globAppstate.my_canvas_height;
+	window.globAppstate.helper_layer.canvas.ctx.disable_image_smoothing();
+	window.globAppstate.helper_layer.width = $('.main-canvas').width() / dprMagnification;
+	window.globAppstate.helper_layer.height = $('.main-canvas').height() / dprMagnification;
+	window.globAppstate.helper_layer.x = 0;
+	window.globAppstate.helper_layer.y = 0;
+	window.globAppstate.helper_layer.position();
+	
+	render_canvas_view(window.globAppstate.helper_layer.canvas, 1, 0, 0, true);
 
 	if (window.globAppstate.thumbnail_canvas && window.globAppstate.$thumbnail_window.is(":visible")) {
 		// The thumbnail can be bigger or smaller than the viewport, depending on the magnification and thumbnail window size.
