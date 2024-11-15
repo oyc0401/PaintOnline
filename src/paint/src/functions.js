@@ -206,26 +206,26 @@ function update_helper_layer_immediately() {
 		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
-	const dpr = window.devicePixelRatio;
-	const targetDpr = roundDPR(dpr);
-	const div = targetDpr / dpr;
-	const dprMagnification=window.globAppstate.magnification * div;
-
 	
-	const margin = 15;
+	if($('.helper-layer canvas').attr('width') != $('.main-canvas').attr('width') 
+		 || $('.helper-layer canvas').attr('height') != $('.main-canvas').attr('height')) {
+		console.log('같지않음')
+		
 
-	window.globAppstate.helper_layer.canvas.width = window.globAppstate.my_canvas_width;
-	window.globAppstate.helper_layer.canvas.height = window.globAppstate.my_canvas_height;
-	window.globAppstate.helper_layer.canvas.ctx.disable_image_smoothing();
-	window.globAppstate.helper_layer.width = $('.main-canvas').width() / dprMagnification;
-	window.globAppstate.helper_layer.height = $('.main-canvas').height() / dprMagnification;
-	window.globAppstate.helper_layer.x = 0;
-	window.globAppstate.helper_layer.y = 0;
-	window.globAppstate.helper_layer.position();
-	$('.helper-layer canvas').attr({
-		width: window.globAppstate.helper_layer.width,
-		height: window.globAppstate.helper_layer.height
-	});
+		window.globAppstate.helper_layer.canvas.width = window.globAppstate.my_canvas_width;
+		window.globAppstate.helper_layer.canvas.height = window.globAppstate.my_canvas_height;
+		window.globAppstate.helper_layer.canvas.ctx.disable_image_smoothing();
+		window.globAppstate.helper_layer.width =  $('.main-canvas').attr('width')
+		window.globAppstate.helper_layer.height = $('.main-canvas').attr('height')
+		window.globAppstate.helper_layer.x = 0;
+		window.globAppstate.helper_layer.y = 0;
+		window.globAppstate.helper_layer.position();
+
+		$('.helper-layer canvas').attr({
+			width:  $('.main-canvas').attr('width'),
+			height:  $('.main-canvas').attr('height')
+		});
+	}
 	
 	render_canvas_view(window.globAppstate.helper_layer.canvas, 1, 0, 0, true);
 
