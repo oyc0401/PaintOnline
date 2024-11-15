@@ -98,14 +98,31 @@ export function setupApp() {
 
   $canvas.css("touch-action", "none");
 
+  function roundDPR(dpr) {
+    const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
+    let closest = values[0];
+
+    for (let i = 1; i < values.length; i++) {
+      if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
+        closest = values[i];
+      }
+    }
+
+    return closest;
+  }
+  
+  const dpr = window.devicePixelRatio;
+  const targetDpr = roundDPR(dpr);
+  const div = targetDpr / dpr;
+ 
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
     $object_container: $canvas_area,
     get_rect: () => ({
       x: 0,
       y: 0,
-      width: appState.main_canvas.width,
-      height: appState.main_canvas.height,
+      width: appState.main_canvas.width*div,
+      height: appState.main_canvas.height*div,
     }),
     set_rect: ({ width, height }) =>
       resize_canvas_and_save_dimensions(width, height),
