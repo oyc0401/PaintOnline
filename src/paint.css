@@ -1307,7 +1307,6 @@ body,
 }
 .canvas-area {
   padding: 8px;
-  border: 1px solid var(--canvas-area-border-color);
 }
 
 .component-ghost {
