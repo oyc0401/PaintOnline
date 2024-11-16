@@ -2000,20 +2000,20 @@ tools.forEach((tool) => {
 					}
 				},
 			);
-			// stamp_brush_canvas(
-			// 	tool.mask_canvas.ctx,
-			// 	pointer_previous.x,
-			// 	pointer_previous.y,
-			// 	brush.shape,
-			// 	brush.size,
-			// );
-			// stamp_brush_canvas(
-			// 	tool.mask_canvas.ctx,
-			// 	pointer.x,
-			// 	pointer.y,
-			// 	brush.shape,
-			// 	brush.size,
-			// );
+			stamp_brush_canvas(
+				tool.mask_canvas.ctx,
+				window.globAppstate.pointer_previous.x,
+				window.globAppstate.pointer_previous.y,
+				brush.shape,
+				brush.size,
+			);
+			stamp_brush_canvas(
+				tool.mask_canvas.ctx,
+				window.globAppstate.pointer.x,
+				window.globAppstate.pointer.y,
+				brush.shape,
+				brush.size,
+			);
 		};
 
 		tool.cancel = () => {
