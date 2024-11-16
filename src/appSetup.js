@@ -525,29 +525,22 @@ export function setupApp() {
 
   //console.log('dpr:',window.devicePixelRatio)
   // #endregion
-  const nextZoom = {
-    0.5: 1,
-    1: 2,
-    2: 3,
-    3: 4,
-    4: 5,
-    5: 6,
-    6: 7,
-    7: 8,
-    8: 8,
+  const zoomLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 100];
+
+  const nextZoom = { 
+      0.5: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 8, 8: 10, 10: 12, 
+      12: 15, 15: 20, 20: 25, 25: 30, 30: 40, 40: 50, 50: 60, 60: 75, 75: 100, 
+      100: 100 
   };
 
-  const nextout = {
-    8: 7,
-    7: 6,
-    6: 5,
-    5: 4,
-    4: 3,
-    3: 2,
-    2: 1,
-    1: 0.5,
-    0.5: 0.5,
+  const nextout = { 
+      100: 75, 75: 60, 60: 50, 50: 40, 40: 30, 30: 25, 25: 20, 20: 15, 15: 12, 
+      12: 10, 10: 8, 8: 6, 6: 5, 5: 4, 4: 3, 3: 2, 2: 1, 1: 0.5, 
+      0.5: 0.5 
   };
+
+
+
   function getClosestZoom(currentZoom) {
       const zoomLevels = Object.keys(nextZoom).map(Number).sort((a, b) => a - b);
       for (let i = zoomLevels.length - 1; i >= 0; i--) {
