@@ -162,7 +162,23 @@ import {
 // The size shown is affected by holding Shift to constrain proportions.
 // TODO: either make Shift affect the position indicator, or do what MS Paint does
 // and lock it into showing the first point defining a shape while the mouse is down.
+function getRGBAFromColor(color) {
+		// Canvas 생성
+		const canvas = document.createElement("canvas");
+		canvas.width = 1;
+		canvas.height = 1;
+		const ctx = canvas.getContext("2d");
 
+		// 캔버스에 색상 설정
+		ctx.fillStyle = color;
+		ctx.fillRect(0, 0, 1, 1);
+
+		// 픽셀 데이터 읽기
+		const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+
+		// 반환: RGBA 배열
+		return [r, g, b, a / 255]; // a는 0~255 범위이므로 0~1로 변환
+}
 // Tool IDs have type `ToolID`
 const TOOL_FREE_FORM_SELECT = "TOOL_FREE_FORM_SELECT";
 const TOOL_SELECT = "TOOL_SELECT";
@@ -533,7 +549,7 @@ const tools = [
 			}
 		},
 		pointerdown() {
-			this.mask_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+			this.mask_canvas = window.globAppstate.mask_canvas;
 		},
 		render_from_mask(ctx, previewing) {
 			ctx.save();
@@ -552,9 +568,9 @@ const tools = [
 					: window.globAppstate.selected_colors.background;
 			}
 
-			const mask_fill_canvas = make_canvas(this.mask_canvas);
-			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-			ctx.drawImage(mask_fill_canvas, 0, 0);
+			//const mask_fill_canvas = make_canvas(this.mask_canvas);
+			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
+			//ctx.drawImage(mask_fill_canvas, 0, 0);
 		},
 		pointerup() {
 			if (!this.mask_canvas) {
@@ -570,13 +586,37 @@ const tools = [
 					icon: get_icon_for_tool(this),
 				},
 				() => {
-					this.render_from_mask(window.globAppstate.main_ctx);
+					//this.render_from_mask(window.globAppstate.main_ctx);
+					window.globAppstate.main_ctx.save();
+					window.globAppstate.main_ctx.globalCompositeOperation = "destination-out";
+					window.globAppstate.main_ctx.drawImage(this.mask_canvas, 0, 0);
+					window.globAppstate.main_ctx.restore();
 
+					/** @type {string | CanvasPattern | CanvasGradient} */
+					let color = window.globAppstate.selected_colors.background;
+
+					const translucent = get_rgba_from_color(color)[3] < 1;
+
+					if (translucent) {
+						color = previewing
+							? "rgba(255, 0, 0, 0.3)"
+							: window.globAppstate.selected_colors.background;
+						const mask_fill_canvas = make_canvas(this.mask_canvas);
+						replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
+
+						window.globAppstate.main_ctx.drawImage(mask_fill_canvas, 0, 0);
+					}else{
+						window.globAppstate.main_ctx.drawImage(this.mask_canvas, 0, 0);
+					}
+					
+				
+					this.mask_canvas.ctx.clearRect(0, 0, window.globAppstate.mask_canvas.width, window.globAppstate.mask_canvas.height);
 					this.mask_canvas = null;
 				},
 			);
 		},
 		cancel() {
+				this.mask_canvas.ctx.clearRect(0, 0, window.globAppstate.mask_canvas.width, window.globAppstate.mask_canvas.height);
 			this.mask_canvas = null;
 		},
 		paint(ctx, _x, _y) {
@@ -597,7 +637,12 @@ const tools = [
 
 			if (!this.color_eraser_mode) {
 				// Eraser
-				this.mask_canvas.ctx.fillStyle = "white";
+				this.mask_canvas.ctx.fillStyle = window.globAppstate.selected_colors.background;
+				
+				this.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
+				this.mask_canvas.ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
+				
+				this.mask_canvas.ctx.globalCompositeOperation = 'source-over';
 				this.mask_canvas.ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
 			} else {
 				// Color Eraser
@@ -621,6 +666,8 @@ const tools = [
 
 				const fill_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
 
+				const eraser_rgba = get_rgba_from_color(window.globAppstate.selected_colors.background);
+				
 				for (let i = 0, l = test_image_data.data.length; i < l; i += 4) {
 					if (
 						Math.abs(test_image_data.data[i + 0] - fg_rgba[0]) <=
@@ -631,10 +678,10 @@ const tools = [
 							fill_threshold &&
 						Math.abs(test_image_data.data[i + 3] - fg_rgba[3]) <= fill_threshold
 					) {
-						result_image_data.data[i + 0] = 255;
-						result_image_data.data[i + 1] = 255;
-						result_image_data.data[i + 2] = 255;
-						result_image_data.data[i + 3] = 255;
+						result_image_data.data[i + 0] = eraser_rgba[0];
+						result_image_data.data[i + 1] = eraser_rgba[1];
+						result_image_data.data[i + 2] = eraser_rgba[2];
+						result_image_data.data[i + 3] = eraser_rgba[3];
 					}
 				}
 
@@ -1963,7 +2010,8 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					tool.render_from_mask(window.globAppstate.main_ctx);
+					window.globAppstate.main_ctx.drawImage(tool.mask_canvas, 0, 0);
+					//tool.render_from_mask(window.globAppstate.main_ctx);
 
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
@@ -1988,6 +2036,11 @@ tools.forEach((tool) => {
 				(x, y) => {
 					for (const point of circumference_points) {
 						tool.mask_canvas.ctx.fillStyle = window.globAppstate.stroke_color;
+						
+						tool.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
+						tool.mask_canvas.ctx.fillRect(x + point.x, y + point.y, 1, 1);
+						
+						tool.mask_canvas.ctx.globalCompositeOperation = 'source-over';
 						tool.mask_canvas.ctx.fillRect(x + point.x, y + point.y, 1, 1);
 					}
 				},
@@ -1998,6 +2051,7 @@ tools.forEach((tool) => {
 				window.globAppstate.pointer_previous.y,
 				brush.shape,
 				brush.size,
+				window.globAppstate.stroke_color
 			);
 			stamp_brush_canvas(
 				tool.mask_canvas.ctx,
@@ -2005,6 +2059,7 @@ tools.forEach((tool) => {
 				window.globAppstate.pointer.y,
 				brush.shape,
 				brush.size,
+				window.globAppstate.stroke_color
 			);
 		};
 
@@ -2040,18 +2095,19 @@ tools.forEach((tool) => {
 
 			// 이게 브러쉬 점 미리보기인데 헬퍼에 찍어야 함
 			//const mask_fill_canvas = make_canvas(tool.mask_canvas);
-			// if (previewing && tool.dynamic_preview_cursor) {
-			// 	const brush = tool.get_brush();
-			// 	// dynamic cursor preview:
-			// 	// stamp just onto this temporary canvas so it's temporary
-			// 	stamp_brush_canvas(
-			// 		tool.mask_canvas.ctx,
-			// 		window.globAppstate.pointer.x,
-			// 		window.globAppstate.pointer.y,
-			// 		brush.shape,
-			// 		brush.size,
-			// 	);
-			// }
+			if (previewing && tool.dynamic_preview_cursor) {
+				const brush = tool.get_brush();
+				// dynamic cursor preview:
+				// stamp just onto this temporary canvas so it's temporary
+				stamp_brush_canvas(
+					ctx,
+					window.globAppstate.pointer.x,
+					window.globAppstate.pointer.y,
+					brush.shape,
+					brush.size,
+					window.globAppstate.stroke_color
+				);
+			}
 			
 			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			ctx.drawImage(tool.mask_canvas, 0, 0);
