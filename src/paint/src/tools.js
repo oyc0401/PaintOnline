@@ -1987,7 +1987,7 @@ tools.forEach((tool) => {
 				window.globAppstate.pointer.y,
 				(x, y) => {
 					for (const point of circumference_points) {
-						tool.mask_canvas.ctx.fillStyle = "white";
+						tool.mask_canvas.ctx.fillStyle = window.globAppstate.stroke_color;
 						tool.mask_canvas.ctx.fillRect(x + point.x, y + point.y, 1, 1);
 					}
 				},
@@ -2016,17 +2016,17 @@ tools.forEach((tool) => {
 		};
 		tool.render_from_mask = (ctx, previewing) => {
 			// 덮어쓰기, 기본값 false
-			const 덮어쓰기모드 = true;
-			if (!덮어쓰기모드) {
-				// could be private
-				ctx.save();
-				ctx.globalCompositeOperation = "destination-out";
-				ctx.drawImage(tool.mask_canvas, 0, 0);
-				ctx.restore();
-			}
+			// const 덮어쓰기모드 = true;
+			// if (!덮어쓰기모드) {
+			// 	// could be private
+			// 	ctx.save();
+			// 	ctx.globalCompositeOperation = "destination-out";
+			// 	ctx.drawImage(tool.mask_canvas, 0, 0);
+			// 	ctx.restore();
+			// }
 
-			/** @type {string | CanvasGradient | CanvasPattern} */
-			let color = window.globAppstate.stroke_color;
+			// /** @type {string | CanvasGradient | CanvasPattern} */
+			// let color = window.globAppstate.stroke_color;
 			// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
 			// or other values
 			// even with privacy.resistFingerprinting set to false
@@ -2054,7 +2054,7 @@ tools.forEach((tool) => {
 			// }
 			
 			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-			ctx.drawImage(mask_fill_canvas, 0, 0);
+			ctx.drawImage(tool.mask_canvas, 0, 0);
 			// return translucent;
 			return true;
 		};
