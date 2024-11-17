@@ -29,7 +29,7 @@
       />
       <meta name="theme-color" content="#000080" />
 
-      <meta name="viewport" content="width=device-width, user-scalable=no" />
+      <meta name="viewport" content="width=device-width" />
 
       <meta
         name="description"
@@ -61,27 +61,92 @@
       <meta name="twitter:creator" content="@isaiahodhner" />
 
     </head>
+
+    <style>
+
+      .log-box {
+        width: 100%;
+        height: 33vh;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        overflow-y: auto;
+        padding: 10px;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index:9999;
+      }
+
+      .log-message {
+        margin: 5px 0;
+        line-height: 1.4;
+      }
+
+      .error-message {
+        color: #ff4d4d;
+      }
+    </style>
     
     
-		<link href="./_app/immutable/assets/0.c8e2c42d.css" rel="stylesheet">
+		<link href="./_app/immutable/assets/0.91e775ed.css" rel="stylesheet">
 		<link href="./_app/immutable/assets/2.0cff32a5.css" rel="stylesheet">
-		<link rel="modulepreload" href="./_app/immutable/entry/start.8186b918.js">
+		<link rel="modulepreload" href="./_app/immutable/entry/start.3956d511.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/index-client.3558eb38.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/runtime.c4ca9175.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/singletons.a192a3c4.js">
-		<link rel="modulepreload" href="./_app/immutable/entry/app.833c1c50.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/singletons.27bba699.js">
+		<link rel="modulepreload" href="./_app/immutable/entry/app.9f190836.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/preload-helper.5c86ab27.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/store.fad3cbb0.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/svelte-head.172123e7.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/disclose-version.ea5a5213.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/0.bb714fa6.js">
+		<link rel="modulepreload" href="./_app/immutable/nodes/0.697c3805.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/legacy.eadbc98f.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/2.7cda6fdb.js">
+		<link rel="modulepreload" href="./_app/immutable/nodes/2.4e35d716.js">
 		<link rel="modulepreload" href="./_app/immutable/chunks/lifecycle.dabb59c6.js"><!--[--><meta name="description" content="Svelte demo app"><!--]--><title>Home</title>
   </head>
 
   
   <body data-sveltekit-preload-data="hover" oncontextmenu="return false">
+    <!-- <div class="log-box" id="logBox"></div>
+    <script>
+      // 로그 박스에 메시지를 추가하는 함수
+      function addLogMessage(message, isError = false) {
+        const logBox = document.getElementById("logBox");
+        const logEntry = document.createElement("div");
+        logEntry.className = "log-message" + (isError ? " error-message" : "");
+        logEntry.textContent = message;
+
+        logBox.appendChild(logEntry);
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+
+      // console.log와 console.error 재정의
+      const originalLog = console.log;
+      const originalError = console.error;
+
+      function formatLogArguments(args) {
+        return Array.from(args)
+          .map(arg => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+          .join(" ");
+      }
+
+      console.log = function (...args) {
+        originalLog.apply(console, args);
+        addLogMessage(formatLogArguments(args));
+      };
+
+      console.error = function (...args) {
+        originalError.apply(console, args);
+        addLogMessage(formatLogArguments(args), true);
+      };
+
+      // 테스트 메시지
+      console.log("이것은 일반 로그 메시지입니다.", { key: "value" }, 42);
+      console.error("이것은 에러 메시지입니다.", ["배열", "테스트"], null);
+    </script> -->
+    
     <script type="module" src="lib/jquery-3.4.1.min.js"></script>
     <script type="module" src="src/app-localization.js"></script>
     
@@ -89,7 +154,7 @@
 			
 			<script>
 				{
-					__sveltekit_6mxlf7 = {
+					__sveltekit_1smaxud = {
 						base: new URL(".", location).pathname.slice(0, -1),
 						env: {}
 					};
@@ -99,8 +164,8 @@
 					const data = [null,null];
 
 					Promise.all([
-						import("./_app/immutable/entry/start.8186b918.js"),
-						import("./_app/immutable/entry/app.833c1c50.js")
+						import("./_app/immutable/entry/start.3956d511.js"),
+						import("./_app/immutable/entry/app.9f190836.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element, {
 							node_ids: [0, 2],

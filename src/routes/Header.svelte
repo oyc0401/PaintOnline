@@ -147,7 +147,7 @@
         { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('white') } },
         { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('red')} },
         { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('yellow')} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(0,255,0,0.5)')} },
+        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(100,205,50,0.5)')} },
         { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(255,255,255,0)')} },
       ]}
     ]

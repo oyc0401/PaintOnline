@@ -106,6 +106,14 @@ export function setupState() {
   /** @type {PixelContext} */
   const main_ctx = main_canvas.ctx;
 
+  /** @type {PixelCanvas} */
+  const mask_canvas = make_canvas();
+    mask_canvas.classList.add("mask-canvas");
+
+  /** @type {PixelContext} */
+  const mask_ctx = main_canvas.ctx;
+  
+
 
   /** @type {(string | CanvasPattern)[]} */
   let palette = default_palette;
@@ -308,6 +316,8 @@ export function setupState() {
   state.pointer_over_canvas = pointer_over_canvas;
   state.update_helper_layer_on_pointermove_active = update_helper_layer_on_pointermove_active;
   state.pointers = pointers;
+  state.mask_canvas = mask_canvas;
+  state.mask_ctx = mask_ctx;
 
 
   window.globAppstate={};

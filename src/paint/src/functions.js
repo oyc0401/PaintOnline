@@ -3,7 +3,6 @@ console.log('JS 실행:','functions.js')
 
 
 import UPNG from '../lib/UPNG.js'
-import pdfjs from '../lib/pdf.js/build/pdf.js'
 import AnyPalette from '../lib/anypalette-0.6.0.js';
 // import $ from 'jquery'
 
@@ -204,6 +203,7 @@ function update_helper_layer_immediately() {
 	const scale = window.globAppstate.magnification * window.devicePixelRatio;
 
 	if (!window.globAppstate.helper_layer) {
+		console.log('make helper-layer')
 		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
@@ -268,6 +268,7 @@ function update_helper_layer_immediately() {
  * @param {boolean} is_helper_layer
  */
 function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_layer) {
+	//console.log('render',is_helper_layer);
 	window.globApp.update_fill_and_stroke_colors_and_lineWidth(window.globAppstate.selected_tool);
 
 	const grid_visible = window.globAppstate.show_grid && window.globAppstate.magnification >= 4 && (window.devicePixelRatio * window.globAppstate.magnification) >= 4 && is_helper_layer;
@@ -453,6 +454,12 @@ function reset_canvas_and_history() {
 	window.globAppstate.main_ctx.fillStyle = window.globAppstate.selected_colors.background;
 	window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
+	///
+	window.globAppstate.mask_canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
+	window.globAppstate.mask_canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
+	///
+
+	
 	window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 	
 	window.globApp.$canvas_area.trigger("resize");
@@ -3296,50 +3303,50 @@ function read_image_file(blob, callback) {
 			file_format = "image/tiff";
 			callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
 		} else if (detected_type_id === "pdf") {
-			file_format = "application/pdf";
+			// file_format = "application/pdf";
 
 			
 
-			pdfjs.GlobalWorkerOptions.workerSrc = "lib/pdf.js/build/pdf.worker.js";
+			// pdfjs.GlobalWorkerOptions.workerSrc = "lib/pdf.js/build/pdf.worker.js";
 
-			const file_bytes = new Uint8Array(arrayBuffer);
+			// const file_bytes = new Uint8Array(arrayBuffer);
 
-			const loadingTask = pdfjs.getDocument({
-				data: file_bytes,
-				cMapUrl: "lib/pdf.js/web/cmaps/",
-				cMapPacked: true,
-			});
+			// const loadingTask = pdfjs.getDocument({
+			// 	data: file_bytes,
+			// 	cMapUrl: "lib/pdf.js/web/cmaps/",
+			// 	cMapPacked: true,
+			// });
 
-			loadingTask.promise.then((pdf) => {
-				console.log("PDF loaded");
+			// loadingTask.promise.then((pdf) => {
+			// 	console.log("PDF loaded");
 
-				// Fetch the first page
-				// TODO: maybe concatenate all pages into one image?
-				var pageNumber = 1;
-				pdf.getPage(pageNumber).then((page) => {
-					console.log("Page loaded");
+			// 	// Fetch the first page
+			// 	// TODO: maybe concatenate all pages into one image?
+			// 	var pageNumber = 1;
+			// 	pdf.getPage(pageNumber).then((page) => {
+			// 		console.log("Page loaded");
 
-					var scale = 1.5;
-					var viewport = page.getViewport({ scale });
+			// 		var scale = 1.5;
+			// 		var viewport = page.getViewport({ scale });
 
-					// Prepare canvas using PDF page dimensions
-					var canvas = make_canvas(viewport.width, viewport.height);
+			// 		// Prepare canvas using PDF page dimensions
+			// 		var canvas = make_canvas(viewport.width, viewport.height);
 
-					// Render PDF page into canvas context
-					var renderContext = {
-						canvasContext: canvas.ctx,
-						viewport,
-					};
-					var renderTask = page.render(renderContext);
-					renderTask.promise.then(() => {
-						console.log("Page rendered");
-						const image_data = canvas.ctx.getImageData(0, 0, canvas.width, canvas.height);
-						callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
-					});
-				});
-			}, (reason) => {
-				callback(new Error(`Failed to load PDF. ${reason}`));
-			});
+			// 		// Render PDF page into canvas context
+			// 		var renderContext = {
+			// 			canvasContext: canvas.ctx,
+			// 			viewport,
+			// 		};
+			// 		var renderTask = page.render(renderContext);
+			// 		renderTask.promise.then(() => {
+			// 			console.log("Page rendered");
+			// 			const image_data = canvas.ctx.getImageData(0, 0, canvas.width, canvas.height);
+			// 			callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
+			// 		});
+			// 	});
+			// }, (reason) => {
+			// 	callback(new Error(`Failed to load PDF. ${reason}`));
+			// });
 		} else {
 			monochrome = false;
 			file_format = {

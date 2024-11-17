@@ -204,6 +204,7 @@ function image_data_match(a, b, threshold) {
  * @returns {PixelCanvas}  a new canvas element, augmented with `ctx` property, which is also augmented
  */
 function make_canvas(width, height) {
+	console.log('make canvas')
 	const image = width;
 
 

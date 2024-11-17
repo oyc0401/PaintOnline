@@ -19,3 +19,17 @@ html, body{
   /* pointer-events : none; */
   /* background: rgba(255, 0, 0, 0.5); */
 }
+
+.mask-canvas {
+  position: absolute;
+  z-index: 3;
+}
+
+
+.mask-canvas {
+  left:300px;
+}
+
+.helper-layer canvas {
+  left:600px !important;
+}

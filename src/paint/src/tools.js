@@ -1943,7 +1943,7 @@ tools.forEach((tool) => {
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+				tool.mask_canvas = window.globAppstate.mask_canvas;
 			}
 			if (tool.mask_canvas.width !== window.globAppstate.main_canvas.width) {
 				tool.mask_canvas.width = window.globAppstate.main_canvas.width;
@@ -2037,20 +2037,23 @@ tools.forEach((tool) => {
 			// 	color = 'rgba(255, 0, 0, 0.3)';
 			// }
 			// @TODO: perf: keep this canvas around too
-			const mask_fill_canvas = make_canvas(tool.mask_canvas);
-			if (previewing && tool.dynamic_preview_cursor) {
-				const brush = tool.get_brush();
-				// dynamic cursor preview:
-				// stamp just onto this temporary canvas so it's temporary
-				stamp_brush_canvas(
-					mask_fill_canvas.ctx,
-					window.globAppstate.pointer.x,
-					window.globAppstate.pointer.y,
-					brush.shape,
-					brush.size,
-				);
-			}
-			replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
+
+			// 이게 브러쉬 점 미리보기인데 헬퍼에 찍어야 함
+			//const mask_fill_canvas = make_canvas(tool.mask_canvas);
+			// if (previewing && tool.dynamic_preview_cursor) {
+			// 	const brush = tool.get_brush();
+			// 	// dynamic cursor preview:
+			// 	// stamp just onto this temporary canvas so it's temporary
+			// 	stamp_brush_canvas(
+			// 		tool.mask_canvas.ctx,
+			// 		window.globAppstate.pointer.x,
+			// 		window.globAppstate.pointer.y,
+			// 		brush.shape,
+			// 		brush.size,
+			// 	);
+			// }
+			
+			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			ctx.drawImage(mask_fill_canvas, 0, 0);
 			// return translucent;
 			return true;

@@ -95,9 +95,10 @@ export function setupApp() {
   const $canvas_area = $(".canvas-area");
 
   const $canvas = $(appState.main_canvas).appendTo($canvas_area);
-
   $canvas.css("touch-action", "none");
   $canvas_area.css("touch-action", "none");
+  
+  const $mask_canvas = $(appState.mask_canvas).appendTo($canvas_area);
   
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
@@ -855,10 +856,12 @@ export function setupApp() {
     });
     appState.pointer_previous = appState.pointer;
   }
+  
   $canvas.on("pointermove", (e) => {
     appState.pointer = to_canvas_coords(e);
     $status_position.text(`${appState.pointer.x}, ${appState.pointer.y} px`);
   });
+  
   $canvas.on("pointerenter", (e) => {
     appState.pointer_over_canvas = true;
 
@@ -1093,6 +1096,7 @@ export function setupApp() {
         if (e.clientX !== undefined) {
           // may be synthetic event without coordinates
           appState.pointer = to_canvas_coords(e);
+          console.log('appState.pointer:',appState.pointer)
         }
         // don't create undoables if you're two-finger-panning
         // @TODO: do any tools use pointerup for cleanup?
