@@ -2096,6 +2096,7 @@ tools.forEach((tool) => {
 			// 이게 브러쉬 점 미리보기인데 헬퍼에 찍어야 함
 			//const mask_fill_canvas = make_canvas(tool.mask_canvas);
 			if (previewing && tool.dynamic_preview_cursor) {
+				
 				const brush = tool.get_brush();
 				// dynamic cursor preview:
 				// stamp just onto this temporary canvas so it's temporary
@@ -2107,10 +2108,11 @@ tools.forEach((tool) => {
 					brush.size,
 					window.globAppstate.stroke_color
 				);
+				console.log('helper',window.globAppstate.stroke_color)
 			}
 			
 			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-			ctx.drawImage(tool.mask_canvas, 0, 0);
+			//ctx.drawImage(tool.mask_canvas, 0, 0);
 			// return translucent;
 			return true;
 		};

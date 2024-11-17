@@ -207,19 +207,26 @@ $G.on("invalidate-brush-canvases", () => {
  */
 const stamp_brush_canvas = (ctx, x, y, brush_shape, brush_size,color='red') => {
 	const brush_canvas = get_brush_canvas(brush_shape, brush_size);
-	const brush_ctx = brush_canvas.getContext('2d');
+	
+	const clone_canvas = document.createElement('canvas');
+	clone_canvas.width = brush_canvas.width;
+	clone_canvas.height = brush_canvas.height;
 
+	const clone_ctx = clone_canvas.getContext('2d');
+	// 원본 캔버스 내용을 새 캔버스에 그리기
+	clone_ctx.drawImage(brush_canvas, 0, 0);
+	
 	// 기존 내용 덮어쓰기를 위해 합성 설정
-	brush_ctx.globalCompositeOperation = 'source-in'; // 알파 값 유지하며 색상 덮어쓰기
+	clone_ctx.globalCompositeOperation = 'source-in'; // 알파 값 유지하며 색상 덮어쓰기
 
 	// 빨간색 설정 및 캔버스 전체 채우기
-	brush_ctx.fillStyle = color;
-	brush_ctx.fillRect(0, 0, brush_canvas.width, brush_canvas.height);
+	clone_ctx.fillStyle = color;
+	clone_ctx.fillRect(0, 0, clone_canvas.width, clone_canvas.height);
 
-	const offset_x = -Math.ceil(brush_canvas.width / 2);
-	const offset_y = -Math.ceil(brush_canvas.height / 2);
+	const offset_x = -Math.ceil(clone_brush.width / 2);
+	const offset_y = -Math.ceil(clone_canvas.height / 2);
 
-	ctx.drawImage(brush_canvas, x + offset_x, y + offset_y);
+	ctx.drawImage(clone_canvas, x + offset_x, y + offset_y);
 };
 
 /**
