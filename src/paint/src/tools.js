@@ -587,24 +587,46 @@ const tools = [
 				},
 				() => {
 					//this.render_from_mask(window.globAppstate.main_ctx);
+					// 이게 투명지우개면 완전히 안사라짐;;;
+					// mask_canvas를 복사하여 새로운 캔버스 생성
+					const maskCanvas = this.mask_canvas;
+					const maskCtx = maskCanvas.getContext("2d");
+
+					const clonedCanvas = document.createElement("canvas");
+					clonedCanvas.width = maskCanvas.width;
+					clonedCanvas.height = maskCanvas.height;
+					const clonedCtx = clonedCanvas.getContext("2d");
+
+					// mask_canvas의 내용을 복사
+					clonedCtx.drawImage(maskCanvas, 0, 0);
+
+					// 복사된 캔버스의 픽셀 데이터 가져오기
+					const maskImageData = clonedCtx.getImageData(0, 0, clonedCanvas.width, clonedCanvas.height);
+
+					// 알파 값을 보정
+					for (let i = 0; i < maskImageData.data.length; i += 4) {
+							const alpha = maskImageData.data[i + 3] / 255; // 현재 알파 값 (0 ~ 1)
+							maskImageData.data[i + 3] = alpha > 0 ? 255 : 0; // 완전 불투명 (255)
+					}
+
+					// 보정된 이미지 데이터를 복사된 캔버스에 다시 적용
+					clonedCtx.putImageData(maskImageData, 0, 0);
+
+					// 메인 캔버스에 보정된 캔버스를 사용하여 투명도 제거 적용
 					window.globAppstate.main_ctx.save();
 					window.globAppstate.main_ctx.globalCompositeOperation = "destination-out";
-					window.globAppstate.main_ctx.drawImage(this.mask_canvas, 0, 0);
+					window.globAppstate.main_ctx.drawImage(clonedCanvas, 0, 0);
 					window.globAppstate.main_ctx.restore();
 
-					/** @type {string | CanvasPattern | CanvasGradient} */
+
+
+					// 지워진 이후
 					let color = window.globAppstate.selected_colors.background;
 
 					const translucent = get_rgba_from_color(color)[3] < 1;
 
 					if (translucent) {
-						color = previewing
-							? "rgba(255, 0, 0, 0.3)"
-							: window.globAppstate.selected_colors.background;
-						const mask_fill_canvas = make_canvas(this.mask_canvas);
-						replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-
-						window.globAppstate.main_ctx.drawImage(mask_fill_canvas, 0, 0);
+						// 투명지우개면 안 칠해도 됌	
 					}else{
 						window.globAppstate.main_ctx.drawImage(this.mask_canvas, 0, 0);
 					}
@@ -638,6 +660,15 @@ const tools = [
 			if (!this.color_eraser_mode) {
 				// Eraser
 				this.mask_canvas.ctx.fillStyle = window.globAppstate.selected_colors.background;
+				
+				let color = window.globAppstate.selected_colors.background;
+				const translucent = get_rgba_from_color(color)[3] < 1;
+				
+				
+				if (translucent) {
+					color = "rgba(255, 0, 0, 0.3)"
+					this.mask_canvas.ctx.fillStyle = color;
+				}
 				
 				this.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
 				this.mask_canvas.ctx.fillRect(rect_x, rect_y, rect_w, rect_h);

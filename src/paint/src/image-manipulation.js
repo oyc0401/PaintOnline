@@ -223,7 +223,7 @@ const stamp_brush_canvas = (ctx, x, y, brush_shape, brush_size,color='red') => {
 	clone_ctx.fillStyle = color;
 	clone_ctx.fillRect(0, 0, clone_canvas.width, clone_canvas.height);
 
-	const offset_x = -Math.ceil(clone_brush.width / 2);
+	const offset_x = -Math.ceil(clone_canvas.width / 2);
 	const offset_y = -Math.ceil(clone_canvas.height / 2);
 
 	ctx.drawImage(clone_canvas, x + offset_x, y + offset_y);

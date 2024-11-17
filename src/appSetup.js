@@ -59,8 +59,8 @@ import {
   make_css_cursor
 } from "./paint/src/helpers.js";
 import { init_webgl_stuff, rotate } from "./paint/src/image-manipulation.js";
-import { menus } from "./paint/src/menus.js";
-import { showMessageBox } from "./paint/src/msgbox.js";
+// import { menus } from "./paint/src/menus.js";
+// import { showMessageBox } from "./paint/src/msgbox.js";
 import { localStore } from "./paint/src/storage.js";
 
 import {
@@ -95,10 +95,12 @@ export function setupApp() {
   const $canvas_area = $(".canvas-area");
 
   const $canvas = $(appState.main_canvas).appendTo($canvas_area);
+  const $mask_canvas = $(appState.mask_canvas).appendTo($canvas_area);
+  
   $canvas.css("touch-action", "none");
   $canvas_area.css("touch-action", "none");
-  
-  const $mask_canvas = $(appState.mask_canvas).appendTo($canvas_area);
+  $mask_canvas.css("touch-action", "none");
+  $mask_canvas.css({pointerEvents: "none"});
   
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,

@@ -108,7 +108,7 @@ export function setupState() {
 
   /** @type {PixelCanvas} */
   const mask_canvas = make_canvas();
-    mask_canvas.classList.add("mask-canvas");
+  mask_canvas.classList.add("mask-canvas");
 
   /** @type {PixelContext} */
   const mask_ctx = main_canvas.ctx;
