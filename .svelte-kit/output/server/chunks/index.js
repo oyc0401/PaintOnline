@@ -21,6 +21,7 @@ const DESTROYED = 1 << 13;
 const EFFECT_RAN = 1 << 14;
 const HEAD_EFFECT = 1 << 18;
 const EFFECT_HAS_DERIVED = 1 << 19;
+const LEGACY_PROPS = Symbol("legacy props");
 function effect_update_depth_exceeded() {
   {
     throw new Error("effect_update_depth_exceeded");
@@ -275,15 +276,11 @@ function unlink_effect(effect2) {
   var parent = effect2.parent;
   var prev = effect2.prev;
   var next = effect2.next;
-  if (prev !== null)
-    prev.next = next;
-  if (next !== null)
-    next.prev = prev;
+  if (prev !== null) prev.next = next;
+  if (next !== null) next.prev = prev;
   if (parent !== null) {
-    if (parent.first === effect2)
-      parent.first = next;
-    if (parent.last === effect2)
-      parent.last = prev;
+    if (parent.first === effect2) parent.first = next;
+    if (parent.last === effect2) parent.last = prev;
   }
 }
 function flush_tasks() {
@@ -459,8 +456,7 @@ function remove_reaction(signal, dependency) {
 }
 function remove_reactions(signal, start_index) {
   var dependencies = signal.deps;
-  if (dependencies === null)
-    return;
+  if (dependencies === null) return;
   for (var i = start_index; i < dependencies.length; i++) {
     remove_reaction(signal, dependencies[i]);
   }
@@ -484,8 +480,7 @@ function update_effect(effect2) {
     var teardown = update_reaction(effect2);
     effect2.teardown = typeof teardown === "function" ? teardown : null;
     effect2.version = current_version;
-    if (DEV)
-      ;
+    if (DEV) ;
   } catch (error) {
     handle_error(
       /** @type {Error} */
@@ -528,8 +523,7 @@ function flush_queued_root_effects(root_effects) {
 }
 function flush_queued_effects(effects) {
   var length = effects.length;
-  if (length === 0)
-    return;
+  if (length === 0) return;
   for (var i = 0; i < length; i++) {
     var effect2 = effects[i];
     if ((effect2.f & (DESTROYED | INERT)) === 0 && check_dirtiness(effect2)) {
@@ -568,8 +562,7 @@ function schedule_effect(signal) {
     effect2 = effect2.parent;
     var flags = effect2.f;
     if ((flags & (ROOT_EFFECT | BRANCH_EFFECT)) !== 0) {
-      if ((flags & CLEAN) === 0)
-        return;
+      if ((flags & CLEAN) === 0) return;
       effect2.f ^= CLEAN;
     }
   }
@@ -578,44 +571,43 @@ function schedule_effect(signal) {
 function process_effects(effect2, collected_effects) {
   var current_effect = effect2.first;
   var effects = [];
-  main_loop:
-    while (current_effect !== null) {
-      var flags = current_effect.f;
-      var is_branch = (flags & BRANCH_EFFECT) !== 0;
-      var is_skippable_branch = is_branch && (flags & CLEAN) !== 0;
-      if (!is_skippable_branch && (flags & INERT) === 0) {
-        if ((flags & RENDER_EFFECT) !== 0) {
-          if (is_branch) {
-            current_effect.f ^= CLEAN;
-          } else if (check_dirtiness(current_effect)) {
-            update_effect(current_effect);
-          }
-          var child = current_effect.first;
-          if (child !== null) {
-            current_effect = child;
-            continue;
-          }
-        } else if ((flags & EFFECT) !== 0) {
-          effects.push(current_effect);
+  main_loop: while (current_effect !== null) {
+    var flags = current_effect.f;
+    var is_branch = (flags & BRANCH_EFFECT) !== 0;
+    var is_skippable_branch = is_branch && (flags & CLEAN) !== 0;
+    if (!is_skippable_branch && (flags & INERT) === 0) {
+      if ((flags & RENDER_EFFECT) !== 0) {
+        if (is_branch) {
+          current_effect.f ^= CLEAN;
+        } else if (check_dirtiness(current_effect)) {
+          update_effect(current_effect);
         }
-      }
-      var sibling = current_effect.next;
-      if (sibling === null) {
-        let parent = current_effect.parent;
-        while (parent !== null) {
-          if (effect2 === parent) {
-            break main_loop;
-          }
-          var parent_sibling = parent.next;
-          if (parent_sibling !== null) {
-            current_effect = parent_sibling;
-            continue main_loop;
-          }
-          parent = parent.parent;
+        var child = current_effect.first;
+        if (child !== null) {
+          current_effect = child;
+          continue;
         }
+      } else if ((flags & EFFECT) !== 0) {
+        effects.push(current_effect);
       }
-      current_effect = sibling;
     }
+    var sibling = current_effect.next;
+    if (sibling === null) {
+      let parent = current_effect.parent;
+      while (parent !== null) {
+        if (effect2 === parent) {
+          break main_loop;
+        }
+        var parent_sibling = parent.next;
+        if (parent_sibling !== null) {
+          current_effect = parent_sibling;
+          continue main_loop;
+        }
+        parent = parent.parent;
+      }
+    }
+    current_effect = sibling;
+  }
   for (var i = 0; i < effects.length; i++) {
     child = effects[i];
     collected_effects.push(child);
@@ -638,8 +630,7 @@ function flush_sync(fn) {
       flush_sync();
     }
     flush_count = 0;
-    if (DEV)
-      ;
+    if (DEV) ;
     return result;
   } finally {
     scheduler_mode = previous_scheduler_mode;
@@ -723,9 +714,6 @@ function push$1(props, runes = false, fn) {
 function pop$1(component) {
   const context_stack_item = component_context;
   if (context_stack_item !== null) {
-    if (component !== void 0) {
-      context_stack_item.x = component;
-    }
     const component_effects = context_stack_item.e;
     if (component_effects !== null) {
       var previous_effect = active_effect;
@@ -746,14 +734,14 @@ function pop$1(component) {
     component_context = context_stack_item.p;
     context_stack_item.m = true;
   }
-  return component || /** @type {T} */
-  {};
+  return (
+    /** @type {T} */
+    {}
+  );
 }
 function subscribe_to_store(store, run, invalidate) {
   if (store == null) {
     run(void 0);
-    if (invalidate)
-      invalidate(void 0);
     return noop;
   }
   const unsub = untrack(
@@ -764,22 +752,6 @@ function subscribe_to_store(store, run, invalidate) {
     )
   );
   return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
-}
-const ATTR_REGEX = /[&"<]/g;
-const CONTENT_REGEX = /[&<]/g;
-function escape_html(value, is_attr) {
-  const str = String(value ?? "");
-  const pattern = is_attr ? ATTR_REGEX : CONTENT_REGEX;
-  pattern.lastIndex = 0;
-  let escaped = "";
-  let last = 0;
-  while (pattern.test(str)) {
-    const i = pattern.lastIndex - 1;
-    const ch = str[i];
-    escaped += str.substring(last, i) + (ch === "&" ? "&amp;" : ch === '"' ? "&quot;" : "&lt;");
-    last = i + 1;
-  }
-  return escaped + str.substring(last);
 }
 var current_component = null;
 function getContext(key) {
@@ -842,8 +814,7 @@ function render(component, options = {}) {
     pop();
   }
   payload.out += BLOCK_CLOSE;
-  for (const cleanup of on_destroy)
-    cleanup();
+  for (const cleanup of on_destroy) cleanup();
   on_destroy = prev_on_destroy;
   let head2 = payload.head.out + payload.head.title;
   for (const { hash, code } of payload.css) {
@@ -860,19 +831,6 @@ function head(payload, fn) {
   head_payload.out += BLOCK_OPEN;
   fn(head_payload);
   head_payload.out += BLOCK_CLOSE;
-}
-const replacements = {
-  translate: /* @__PURE__ */ new Map([
-    [true, "yes"],
-    [false, "no"]
-  ])
-};
-function attr(name, value, is_boolean = false) {
-  if (value == null || !value && is_boolean || value === "" && name === "class")
-    return "";
-  const normalized = name in replacements && replacements[name].get(value) || value;
-  const assignment = is_boolean ? "" : `="${escape_html(normalized, true)}"`;
-  return ` ${name}${assignment}`;
 }
 function stringify(value) {
   return typeof value === "string" ? value : value == null ? "" : value + "";
@@ -899,66 +857,63 @@ function unsubscribe_stores(store_values) {
 function slot(payload, $$props, name, slot_props, fallback_fn) {
   var slot_fn = $$props.$$slots?.[name];
   if (slot_fn === true) {
-    slot_fn = $$props[name === "default" ? "children" : name];
+    slot_fn = $$props["children"];
   }
   if (slot_fn !== void 0) {
     slot_fn(payload, slot_props);
-  } else {
-    fallback_fn?.();
   }
 }
 export {
-  array_from as A,
-  BLOCK_EFFECT as B,
+  branch as A,
+  BRANCH_EFFECT as B,
   CLEAN as C,
   DEV as D,
-  effect_root as E,
-  create_text as F,
-  branch as G,
+  push$1 as E,
+  component_context as F,
+  pop$1 as G,
   HYDRATION_ERROR as H,
-  push$1 as I,
-  pop$1 as J,
-  component_context as K,
-  get as L,
+  HYDRATION_END as I,
+  hydration_failed as J,
+  clear_text_content as K,
+  LEGACY_PROPS as L,
   MAYBE_DIRTY as M,
-  flush_sync as N,
-  render as O,
-  push as P,
-  setContext as Q,
-  pop as R,
-  slot as S,
-  getContext as T,
+  get as N,
+  flush_sync as O,
+  render as P,
+  push as Q,
+  setContext as R,
+  pop as S,
+  slot as T,
   UNOWNED as U,
-  escape_html as V,
+  getContext as V,
   store_get as W,
   unsubscribe_stores as X,
-  attr as Y,
-  stringify as Z,
-  head as _,
-  active_reaction as a,
+  stringify as Y,
+  head as Z,
+  DIRTY as a,
   DERIVED as b,
-  increment_version as c,
-  derived_sources as d,
-  DIRTY as e,
-  set_signal_status as f,
-  schedule_effect as g,
-  active_effect as h,
-  is_runes as i,
-  BRANCH_EFFECT as j,
-  new_deps as k,
-  set_untracked_writes as l,
+  schedule_effect as c,
+  active_effect as d,
+  new_deps as e,
+  set_untracked_writes as f,
+  active_reaction as g,
+  is_runes as h,
+  increment_version as i,
+  BLOCK_EFFECT as j,
+  derived_sources as k,
+  state_unsafe_mutation as l,
   get_next_sibling as m,
   noop as n,
   define_property as o,
   set_active_reaction as p,
   set_active_effect as q,
   is_array as r,
-  state_unsafe_mutation as s,
+  set_signal_status as s,
   init_operations as t,
   untracked_writes as u,
   get_first_child as v,
   HYDRATION_START as w,
-  HYDRATION_END as x,
-  hydration_failed as y,
-  clear_text_content as z
+  array_from as x,
+  effect_root as y,
+  create_text as z
 };

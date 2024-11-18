@@ -18,6 +18,7 @@ import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizon
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
 import { TOOL_CURVE, TOOL_FREE_FORM_SELECT, TOOL_POLYGON, TOOL_SELECT, TOOL_TEXT, tools } from "./tools.js";
+import $ from 'jquery'
 // `sessions.js` must be loaded after `app.js`
 // This would cause it to be loaded earlier, and error trying to access `undos`
 // I'm surprised I haven't been bitten by this sort of bug, and I've
@@ -186,15 +187,7 @@ function update_helper_layer(e) {
 		// window.console?.log("update_helper_layer");
 	}
 	helper_layer_update_queued = true;
-	requestAnimationFrame((currentTime) => {
-		// // 프레임 간 간격 계산 (밀리초 단위)
-		// const deltaTime = currentTime - lastTime;
-
-		// console.log(`Delta Time: ${deltaTime}ms`); // 출력해보기
-
-		// // 새로운 애니메이션 로직
-		// lastTime = currentTime;
-		
+	requestAnimationFrame(() => {
 		helper_layer_update_queued = false;
 		update_helper_layer_immediately();
 	});
@@ -203,7 +196,7 @@ function update_helper_layer(e) {
 let lastTime = 0;
 
 function update_helper_layer_immediately() {
-	window.console?.log("Update helper layer NOW");
+//	window.console?.log("Update helper layer NOW");
 	if (info_for_updating_pointer) {
 		const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
 		info_for_updating_pointer.clientX *= rescale;
@@ -215,12 +208,12 @@ function update_helper_layer_immediately() {
 	const scale = window.globAppstate.magnification * window.devicePixelRatio;
 
 	if (!window.globAppstate.helper_layer) {
-		console.log('make helper-layer')
+		//console.log('make helper-layer')
 		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
 	if (!window.globAppstate.mask_layer) {
-		console.log('make mask_layer')
+		//console.log('make mask_layer')
 		window.globAppstate.mask_layer = new OnCanvasMaskLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
@@ -228,7 +221,7 @@ function update_helper_layer_immediately() {
 	// window.globAppstate.helper_layer.canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
 	if(window.globAppstate.helper_layer.canvas.width != window.globAppstate.main_canvas.width
 		 || window.globAppstate.helper_layer.canvas.height != window.globAppstate.main_canvas.height) {
-		console.log('같지않음')
+		//console.log('같지않음')
 
 		window.globAppstate.helper_layer.canvas.width = window.globAppstate.main_canvas.width
 		window.globAppstate.helper_layer.canvas.height = window.globAppstate.main_canvas.height
@@ -242,7 +235,7 @@ function update_helper_layer_immediately() {
 
 	if(window.globAppstate.mask_layer.canvas.width != window.globAppstate.main_canvas.width
 		 || window.globAppstate.mask_layer.canvas.height != window.globAppstate.main_canvas.height) {
-		console.log('같지않음2')
+		//console.log('같지않음2')
 
 		window.globAppstate.mask_layer.canvas.width = window.globAppstate.main_canvas.width
 		window.globAppstate.mask_layer.canvas.height = window.globAppstate.main_canvas.height

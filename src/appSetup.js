@@ -858,10 +858,7 @@ export function setupApp() {
   }
   
   $canvas.on("pointermove", (e) => {
-    appState.pointer_float_previous.x = appState.pointer.x;
-    appState.pointer_float_previous.y = appState.pointer.y;
     appState.pointer = to_canvas_coords(e);
-    
     $status_position.text(`${appState.pointer.x}, ${appState.pointer.y} px`);
   });
   
@@ -1011,9 +1008,6 @@ export function setupApp() {
       $canvas_area.scrollTop($canvas_area.scrollTop() - difference_in_y);
       pan_last_pos = current_pos;
     }
-
-
-   
   });
   // #endregion
 

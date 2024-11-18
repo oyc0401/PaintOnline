@@ -1,7 +1,11 @@
-import { a as active_reaction, i as is_runes, b as DERIVED, B as BLOCK_EFFECT, d as derived_sources, s as state_unsafe_mutation, c as increment_version, e as DIRTY, f as set_signal_status, C as CLEAN, U as UNOWNED, g as schedule_effect, M as MAYBE_DIRTY, h as active_effect, j as BRANCH_EFFECT, k as new_deps, u as untracked_writes, l as set_untracked_writes, H as HYDRATION_ERROR, m as get_next_sibling, o as define_property, p as set_active_reaction, q as set_active_effect, r as is_array, t as init_operations, v as get_first_child, w as HYDRATION_START, x as HYDRATION_END, y as hydration_failed, z as clear_text_content, A as array_from, E as effect_root, F as create_text, G as branch, I as push, J as pop, K as component_context, L as get, N as flush_sync, O as render, P as push$1, Q as setContext, R as pop$1 } from "./index.js";
+import { i as increment_version, a as DIRTY, s as set_signal_status, C as CLEAN, U as UNOWNED, b as DERIVED, M as MAYBE_DIRTY, c as schedule_effect, d as active_effect, B as BRANCH_EFFECT, e as new_deps, u as untracked_writes, f as set_untracked_writes, g as active_reaction, h as is_runes, j as BLOCK_EFFECT, k as derived_sources, l as state_unsafe_mutation, H as HYDRATION_ERROR, m as get_next_sibling, o as define_property, p as set_active_reaction, q as set_active_effect, r as is_array, t as init_operations, v as get_first_child, w as HYDRATION_START, x as array_from, y as effect_root, z as create_text, A as branch, E as push, F as component_context, G as pop, I as HYDRATION_END, J as hydration_failed, K as clear_text_content, L as LEGACY_PROPS, N as get, O as flush_sync, P as render, Q as push$1, R as setContext, S as pop$1 } from "./index.js";
 let base = "";
 let assets = base;
 const initial = { base, assets };
+function override(paths) {
+  base = paths.base;
+  assets = paths.assets;
+}
 function reset() {
   base = initial.base;
   assets = initial.assets;
@@ -10,10 +14,14 @@ function set_assets(path) {
   assets = initial.assets = path;
 }
 let public_env = {};
+let safe_public_env = {};
 function set_private_env(environment) {
 }
 function set_public_env(environment) {
   public_env = environment;
+}
+function set_safe_public_env(environment) {
+  safe_public_env = environment;
 }
 function equals(value) {
   return value === this.v;
@@ -72,14 +80,12 @@ function internal_set(source2, value) {
 }
 function mark_reactions(signal, status) {
   var reactions = signal.reactions;
-  if (reactions === null)
-    return;
+  if (reactions === null) return;
   var length = reactions.length;
   for (var i = 0; i < length; i++) {
     var reaction = reactions[i];
     var flags = reaction.f;
-    if ((flags & DIRTY) !== 0)
-      continue;
+    if ((flags & DIRTY) !== 0) continue;
     set_signal_status(reaction, status);
     if ((flags & (CLEAN | UNOWNED)) !== 0) {
       if ((flags & DERIVED) !== 0) {
@@ -153,8 +159,7 @@ function handle_event_propagation(event) {
   }
   current_target = /** @type {Element} */
   path[path_idx] || event.target;
-  if (current_target === handler_element)
-    return;
+  if (current_target === handler_element) return;
   define_property(event, "currentTarget", {
     configurable: true,
     get() {
@@ -285,8 +290,7 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
   var event_handle = (events2) => {
     for (var i = 0; i < events2.length; i++) {
       var event_name = events2[i];
-      if (registered_events.has(event_name))
-        continue;
+      if (registered_events.has(event_name)) continue;
       registered_events.add(event_name);
       var passive = is_passive_event(event_name);
       target.addEventListener(event_name, handle_event_propagation, { passive });
@@ -397,6 +401,7 @@ class Svelte4Component {
           return get(sources.get(prop) ?? add_source(prop, Reflect.get(target, prop)));
         },
         has(target, prop) {
+          if (prop === LEGACY_PROPS) return true;
           get(sources.get(prop) ?? add_source(prop, Reflect.get(target, prop)));
           return Reflect.has(target, prop);
         },
@@ -419,8 +424,7 @@ class Svelte4Component {
     }
     this.#events = props.$$events;
     for (const key of Object.keys(this.#instance)) {
-      if (key === "$set" || key === "$destroy" || key === "$on")
-        continue;
+      if (key === "$set" || key === "$destroy" || key === "$on") continue;
       define_property(this, key, {
         get() {
           return this.#instance[key];
@@ -464,6 +468,12 @@ class Svelte4Component {
     this.#instance.$destroy();
   }
 }
+let read_implementation = null;
+function set_read_implementation(fn) {
+  read_implementation = fn;
+}
+function set_manifest(_) {
+}
 function asClassComponent(component) {
   const component_constructor = asClassComponent$1(component);
   const _render = (props, { context } = {}) => {
@@ -477,7 +487,11 @@ function asClassComponent(component) {
   component_constructor.render = _render;
   return component_constructor;
 }
+let prerendering = false;
 function set_building() {
+}
+function set_prerendering() {
+  prerendering = true;
 }
 function Root($$payload, $$props) {
   push$1();
@@ -496,14 +510,17 @@ function Root($$payload, $$props) {
   {
     stores.page.set(page);
   }
+  const Pyramid_1 = constructors[1];
   if (constructors[1]) {
     $$payload.out += "<!--[-->";
+    const Pyramid_0 = constructors[0];
     $$payload.out += `<!---->`;
-    constructors[0]?.($$payload, {
+    Pyramid_0($$payload, {
       data: data_0,
+      form,
       children: ($$payload2) => {
         $$payload2.out += `<!---->`;
-        constructors[1]?.($$payload2, { data: data_1, form });
+        Pyramid_1($$payload2, { data: data_1, form });
         $$payload2.out += `<!---->`;
       },
       $$slots: { default: true }
@@ -511,8 +528,9 @@ function Root($$payload, $$props) {
     $$payload.out += `<!---->`;
   } else {
     $$payload.out += "<!--[!-->";
+    const Pyramid_0 = constructors[0];
     $$payload.out += `<!---->`;
-    constructors[0]?.($$payload, { data: data_0, form });
+    Pyramid_0($$payload, { data: data_0, form });
     $$payload.out += `<!---->`;
   }
   $$payload.out += `<!--]--> `;
@@ -524,10 +542,10 @@ function Root($$payload, $$props) {
 }
 const root = asClassComponent(Root);
 const options = {
+  app_dir: "_app",
   app_template_contains_nonce: false,
   csp: { "mode": "auto", "directives": { "upgrade-insecure-requests": false, "block-all-mixed-content": false }, "reportOnly": { "upgrade-insecure-requests": false, "block-all-mixed-content": false } },
   csrf_check_origin: true,
-  track_server_fetches: false,
   embedded: false,
   env_public_prefix: "PUBLIC_",
   env_private_prefix: "",
@@ -609,21 +627,29 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-  version_hash: "1smaxud"
+  version_hash: "au8dea"
 };
-function get_hooks() {
+async function get_hooks() {
   return {};
 }
 export {
   assets as a,
   base as b,
-  set_private_env as c,
-  set_public_env as d,
-  set_assets as e,
-  set_building as f,
+  safe_public_env as c,
+  read_implementation as d,
+  options as e,
+  set_public_env as f,
   get_hooks as g,
-  options as o,
+  set_safe_public_env as h,
+  set_read_implementation as i,
+  set_private_env as j,
+  prerendering as k,
+  set_assets as l,
+  set_building as m,
+  set_manifest as n,
+  override as o,
   public_env as p,
+  set_prerendering as q,
   reset as r,
   safe_not_equal as s
 };

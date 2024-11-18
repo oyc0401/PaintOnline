@@ -1,1 +1,0 @@
-import{a2 as o,l as t,C as c,u}from"./runtime.c4ca9175.js";function a(e){throw new Error("lifecycle_outside_component")}function r(e){o===null&&a(),t&&o.l!==null?l(o).m.push(e):c(()=>{const n=u(e);if(typeof n=="function")return n})}function l(e){var n=e.l;return n.u??(n.u={a:[],b:[],m:[]})}export{r as o};

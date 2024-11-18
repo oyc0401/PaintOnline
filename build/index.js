@@ -1,18 +1,24 @@
+import process from 'node:process';
 import { handler } from './handler.js';
 import { env } from './env.js';
-import http from 'http';
-import * as qs from 'querystring';
+import http from 'node:http';
+import { setImmediate } from 'node:timers';
+import * as qs from 'node:querystring';
 
-function parse$1 (str, loose) {
-	if (str instanceof RegExp) return { keys:false, pattern:str };
-	var c, o, tmp, ext, keys=[], pattern='', arr = str.split('/');
+/**
+ * @param {string|RegExp} input The route pattern
+ * @param {boolean} [loose] Allow open-ended matching. Ignored with `RegExp` input.
+ */
+function parse$1(input, loose) {
+	if (input instanceof RegExp) return { keys:false, pattern:input };
+	var c, o, tmp, ext, keys=[], pattern='', arr = input.split('/');
 	arr[0] || arr.shift();
 
 	while (tmp = arr.shift()) {
 		c = tmp[0];
 		if (c === '*') {
-			keys.push('wild');
-			pattern += '/(.*)';
+			keys.push(c);
+			pattern += tmp[1] === '?' ? '(?:/(.*))?' : '/(.*)';
 		} else if (c === ':') {
 			o = tmp.indexOf('?', 1);
 			ext = tmp.indexOf('.', 1);
@@ -29,6 +35,19 @@ function parse$1 (str, loose) {
 		pattern: new RegExp('^' + pattern + (loose ? '(?=$|\/)' : '\/?$'), 'i')
 	};
 }
+
+const MAP = {
+	"": 0,
+	GET: 1,
+	HEAD: 2,
+	PATCH: 3,
+	OPTIONS: 4,
+	CONNECT: 5,
+	DELETE: 6,
+	TRACE: 7,
+	POST: 8,
+	PUT: 9,
+};
 
 class Trouter {
 	constructor() {
@@ -49,24 +68,25 @@ class Trouter {
 	use(route, ...fns) {
 		let handlers = [].concat.apply([], fns);
 		let { keys, pattern } = parse$1(route, true);
-		this.routes.push({ keys, pattern, method:'', handlers });
+		this.routes.push({ keys, pattern, method: '', handlers, midx: MAP[''] });
 		return this;
 	}
 
 	add(method, route, ...fns) {
 		let { keys, pattern } = parse$1(route);
 		let handlers = [].concat.apply([], fns);
-		this.routes.push({ keys, pattern, method, handlers });
+		this.routes.push({ keys, pattern, method, handlers, midx: MAP[method] });
 		return this;
 	}
 
 	find(method, url) {
-		let isHEAD=(method === 'HEAD');
+		let midx = MAP[method];
+		let isHEAD = (midx === 2);
 		let i=0, j=0, k, tmp, arr=this.routes;
 		let matches=[], params={}, handlers=[];
 		for (; i < arr.length; i++) {
 			tmp = arr[i];
-			if (tmp.method.length === 0 || tmp.method === method || isHEAD && tmp.method === 'GET') {
+			if (tmp.midx === midx  || tmp.midx === 0 || (isHEAD && tmp.midx===1) ) {
 				if (tmp.keys === false) {
 					matches = tmp.pattern.exec(url);
 					if (matches === null) continue;
@@ -216,10 +236,99 @@ const path = env('SOCKET_PATH', false);
 const host = env('HOST', '0.0.0.0');
 const port = env('PORT', !path && '3000');
 
+const shutdown_timeout = parseInt(env('SHUTDOWN_TIMEOUT', '30'));
+const idle_timeout = parseInt(env('IDLE_TIMEOUT', '0'));
+const listen_pid = parseInt(env('LISTEN_PID', '0'));
+const listen_fds = parseInt(env('LISTEN_FDS', '0'));
+// https://www.freedesktop.org/software/systemd/man/latest/sd_listen_fds.html
+const SD_LISTEN_FDS_START = 3;
+
+if (listen_pid !== 0 && listen_pid !== process.pid) {
+	throw new Error(`received LISTEN_PID ${listen_pid} but current process id is ${process.pid}`);
+}
+if (listen_fds > 1) {
+	throw new Error(
+		`only one socket is allowed for socket activation, but LISTEN_FDS was set to ${listen_fds}`
+	);
+}
+
+const socket_activation = listen_pid === process.pid && listen_fds === 1;
+
+let requests = 0;
+/** @type {NodeJS.Timeout | void} */
+let shutdown_timeout_id;
+/** @type {NodeJS.Timeout | void} */
+let idle_timeout_id;
+
 const server = polka().use(handler);
 
-server.listen({ path, host, port }, () => {
-	console.log(`Listening on ${path ? path : host + ':' + port}`);
-});
+if (socket_activation) {
+	server.listen({ fd: SD_LISTEN_FDS_START }, () => {
+		console.log(`Listening on file descriptor ${SD_LISTEN_FDS_START}`);
+	});
+} else {
+	server.listen({ path, host, port }, () => {
+		console.log(`Listening on ${path ? path : host + ':' + port}`);
+	});
+}
+
+/** @param {'SIGINT' | 'SIGTERM' | 'IDLE'} reason */
+function graceful_shutdown(reason) {
+	if (shutdown_timeout_id) return;
+
+	// If a connection was opened with a keep-alive header close() will wait for the connection to
+	// time out rather than close it even if it is not handling any requests, so call this first
+	// @ts-expect-error this was added in 18.2.0 but is not reflected in the types
+	server.server.closeIdleConnections();
+
+	server.server.close((error) => {
+		// occurs if the server is already closed
+		if (error) return;
+
+		if (shutdown_timeout_id) {
+			clearTimeout(shutdown_timeout_id);
+		}
+		if (idle_timeout_id) {
+			clearTimeout(idle_timeout_id);
+		}
+
+		// @ts-expect-error custom events cannot be typed
+		process.emit('sveltekit:shutdown', reason);
+	});
+
+	shutdown_timeout_id = setTimeout(
+		// @ts-expect-error this was added in 18.2.0 but is not reflected in the types
+		() => server.server.closeAllConnections(),
+		shutdown_timeout * 1000
+	);
+}
+
+server.server.on(
+	'request',
+	/** @param {import('node:http').IncomingMessage} req */
+	(req) => {
+		requests++;
+
+		if (socket_activation && idle_timeout_id) {
+			idle_timeout_id = clearTimeout(idle_timeout_id);
+		}
+
+		req.on('close', () => {
+			requests--;
+
+			if (shutdown_timeout_id) {
+				// close connections as soon as they become idle, so they don't accept new requests
+				// @ts-expect-error this was added in 18.2.0 but is not reflected in the types
+				server.server.closeIdleConnections();
+			}
+			if (requests === 0 && socket_activation && idle_timeout) {
+				idle_timeout_id = setTimeout(() => graceful_shutdown('IDLE'), idle_timeout * 1000);
+			}
+		});
+	}
+);
+
+process.on('SIGTERM', graceful_shutdown);
+process.on('SIGINT', graceful_shutdown);
 
 export { host, path, port, server };

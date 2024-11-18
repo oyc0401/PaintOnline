@@ -1,3 +1,5 @@
+import process from 'node:process';
+
 /* global "" */
 
 const expected = new Set([
@@ -9,8 +11,13 @@ const expected = new Set([
 	'ADDRESS_HEADER',
 	'PROTOCOL_HEADER',
 	'HOST_HEADER',
-	'BODY_SIZE_LIMIT'
+	'PORT_HEADER',
+	'BODY_SIZE_LIMIT',
+	'SHUTDOWN_TIMEOUT',
+	'IDLE_TIMEOUT'
 ]);
+
+const expected_unprefixed = new Set(['LISTEN_PID', 'LISTEN_FDS']);
 
 if ("") {
 	for (const name in process.env) {
@@ -30,7 +37,8 @@ if ("") {
  * @param {any} fallback
  */
 function env(name, fallback) {
-	const prefixed = "" + name;
+	const prefix = expected_unprefixed.has(name) ? '' : "";
+	const prefixed = prefix + name;
 	return prefixed in process.env ? process.env[prefixed] : fallback;
 }
 

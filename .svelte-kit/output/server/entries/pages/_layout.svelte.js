@@ -1,10 +1,7 @@
-import { S as slot } from "../../chunks/index.js";
-const app = "";
-const paint = "";
-const styles = "";
+import { T as slot } from "../../chunks/index.js";
 function _layout($$payload, $$props) {
   $$payload.out += `<div class="paint-layout"><!---->`;
-  slot($$payload, $$props, "default", {}, null);
+  slot($$payload, $$props, "default", {});
   $$payload.out += `<!----></div>`;
 }
 export {

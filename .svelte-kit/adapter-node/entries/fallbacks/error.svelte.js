@@ -1,4 +1,16 @@
-import { T as getContext, V as escape_html, W as store_get, X as unsubscribe_stores, R as pop, P as push } from "../../chunks/index.js";
+import { V as getContext, Q as push, W as store_get, X as unsubscribe_stores, S as pop } from "../../chunks/index.js";
+import "../../chunks/exports.js";
+import { e as escape_html } from "../../chunks/escaping.js";
+function get(key, parse = JSON.parse) {
+  try {
+    return parse(sessionStorage[key]);
+  } catch {
+  }
+}
+const SNAPSHOT_KEY = "sveltekit:snapshot";
+const SCROLL_KEY = "sveltekit:scroll";
+get(SCROLL_KEY) ?? {};
+get(SNAPSHOT_KEY) ?? {};
 const getStores = () => {
   const stores = getContext("__svelte__");
   return {
@@ -24,8 +36,7 @@ function Error$1($$payload, $$props) {
   push();
   var $$store_subs;
   $$payload.out += `<h1>${escape_html(store_get($$store_subs ??= {}, "$page", page).status)}</h1> <p>${escape_html(store_get($$store_subs ??= {}, "$page", page).error?.message)}</p>`;
-  if ($$store_subs)
-    unsubscribe_stores($$store_subs);
+  if ($$store_subs) unsubscribe_stores($$store_subs);
   pop();
 }
 export {
