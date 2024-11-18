@@ -183,6 +183,8 @@ export function setupState() {
   let selection; // singleton
   /** @type {OnCanvasHelperLayer} */
   let helper_layer; // instance used for the grid and tool previews (not a singleton)
+  
+  let mask_layer;
   /** @type {OSGUI$Window} */
   let $thumbnail_window;
   /** @type {PixelCanvas} */
@@ -226,7 +228,7 @@ export function setupState() {
   let saved = true;
 
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
-  let pointer;
+  let pointer ={x:0, y:0};
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
   let pointer_start;
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
@@ -238,6 +240,11 @@ export function setupState() {
   let pointer_type;
   /** @type {number} */
   let pointer_buttons;
+
+  /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
+  let pointer_float_previous={x:0, y:0};
+
+  // let pointer_previous;
   /** @type {boolean} */
   let reverse;
   /** @type {boolean} */
@@ -316,9 +323,9 @@ export function setupState() {
   state.pointer_over_canvas = pointer_over_canvas;
   state.update_helper_layer_on_pointermove_active = update_helper_layer_on_pointermove_active;
   state.pointers = pointers;
-  state.mask_canvas = mask_canvas;
-  state.mask_ctx = mask_ctx;
-
+  state.mask_layer = mask_layer;
+  state.pointer_float_previous = pointer_float_previous;
+  
 
   window.globAppstate={};
 

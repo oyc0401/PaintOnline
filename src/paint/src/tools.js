@@ -549,7 +549,7 @@ const tools = [
 			}
 		},
 		pointerdown() {
-			this.mask_canvas = window.globAppstate.mask_canvas;
+			this.mask_canvas = window.globAppstate.mask_layer.canvas;
 		},
 		render_from_mask(ctx, previewing) {
 			ctx.save();
@@ -632,13 +632,13 @@ const tools = [
 					}
 					
 				
-					this.mask_canvas.ctx.clearRect(0, 0, window.globAppstate.mask_canvas.width, window.globAppstate.mask_canvas.height);
+					this.mask_canvas.ctx.clearRect(0, 0, this.mask_canvas.width, this.mask_canvas.height);
 					this.mask_canvas = null;
 				},
 			);
 		},
 		cancel() {
-				this.mask_canvas.ctx.clearRect(0, 0, window.globAppstate.mask_canvas.width, window.globAppstate.mask_canvas.height);
+				this.mask_canvas.ctx.clearRect(0, 0, this.mask_canvas.width, this.mask_canvas.height);
 			this.mask_canvas = null;
 		},
 		paint(ctx, _x, _y) {
@@ -2021,7 +2021,7 @@ tools.forEach((tool) => {
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = window.globAppstate.mask_canvas;
+				tool.mask_canvas = window.globAppstate.mask_layer.canvas;
 			}
 			if (tool.mask_canvas.width !== window.globAppstate.main_canvas.width) {
 				tool.mask_canvas.width = window.globAppstate.main_canvas.width;
@@ -2067,7 +2067,8 @@ tools.forEach((tool) => {
 				(x, y) => {
 					for (const point of circumference_points) {
 						tool.mask_canvas.ctx.fillStyle = window.globAppstate.stroke_color;
-						
+
+						// bresenham_line은 투명도가 있는걸 여러번 덧칠이 가능해서 이렇게 함
 						tool.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
 						tool.mask_canvas.ctx.fillRect(x + point.x, y + point.y, 1, 1);
 						
@@ -2101,31 +2102,13 @@ tools.forEach((tool) => {
 			}
 		};
 		tool.render_from_mask = (ctx, previewing) => {
-			// 덮어쓰기, 기본값 false
-			// const 덮어쓰기모드 = true;
-			// if (!덮어쓰기모드) {
-			// 	// could be private
-			// 	ctx.save();
-			// 	ctx.globalCompositeOperation = "destination-out";
-			// 	ctx.drawImage(tool.mask_canvas, 0, 0);
-			// 	ctx.restore();
+			// if(window.globAppstate.pointer.x == window.globAppstate.pointer_float_previous.x
+			// 	&& window.globAppstate.pointer.y == window.globAppstate.pointer_float_previous.y){
+
+			// 	return false;
 			// }
-
-			// /** @type {string | CanvasGradient | CanvasPattern} */
-			// let color = window.globAppstate.stroke_color;
-			// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
-			// or other values
-			// even with privacy.resistFingerprinting set to false
-			// the canvas API is just genuinely not reliable for exact color values
-			// const translucent = get_rgba_from_color(color)[3] < 1;
-
-			// if (translucent) {
-			// 	color = 'rgba(255, 0, 0, 0.3)';
-			// }
-			// @TODO: perf: keep this canvas around too
-
-			// 이게 브러쉬 점 미리보기인데 헬퍼에 찍어야 함
-			//const mask_fill_canvas = make_canvas(tool.mask_canvas);
+			// console.log('helper render')
+		
 			if (previewing && tool.dynamic_preview_cursor) {
 				
 				const brush = tool.get_brush();
@@ -2139,12 +2122,17 @@ tools.forEach((tool) => {
 					brush.size,
 					window.globAppstate.stroke_color
 				);
-				console.log('helper',window.globAppstate.stroke_color)
+				//console.log('helper',window.globAppstate.stroke_color)
 			}
+
+			// console.log(, window.globAppstate.pointer.y);
+			// console.log(window.globAppstate.pointer_previous.x, window.globAppstate.pointer_previous.y);
+			//console.log(window.globAppstate.pointer,window.globAppstate.pointer_float_previous)
 			
 			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			//ctx.drawImage(tool.mask_canvas, 0, 0);
 			// return translucent;
+			
 			return true;
 		};
 		tool.drawPreviewUnderGrid = (
@@ -2171,6 +2159,7 @@ tools.forEach((tool) => {
 				// animate for gradient
 				// TODO: is rAF needed? update_helper_layer uses rAF
 				requestAnimationFrame(() => {
+					//console.log('drawPreviewUnderGrid - update_helper_layer')
 					update_helper_layer();
 				});
 			}

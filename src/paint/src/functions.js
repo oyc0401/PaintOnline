@@ -8,6 +8,7 @@ import AnyPalette from '../lib/anypalette-0.6.0.js';
 
 import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
+import { OnCanvasMaskLayer } from './OnCanvasMaskLayer.js';
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { localize } from "./app-localization.js";
 import { default_palette } from "./color-data.js";
@@ -171,7 +172,7 @@ let helper_layer_update_queued = false;
 let info_for_updating_pointer;
 /** @param {{ clientX: number, clientY: number }} [e] */
 function update_helper_layer(e) {
-	//console.log('helper',e)
+	//console.log('update_helper_layer()',e)
 	// e should be passed for pointer events, but not scroll or resize events
 	// e may be a synthetic event without clientX/Y, so ignore that (using isFinite)
 	// e may also be a timestamp from requestAnimationFrame callback; ignore that
@@ -179,19 +180,30 @@ function update_helper_layer(e) {
 		info_for_updating_pointer = { clientX: e.clientX, clientY: e.clientY, devicePixelRatio };
 	}
 	if (helper_layer_update_queued) {
-		// window.console?.log("update_helper_layer - nah, already queued");
+		//window.console?.log("update_helper_layer - nah, already queued");
 		return;
 	} else {
 		// window.console?.log("update_helper_layer");
 	}
 	helper_layer_update_queued = true;
-	requestAnimationFrame(() => {
+	requestAnimationFrame((currentTime) => {
+		// // 프레임 간 간격 계산 (밀리초 단위)
+		// const deltaTime = currentTime - lastTime;
+
+		// console.log(`Delta Time: ${deltaTime}ms`); // 출력해보기
+
+		// // 새로운 애니메이션 로직
+		// lastTime = currentTime;
+		
 		helper_layer_update_queued = false;
 		update_helper_layer_immediately();
 	});
 }
+
+let lastTime = 0;
+
 function update_helper_layer_immediately() {
-	//window.console?.log("Update helper layer NOW");
+	window.console?.log("Update helper layer NOW");
 	if (info_for_updating_pointer) {
 		const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
 		info_for_updating_pointer.clientX *= rescale;
@@ -205,6 +217,11 @@ function update_helper_layer_immediately() {
 	if (!window.globAppstate.helper_layer) {
 		console.log('make helper-layer')
 		window.globAppstate.helper_layer = new OnCanvasHelperLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
+	}
+
+	if (!window.globAppstate.mask_layer) {
+		console.log('make mask_layer')
+		window.globAppstate.mask_layer = new OnCanvasMaskLayer(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height, false, scale);
 	}
 
 	// window.globAppstate.helper_layer.canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
@@ -221,6 +238,20 @@ function update_helper_layer_immediately() {
 		window.globAppstate.helper_layer.x = 0;
 		window.globAppstate.helper_layer.y = 0;
 		window.globAppstate.helper_layer.position();
+	}
+
+	if(window.globAppstate.mask_layer.canvas.width != window.globAppstate.main_canvas.width
+		 || window.globAppstate.mask_layer.canvas.height != window.globAppstate.main_canvas.height) {
+		console.log('같지않음2')
+
+		window.globAppstate.mask_layer.canvas.width = window.globAppstate.main_canvas.width
+		window.globAppstate.mask_layer.canvas.height = window.globAppstate.main_canvas.height
+		window.globAppstate.mask_layer.canvas.ctx.disable_image_smoothing();
+		window.globAppstate.mask_layer.width =  window.globAppstate.main_canvas.width
+		window.globAppstate.mask_layer.height = window.globAppstate.main_canvas.height;
+		window.globAppstate.mask_layer.x = 0;
+		window.globAppstate.mask_layer.y = 0;
+		window.globAppstate.mask_layer.position();
 	}
 	
 	render_canvas_view(window.globAppstate.helper_layer.canvas, 1, 0, 0, true);
@@ -356,7 +387,7 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 			hctx.restore();
 		}
 	});
-}
+} 
 function update_disable_aa() {
 	const dots_per_canvas_px = window.devicePixelRatio * window.globAppstate.magnification;
 	if (dots_per_canvas_px >= 1) {
@@ -455,9 +486,9 @@ function reset_canvas_and_history() {
 	window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 
 	///
-	window.globAppstate.mask_canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
-	window.globAppstate.mask_canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
-	///
+	// window.globAppstate.mask_layer.canvas.width = Math.max(1, window.globAppstate.my_canvas_width);
+	// window.globAppstate.mask_layer.canvas.height = Math.max(1, window.globAppstate.my_canvas_height);
+	// ///
 
 	
 	window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);

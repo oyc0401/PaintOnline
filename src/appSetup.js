@@ -95,12 +95,10 @@ export function setupApp() {
   const $canvas_area = $(".canvas-area");
 
   const $canvas = $(appState.main_canvas).appendTo($canvas_area);
-  const $mask_canvas = $(appState.mask_canvas).appendTo($canvas_area);
-  
+
   $canvas.css("touch-action", "none");
   $canvas_area.css("touch-action", "none");
-  $mask_canvas.css("touch-action", "none");
-  $mask_canvas.css({pointerEvents: "none"});
+
   
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
@@ -860,7 +858,10 @@ export function setupApp() {
   }
   
   $canvas.on("pointermove", (e) => {
+    appState.pointer_float_previous.x = appState.pointer.x;
+    appState.pointer_float_previous.y = appState.pointer.y;
     appState.pointer = to_canvas_coords(e);
+    
     $status_position.text(`${appState.pointer.x}, ${appState.pointer.y} px`);
   });
   
@@ -1010,6 +1011,9 @@ export function setupApp() {
       $canvas_area.scrollTop($canvas_area.scrollTop() - difference_in_y);
       pan_last_pos = current_pos;
     }
+
+
+   
   });
   // #endregion
 
