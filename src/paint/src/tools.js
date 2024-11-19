@@ -551,6 +551,8 @@ const tools = [
 		},
 		pointerdown() {
 			this.mask_canvas = window.globAppstate.mask_layer.canvas;
+			this.laterCanvas = new OffscreenCanvas(this.mask_canvas.width, this.mask_canvas.height);
+			this.laterCtx = this.laterCanvas.getContext('2d')
 		},
 		render_from_mask(ctx, previewing) {
 			ctx.save();
@@ -587,95 +589,103 @@ const tools = [
 					icon: get_icon_for_tool(this),
 				},
 				() => {
-					//this.render_from_mask(window.globAppstate.main_ctx);
-					// 이게 투명지우개면 완전히 안사라짐;;;
-					// mask_canvas를 복사하여 새로운 캔버스 생성
-					const maskCanvas = this.mask_canvas;
-					const maskCtx = maskCanvas.getContext("2d");
-
-					const clonedCanvas = document.createElement("canvas");
-					clonedCanvas.width = maskCanvas.width;
-					clonedCanvas.height = maskCanvas.height;
-					const clonedCtx = clonedCanvas.getContext("2d");
-
-					// mask_canvas의 내용을 복사
-					clonedCtx.drawImage(maskCanvas, 0, 0);
-
-					// 복사된 캔버스의 픽셀 데이터 가져오기
-					const maskImageData = clonedCtx.getImageData(0, 0, clonedCanvas.width, clonedCanvas.height);
-
-					// 알파 값을 보정
-					for (let i = 0; i < maskImageData.data.length; i += 4) {
-							const alpha = maskImageData.data[i + 3] / 255; // 현재 알파 값 (0 ~ 1)
-							maskImageData.data[i + 3] = alpha > 0 ? 255 : 0; // 완전 불투명 (255)
-					}
-
-					// 보정된 이미지 데이터를 복사된 캔버스에 다시 적용
-					clonedCtx.putImageData(maskImageData, 0, 0);
-
-					// 메인 캔버스에 보정된 캔버스를 사용하여 투명도 제거 적용
-					window.globAppstate.main_ctx.save();
+				
+					// 메인 캔버스에 그 만든캔버스를 사용하여 투명도 제거
 					window.globAppstate.main_ctx.globalCompositeOperation = "destination-out";
-					window.globAppstate.main_ctx.drawImage(clonedCanvas, 0, 0);
-					window.globAppstate.main_ctx.restore();
-
-
+					window.globAppstate.main_ctx.drawImage(this.laterCanvas, 0, 0);
+					
 
 					// 지워진 이후
 					let color = window.globAppstate.selected_colors.background;
 
 					const translucent = get_rgba_from_color(color)[3] < 1;
 
+					window.globAppstate.main_ctx.globalCompositeOperation = "source-over";
+					
 					if (translucent) {
 						// 투명지우개면 안 칠해도 됌	
 					}else{
 						window.globAppstate.main_ctx.drawImage(this.mask_canvas, 0, 0);
 					}
 					
-				
-					this.mask_canvas.ctx.clearRect(0, 0, this.mask_canvas.width, this.mask_canvas.height);
-					this.mask_canvas = null;
+					this.mask_canvas.width=1;
+					this.laterCanvas.width=1;
+					console.log('반영완료!')
 				},
 			);
 		},
 		cancel() {
-				this.mask_canvas.ctx.clearRect(0, 0, this.mask_canvas.width, this.mask_canvas.height);
-			this.mask_canvas = null;
+			this.mask_canvas.width=1;
+			this.laterCanvas.width=1;
 		},
 		paint(ctx, _x, _y) {
+
+			const eraser_size=window.globAppstate.eraser_size / 2;
+	
+			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
+			const startX = Math.min(window.globAppstate.pointer_previous.x, window.globAppstate.pointer.x);
+			const startY = Math.min(window.globAppstate.pointer_previous.y, window.globAppstate.pointer.y);
+			const endX = Math.max(window.globAppstate.pointer_previous.x, window.globAppstate.pointer.x);
+			const endY = Math.max(window.globAppstate.pointer_previous.y, window.globAppstate.pointer.y);
+			const width = endX - startX + eraser_size * 2;
+			const height = endY - startY + eraser_size * 2;
+
+			const tempCanvas = new OffscreenCanvas(width, height);
+			const tempCtx = tempCanvas.getContext('2d');
+			tempCtx.imageSmoothingEnabled = false;
+
+			// 1. 임시 캔버스에 흰색으로 도형 그리기
+			tempCtx.fillStyle = 'black';
+			tempCtx.globalCompositeOperation = 'source-over';
 			bresenham_line(
-				window.globAppstate.pointer_previous.x,
-				window.globAppstate.pointer_previous.y,
-				window.globAppstate.pointer.x,
-				window.globAppstate.pointer.y,
+				window.globAppstate.pointer_previous.x - startX,
+				window.globAppstate.pointer_previous.y - startY,
+				window.globAppstate.pointer.x - startX,
+				window.globAppstate.pointer.y - startY,
 				(x, y) => {
-					this.eraser_paint_iteration(ctx, x, y);
+					this.eraser_paint_iteration(ctx, x+eraser_size, y+eraser_size, tempCtx, startX-eraser_size, startY-eraser_size);
 				},
 			);
+			// 이건 다 그리고 나중에 메인캔버스 지울때 필요
+			this.laterCtx.drawImage(tempCanvas, startX-eraser_size, startY-eraser_size);
+
+			
+
+			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
+			this.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
+			this.mask_canvas.ctx.drawImage(tempCanvas, startX - eraser_size, startY - eraser_size);
+
+			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
+			// 투명색이면 붉은색으로 바꾸기
+			// let color='black'
+			let color = window.globAppstate.selected_colors.background;
+			const translucent = get_rgba_from_color(color)[3] < 1;
+
+			if (translucent) {
+				color = "rgba(255, 0, 0, 0.3)"
+			}
+			tempCtx.fillStyle = color;
+
+			tempCtx.globalCompositeOperation = 'source-in';
+			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
+			this.mask_canvas.ctx.globalCompositeOperation = 'source-over';
+			this.mask_canvas.ctx.drawImage(tempCanvas, startX-eraser_size, startY-eraser_size);
+			console.log('헬퍼 그리기 완료!')
+			//////////////////
+			
 		},
-		eraser_paint_iteration(ctx, x, y) {
+		eraser_paint_iteration(ctx, x, y,drawCtx,startX, startY) {
+		
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
 
 			this.color_eraser_mode = window.globAppstate.button !== 0;
 
 			if (!this.color_eraser_mode) {
 				// Eraser
-				this.mask_canvas.ctx.fillStyle = window.globAppstate.selected_colors.background;
-				
-				let color = window.globAppstate.selected_colors.background;
-				const translucent = get_rgba_from_color(color)[3] < 1;
-				
-				
-				if (translucent) {
-					color = "rgba(255, 0, 0, 0.3)"
-					this.mask_canvas.ctx.fillStyle = color;
-				}
-				
-				this.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
-				this.mask_canvas.ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
-				
-				this.mask_canvas.ctx.globalCompositeOperation = 'source-over';
-				this.mask_canvas.ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
+				drawCtx.fillStyle = 'black';
+				drawCtx.fillRect(rect_x, rect_y, rect_w, rect_h);
 			} else {
 				// Color Eraser
 				// Right click with the eraser to selectively replace
@@ -684,12 +694,12 @@ const tools = [
 				const fg_rgba = get_rgba_from_color(window.globAppstate.selected_colors.foreground);
 
 				const test_image_data = ctx.getImageData(
-					rect_x,
-					rect_y,
+					rect_x+startX,
+					rect_y+startY,
 					rect_w,
 					rect_h,
 				);
-				const result_image_data = this.mask_canvas.ctx.getImageData(
+				const result_image_data = drawCtx.getImageData(
 					rect_x,
 					rect_y,
 					rect_w,
@@ -698,8 +708,6 @@ const tools = [
 
 				const fill_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
 
-				const eraser_rgba = get_rgba_from_color(window.globAppstate.selected_colors.background);
-				
 				for (let i = 0, l = test_image_data.data.length; i < l; i += 4) {
 					if (
 						Math.abs(test_image_data.data[i + 0] - fg_rgba[0]) <=
@@ -710,14 +718,14 @@ const tools = [
 							fill_threshold &&
 						Math.abs(test_image_data.data[i + 3] - fg_rgba[3]) <= fill_threshold
 					) {
-						result_image_data.data[i + 0] = eraser_rgba[0];
-						result_image_data.data[i + 1] = eraser_rgba[1];
-						result_image_data.data[i + 2] = eraser_rgba[2];
-						result_image_data.data[i + 3] = eraser_rgba[3];
+						result_image_data.data[i + 0] = 255;
+						result_image_data.data[i + 1] = 255;
+						result_image_data.data[i + 2] = 255;
+						result_image_data.data[i + 3] = 255;
 					}
 				}
 
-				this.mask_canvas.ctx.putImageData(result_image_data, rect_x, rect_y);
+				drawCtx.putImageData(result_image_data, rect_x, rect_y);
 			}
 		},
 		$options: $choose_eraser_size,
@@ -2095,20 +2103,20 @@ tools.forEach((tool) => {
 
 				},
 			);
-			stamp_brush_canvas(
-				tempCtx,
-				window.globAppstate.pointer_previous.x-startX+brush.size,
-				window.globAppstate.pointer_previous.y-startY+brush.size,
-				brush.shape,
-				brush.size
-			);
-			stamp_brush_canvas(
-				tempCtx,
-				window.globAppstate.pointer.x-startX+brush.size,
-				window.globAppstate.pointer.y-startY+brush.size,
-				brush.shape,
-				brush.size
-			);
+			// stamp_brush_canvas(
+			// 	tempCtx,
+			// 	window.globAppstate.pointer_previous.x-startX+brush.size,
+			// 	window.globAppstate.pointer_previous.y-startY+brush.size,
+			// 	brush.shape,
+			// 	brush.size
+			// );
+			// stamp_brush_canvas(
+			// 	tempCtx,
+			// 	window.globAppstate.pointer.x-startX+brush.size,
+			// 	window.globAppstate.pointer.y-startY+brush.size,
+			// 	brush.shape,
+			// 	brush.size
+			// );
 
 			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
 			tool.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
