@@ -205,9 +205,18 @@ $G.on("invalidate-brush-canvases", () => {
  * @param {BrushShape} brush_shape - The shape of the brush.
  * @param {number} brush_size - The size of the brush.
  */
-const stamp_brush_canvas = (ctx, x, y, brush_shape, brush_size,color='red') => {
+const stamp_brush_canvas = (ctx, x, y, brush_shape, brush_size) => {
 	const brush_canvas = get_brush_canvas(brush_shape, brush_size);
-	
+
+	const offset_x = -Math.ceil(brush_canvas.width / 2);
+	const offset_y = -Math.ceil(brush_canvas.height / 2);
+
+	ctx.drawImage(brush_canvas, x + offset_x, y + offset_y);
+};
+
+const stamp_brush_canvas_color = (ctx, x, y, brush_shape, brush_size,color='red') => {
+	const brush_canvas = get_brush_canvas(brush_shape, brush_size);
+
 	const clone_canvas = document.createElement('canvas');
 	clone_canvas.width = brush_canvas.width;
 	clone_canvas.height = brush_canvas.height;
@@ -215,7 +224,7 @@ const stamp_brush_canvas = (ctx, x, y, brush_shape, brush_size,color='red') => {
 	const clone_ctx = clone_canvas.getContext('2d');
 	// 원본 캔버스 내용을 새 캔버스에 그리기
 	clone_ctx.drawImage(brush_canvas, 0, 0);
-	
+
 	// 기존 내용 덮어쓰기를 위해 합성 설정
 	clone_ctx.globalCompositeOperation = 'source-in'; // 알파 값 유지하며 색상 덮어쓰기
 
@@ -1698,6 +1707,6 @@ export {
 	apply_image_transformation, bresenham_dense_line, bresenham_line, compute_bezier, draw_bezier_curve, draw_bezier_curve_without_pattern_support, draw_ellipse, draw_fill,
 	draw_fill_separately, draw_fill_without_pattern_support, draw_grid, draw_line, draw_line_without_pattern_support, draw_noncontiguous_fill,
 	draw_noncontiguous_fill_separately, draw_noncontiguous_fill_without_pattern_support, draw_quadratic_curve, draw_rounded_rectangle, find_color_globally, flip_horizontal,
-	flip_vertical, get_brush_canvas_size, get_circumference_points_for_brush, invert_rgb, render_brush, replace_color_globally, replace_colors_with_swatch, rotate, stamp_brush_canvas, stretch_and_skew, threshold_black_and_white, update_brush_for_drawing_lines
+	flip_vertical, get_brush_canvas_size, get_circumference_points_for_brush, invert_rgb, render_brush, replace_color_globally, replace_colors_with_swatch, rotate, stamp_brush_canvas,stamp_brush_canvas_color, stretch_and_skew, threshold_black_and_white, update_brush_for_drawing_lines
 };
 

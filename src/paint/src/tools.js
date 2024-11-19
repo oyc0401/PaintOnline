@@ -42,6 +42,7 @@ import {
 	get_circumference_points_for_brush,
 	replace_colors_with_swatch,
 	stamp_brush_canvas,
+	stamp_brush_canvas_color,
 	update_brush_for_drawing_lines,
 } from "./image-manipulation.js";
 import {
@@ -2051,13 +2052,14 @@ tools.forEach((tool) => {
 		};
 
 		tool.paint = () => {
+
 			const brush = tool.get_brush();
 			const circumference_points = get_circumference_points_for_brush(
 				brush.shape,
 				brush.size,
 			);
 			tool.mask_canvas.ctx.fillStyle = window.globAppstate.stroke_color;
-			
+
 			const iterate_line =
 				brush.size > 1 ? bresenham_dense_line : bresenham_line;
 			////////////
@@ -2070,29 +2072,48 @@ tools.forEach((tool) => {
 			const width = endX - startX + brush.size * 2;
 			const height = endY - startY + brush.size * 2;
 
-			const tempCanvas = document.createElement('canvas');
-			tempCanvas.width = width;
-			tempCanvas.height = height;
+			const tempCanvas = new OffscreenCanvas(width,height);
 			const tempCtx = tempCanvas.getContext('2d');
+			tempCtx.imageSmoothingEnabled = false;
 
 			// 1. 임시 캔버스에 흰색으로 도형 그리기
 			tempCtx.fillStyle = 'white';
+			tempCtx.globalCompositeOperation = 'source-over';
 			iterate_line(
 				window.globAppstate.pointer_previous.x - startX,
 					window.globAppstate.pointer_previous.y - startY,
 					window.globAppstate.pointer.x - startX,
 					window.globAppstate.pointer.y - startY,
 				(x, y) => {
-					for (const point of circumference_points) {
-						tempCtx.fillRect(x + point.x+brush.size, y + point.y+brush.size, 1, 1);
-					}
+					stamp_brush_canvas(
+						tempCtx,
+						x + brush.size,
+						y + brush.size,
+						brush.shape,
+						brush.size
+					);
+
 				},
+			);
+			stamp_brush_canvas(
+				tempCtx,
+				window.globAppstate.pointer_previous.x-startX+brush.size,
+				window.globAppstate.pointer_previous.y-startY+brush.size,
+				brush.shape,
+				brush.size
+			);
+			stamp_brush_canvas(
+				tempCtx,
+				window.globAppstate.pointer.x-startX+brush.size,
+				window.globAppstate.pointer.y-startY+brush.size,
+				brush.shape,
+				brush.size
 			);
 
 			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
 			tool.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
 			tool.mask_canvas.ctx.drawImage(tempCanvas, startX-brush.size, startY-brush.size);
-			tool.mask_canvas.ctx.globalCompositeOperation = 'source-over';
+
 
 			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
 			tempCtx.globalCompositeOperation = 'source-in';
@@ -2100,27 +2121,11 @@ tools.forEach((tool) => {
 			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
 			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
+			tool.mask_canvas.ctx.globalCompositeOperation = 'source-over';
 			tool.mask_canvas.ctx.drawImage(tempCanvas, startX-brush.size, startY-brush.size);
+		
 
-
-			////////////////
-
-			stamp_brush_canvas(
-				tool.mask_canvas.ctx,
-				window.globAppstate.pointer_previous.x,
-				window.globAppstate.pointer_previous.y,
-				brush.shape,
-				brush.size,
-				'red'
-			);
-			stamp_brush_canvas(
-				tool.mask_canvas.ctx,
-				window.globAppstate.pointer.x,
-				window.globAppstate.pointer.y,
-				brush.shape,
-				brush.size,
-				'red'
-			);
+			
 		};
 
 		tool.cancel = () => {
@@ -2142,7 +2147,7 @@ tools.forEach((tool) => {
 				const brush = tool.get_brush();
 				// dynamic cursor preview:
 				// stamp just onto this temporary canvas so it's temporary
-				stamp_brush_canvas(
+				stamp_brush_canvas_color(
 					ctx,
 					window.globAppstate.pointer.x,
 					window.globAppstate.pointer.y,
