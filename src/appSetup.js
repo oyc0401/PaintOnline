@@ -1096,7 +1096,7 @@ export function setupApp() {
         if (e.clientX !== undefined) {
           // may be synthetic event without coordinates
           appState.pointer = to_canvas_coords(e);
-          console.log('appState.pointer:',appState.pointer)
+          //console.log('appState.pointer:',appState.pointer)
         }
         // don't create undoables if you're two-finger-panning
         // @TODO: do any tools use pointerup for cleanup?

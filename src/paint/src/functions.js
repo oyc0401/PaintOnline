@@ -2508,6 +2508,8 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 			icon: undoable_meta.icon || get_help_folder_icon("p_stretch_both.png"),
 		}, () => {
 			try {
+				const beforeWidth=window.globAppstate.main_canvas.width;
+				const beforeHeight=window.globAppstate.main_canvas.height;
 				console.log('리사이즈')
 				const image_data = window.globAppstate.main_ctx.getImageData(0, 0, new_width, new_height);
 				window.globAppstate.main_canvas.width = new_width;
@@ -2517,6 +2519,7 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 				if (!window.globAppstate.transparency) {
 					window.globAppstate.main_ctx.fillStyle = window.globAppstate.selected_colors.background;
 					window.globAppstate.main_ctx.fillRect(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+					window.globAppstate.main_ctx.clearRect(0, 0, beforeWidth, beforeHeight);
 				}
 
 				const temp_canvas = make_canvas(image_data);

@@ -567,7 +567,7 @@ const tools = [
 
 			if (translucent) {
 				color = previewing
-					? "rgba(255, 0, 0, 0.3)"
+					? "rgba(255, 0, 0, 0.25)"
 					: window.globAppstate.selected_colors.background;
 			}
 
@@ -610,7 +610,7 @@ const tools = [
 					
 					this.mask_canvas.width=1;
 					this.laterCanvas.width=1;
-					console.log('반영완료!')
+					//console.log('반영완료!')
 				},
 			);
 		},
@@ -2207,6 +2207,8 @@ tools.forEach((tool) => {
 		};
 	}
 });
+
+
 
 export {
 	TOOL_AIRBRUSH,

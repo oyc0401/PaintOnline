@@ -183,6 +183,7 @@ class OnCanvasSelection extends OnCanvasObject {
 		replace_colors_with_swatch(colored_cutout.ctx, window.globAppstate.selected_colors.background, this.x, this.y);
 		// const colored_cutout_image_data = colored_cutout.ctx.getImageData(0, 0, this.width, this.height);
 		// }
+		const backgroundRGB=get_rgba_from_color(window.globAppstate.selected_colors.background);
 		for (let i = 0; i < cutoutImageData.data.length; i += 4) {
 			const in_cutout = cutoutImageData.data[i + 3] > 0;
 			if (in_cutout) {
@@ -190,10 +191,33 @@ class OnCanvasSelection extends OnCanvasObject {
 				cutoutImageData.data[i + 1] = canvasImageData.data[i + 1];
 				cutoutImageData.data[i + 2] = canvasImageData.data[i + 2];
 				cutoutImageData.data[i + 3] = canvasImageData.data[i + 3];
-				canvasImageData.data[i + 0] = 0;
-				canvasImageData.data[i + 1] = 0;
-				canvasImageData.data[i + 2] = 0;
-				canvasImageData.data[i + 3] = 0;
+				if(window.globAppstate.transparency){
+					if(window.globAppstate.tool_transparent_mode ){
+						if(canvasImageData.data[i + 0] == backgroundRGB[0]
+							&& canvasImageData.data[i + 1] == backgroundRGB[1]
+							&& canvasImageData.data[i + 2] == backgroundRGB[2]
+							&& canvasImageData.data[i + 3] == backgroundRGB[3]){
+							// 해당부분이 배경색과 같다면 바닥을 투명으로 칠하지 않아야 함.
+					
+							}else{
+								canvasImageData.data[i + 0] = 0
+								canvasImageData.data[i + 1] = 0
+								canvasImageData.data[i + 2] = 0
+								canvasImageData.data[i + 3] = 0
+							}
+					}else{
+						// 투명모드이면 무조건 배경색은 투명이여야함
+						canvasImageData.data[i + 0] = 0
+						canvasImageData.data[i + 1] = 0
+						canvasImageData.data[i + 2] = 0
+						canvasImageData.data[i + 3] = 0
+					}
+				}else{
+					canvasImageData.data[i + 0] = backgroundRGB[0];
+					canvasImageData.data[i + 1] = backgroundRGB[1];
+					canvasImageData.data[i + 2] = backgroundRGB[2];
+					canvasImageData.data[i + 3] = backgroundRGB[3];
+				}
 			} else {
 				cutoutImageData.data[i + 0] = 0;
 				cutoutImageData.data[i + 1] = 0;
@@ -214,9 +238,9 @@ class OnCanvasSelection extends OnCanvasObject {
 		// and there's no indication that you should try the other selection transparency mode,
 		// and even if you do, if you do it after creating a selection, it still won't work,
 		// because you will have already *not cut out* the selection from the canvas
-		if (!window.globAppstate.transparency || window.globAppstate.tool_transparent_mode) {
-			window.globAppstate.main_ctx.drawImage(colored_cutout, this.x, this.y);
-		}
+		//if (!window.globAppstate.transparency || window.globAppstate.tool_transparent_mode) {
+			//window.globAppstate.main_ctx.drawImage(colored_cutout, this.x, this.y);
+	//	}
 
 		$(window).triggerHandler("session-update"); // autosave
 		update_helper_layer();
