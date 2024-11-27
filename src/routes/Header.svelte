@@ -11,150 +11,66 @@
   import LineIcon from "$lib/images/line.png";
   import ColorIcon from "$lib/images/color.png";
   import FullScreenIcon from "$lib/images/full-screen.png";
+
+  import ActionMenu from "./toolMenu/ActionMenu.svelte";
+  import SelectionMenu from "./toolMenu/SelectionMenu.svelte";
+  import ToolMenu from "./toolMenu/ToolMenu.svelte";
+  import BrushMenu from "./toolMenu/BrushMenu.svelte";
+  import ShapeMenu from "./toolMenu/ShapeMenu.svelte";
+  import ColorMenu from "./toolMenu/ColorMenu.svelte";
   
-  import { counter, counter2 } from "../store/appState.js";
-  import {
-    TOOL_AIRBRUSH,
-    TOOL_BRUSH,
-    TOOL_CURVE,
-    TOOL_ELLIPSE,
-    TOOL_ERASER,
-    TOOL_FILL,
-    TOOL_FREE_FORM_SELECT,
-    TOOL_LINE,
-    TOOL_MAGNIFIER,
-    TOOL_PENCIL,
-    TOOL_PICK_COLOR,
-    TOOL_POLYGON,
-    TOOL_RECTANGLE,
-    TOOL_ROUNDED_RECTANGLE,
-    TOOL_SELECT,
-    TOOL_TEXT,
-  } from "../paint/tools";
   import { onMount } from 'svelte';
   
-   
-  function setTool(toolId){
+  import { menuState } from "../store/menuState.svelte.js";
+
+  let buttons = Array(7);
+
+  function setTool(toolId, menuId){
     console.log(toolId);
+    
+    menuState.toolMenuId = menuId;
+    menuState.selectedTool = toolId;
+    menuState.selectedTools[menuId]=toolId;
+ 
     const toolObj = window.svelteApp.get_tool_by_id(toolId);
     window.svelteApp.select_tool(toolObj);
-    window.globApp.$canvas.css({
-        cursor: window.svelteApp.make_css_cursor(...toolObj.cursor),
-      });
-  }
-
-  
-  let showMenu = $state(false);
-  let menuId = $state(2);
-  let menuPosition = $state({ top: 0, left: 0 });
-  
-  let selectedMenuId = $state(2);
-  let selectedToolIds = $state(Array(7).fill(0));
-
-  let foregroundColor = $state('white');
-  let backgroundColor = $state('black');
-  
-  let buttons = Array(7);
-  let toolList;
-
-  function setForegroundColor(color){
-    foregroundColor=color;
-    window.globAppstate.selected_colors.foreground=color;
-  }
-
-  function setBackgroundColor(color){
-    backgroundColor=color;
-    window.globAppstate.selected_colors.background=color;
+    window.globApp.$canvas.css({ cursor: window.svelteApp.make_css_cursor(...toolObj.cursor)});
   }
   
   const openMenu = (id) => {
-    if(!showMenu){
-      showMenu = true;
-    } else if (id == menuId){
-      showMenu = !showMenu;
+    if(!menuState.showMenu){
+      menuState.showMenu = true;
+    } else if (id == menuState.selectedMenuId){
+        closeMenu();
     } 
-    menuId = id;
-
-    if(toolList[id].keep){
-      selectedMenuId = id;
+    menuState.selectedMenuId = id;
+    if(menuState.selectedTools[id]){
+      setTool(menuState.selectedTools[id],id);
     }
   
-    if(showMenu){
-      const rect = buttons[id].getBoundingClientRect();
-       menuPosition = {
-         top: rect.bottom + window.scrollY,
-         left: rect.left + window.scrollX
-       };
-    }
-    
-    if(id == selectedMenuId){
-      toolList[selectedMenuId].subMenus[selectedToolIds[selectedMenuId]].onclick();
-    }
-    
+    // if(showMenu){
+    //   const rect = buttons[id].getBoundingClientRect();
+    //    menuPosition = {
+    //      top: rect.bottom + window.scrollY,
+    //      left: rect.left + window.scrollX
+    //    };
+    // }
+  
   }
 
-  function menuItemClick(id, idx){
-    if(toolList[id].keep){
-      menuId = id;
-    }
-    selectedToolIds[id] = idx;
-
-    toolList[id].subMenus[idx].onclick();
-    
-    
+  function closeMenu() {
+    menuState.showMenu=false;
+    menuState.selectedMenuId = menuState.toolMenuId;
   }
   
   
 
  // 외부 클릭 시 메뉴를 닫도록 설정
   onMount(() => {
-    toolList = [
-      { menuName:'menu', keep: false, subMenus: [
-        { id: TOOL_SELECT, onclick: ()=>{console.log('새창')} },
-        { id: TOOL_FREE_FORM_SELECT, onclick: ()=>{ console.log('열기')} },
-        { id: TOOL_FREE_FORM_SELECT, onclick: ()=>{ console.log('저장')} },
-      ]},
-      { menuName:'', keep: true, subMenus: [
-        { id: TOOL_SELECT, icon: LineIcon, onclick: ()=>{setTool(TOOL_SELECT)} },
-        { id: TOOL_FREE_FORM_SELECT, icon: LineIcon, onclick: ()=>{ setTool(TOOL_FREE_FORM_SELECT)} },
-      ]},
-      { menuName:'', keep: true, subMenus: [
-        { id: TOOL_PENCIL, icon: LineIcon, onclick: ()=>{ setTool(TOOL_PENCIL)} },
-        { id: TOOL_ERASER, icon: LineIcon, onclick: ()=>{ setTool(TOOL_ERASER)} },
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setTool(TOOL_FILL)} },
-        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setTool(TOOL_MAGNIFIER)} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setTool(TOOL_PICK_COLOR)} },
-      ]},
-      { menuName:'', keep: true, subMenus: [
-        { id: TOOL_BRUSH, icon: LineIcon, onclick: ()=>{ setTool(TOOL_BRUSH)} },
-        { id: TOOL_AIRBRUSH, icon: LineIcon, onclick: ()=>{ setTool(TOOL_AIRBRUSH)} },
-      ]},
-      { menuName:'', keep: true, subMenus: [
-        { id: TOOL_RECTANGLE, icon: LineIcon, onclick: ()=>{ setTool(TOOL_RECTANGLE)} },
-        { id: TOOL_ROUNDED_RECTANGLE, icon: LineIcon, onclick: ()=>{ setTool(TOOL_ROUNDED_RECTANGLE)} },
-        { id: TOOL_ELLIPSE, icon: LineIcon, onclick: ()=>{ setTool(TOOL_ELLIPSE)} },
-        { id: TOOL_POLYGON, icon: LineIcon, onclick: ()=>{ setTool(TOOL_POLYGON)} },
-        { id: TOOL_LINE, icon: LineIcon, onclick: ()=>{ setTool(TOOL_LINE)} },
-        { id: TOOL_CURVE, icon: LineIcon, onclick: ()=>{ setTool(TOOL_CURVE)} },
-      ]},
-      { menuName:'', keep: false, subMenus: [
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ console.log('1px')} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ console.log('2px')} },
-        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ console.log('3px')} },
-      ]},
-      { menuName:'', keep: false, subMenus: [
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('black')} },
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('white') } },
-        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('red')} },
-        { id: TOOL_FILL, icon: LineIcon, onclick: ()=>{ setForegroundColor('yellow')} },
-        { id: TOOL_PICK_COLOR, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(100, 205, 50, 0.5)')} },
-        { id: TOOL_MAGNIFIER, icon: LineIcon, onclick: ()=>{ setForegroundColor('rgba(255,255,255,0)')} },
-      ]}
-    ]
      
     const handleClickOutside = (event) => {
-      if (showMenu && !event.target.closest('.menu') && !event.target.closest('button')) {
-        showMenu = false;
+      if (menuState.showMenu && !event.target.closest('.menu') && !event.target.closest('button')) {
+          closeMenu();
       }
     };
 
@@ -184,129 +100,57 @@
       </div>
    </div>
    <div class="menus">
-      <button class="menu-button" class:selected-menu={selectedMenuId === 0} bind:this={buttons[0]} on:click={()=>{openMenu(0)}}>
+      <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 0} bind:this={buttons[0]} on:click={()=>{openMenu(0)}}>
          <img src={MenuIcon} alt="menu" />
       </button>
-      <button class="menu-button" class:selected-menu={selectedMenuId === 1} bind:this={buttons[1]} on:click={()=>{openMenu(1)}}>
+      <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 1} bind:this={buttons[1]} on:click={()=>{openMenu(1)}}>
         <img src={SelectionIcon} alt="selection" />
       </button>
-     <button class="menu-button" class:selected-menu={selectedMenuId === 2} bind:this={buttons[2]} on:click={()=>{openMenu(2)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 2} bind:this={buttons[2]} on:click={()=>{openMenu(2)}}>
        <img src={PenIcon} alt="tools" />
      </button>
-     <button class="menu-button" class:selected-menu={selectedMenuId === 3} bind:this={buttons[3]} on:click={()=>{openMenu(3)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 3} bind:this={buttons[3]} on:click={()=>{openMenu(3)}}>
         <img src={BrushIcon} alt="brush" />
       </button>
-     <button class="menu-button" class:selected-menu={selectedMenuId === 4} bind:this={buttons[4]} on:click={()=>{openMenu(4)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 4} bind:this={buttons[4]} on:click={()=>{openMenu(4)}}>
         <img src={RectangleIcon} alt="shapes" />
       </button>
-     <button class="menu-button" class:selected-menu={selectedMenuId === 5} bind:this={buttons[5]} on:click={()=>{openMenu(5)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 5} bind:this={buttons[5]} on:click={()=>{openMenu(5)}}>
         <img src={LineIcon} alt="line" />
       </button>
-     <button class="menu-button" class:selected-menu={selectedMenuId === 6} bind:this={buttons[6]} on:click={()=>{openMenu(6)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 6} bind:this={buttons[6]} on:click={()=>{openMenu(6)}}>
         <img src={ColorIcon} alt="color" />
       </button>
-      <!-- <div class="menu-button" on:click={()=>{setTool(TOOL_BRUSH)}}><img src={BrushIcon} alt="brush" /></div>
-      <div class="menu-button" on:click={()=>{setTool(TOOL_RECTANGLE)}}><img src={RectangleIcon} alt="shapes" /></div>
-      <div class="menu-button"><img src={LineIcon} alt="line" /></div>
-      <div class="menu-button"><img src={ColorIcon} alt="color" /></div> -->
       <div class="flex-1"></div>
       <div class="menu-button">
          <img src={FullScreenIcon} alt="full-screen" />
       </div>
-      {#if showMenu}
-        <div
-          class="menu show"
-          style="top: {menuPosition.top}px; left: {menuPosition.left}px;"
-        >
-          {#if menuId == 0}
-            <div class:selected-tool={selectedToolIds[0] === 0} on:click={()=>{menuItemClick(0, 0)}}>
-              <p>새창</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[0] === 1} on:click={()=>{menuItemClick(0, 1)}}>
-              <p>열기</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[0] === 2} on:click={()=>{menuItemClick(0, 2)}}>
-              <p>저장</p>
-            </div>
+    
+      {#if menuState.showMenu}
+        <div class="menu show"
+           style="top: 88px;">
+          {#if menuState.selectedMenuId == 0}
+            <ActionMenu/>
           {/if}
-          {#if menuId == 1}
-            <div class:selected-tool={selectedToolIds[1] === 0} on:click={()=>{menuItemClick(1, 0)}}>
-              <p>사각형으로 선택</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[1] === 1} on:click={()=>{menuItemClick(1, 1)}}>
-              <p>자유형으로 선택</p>
-            </div>
+          {#if menuState.selectedMenuId == 1}
+            <SelectionMenu/>
           {/if}
-          {#if menuId == 2}
-            <div class:selected-tool={selectedToolIds[2] === 0} on:click={()=>{menuItemClick(2, 0)}}>
-              <p>연필</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[2] === 1} on:click={()=>{menuItemClick(2, 1)}}>
-              <p>지우개</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[2] === 2} on:click={()=>{menuItemClick(2, 2)}}>
-              <p>칠하기</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[2] === 3} on:click={()=>{menuItemClick(2, 3)}}>
-              <p>돋보기</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[2] === 4} on:click={()=>{menuItemClick(2, 4)}}>
-              <p>pick color</p>
-            </div>
+          {#if menuState.selectedMenuId == 2}
+            <ToolMenu/>
           {/if}
-          {#if menuId == 3}
-            <div class:selected-tool={selectedToolIds[3] === 0} on:click={()=>{menuItemClick(3, 0)}}>
-              <p>브러쉬</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[3] === 1} on:click={()=>{menuItemClick(3, 1)}}>
-              <p>스프레이</p>
-            </div>
+          {#if menuState.selectedMenuId == 3}
+            <BrushMenu/>
           {/if}
-          {#if menuId == 4}
-            <div class:selected-tool={selectedToolIds[4] === 0} on:click={()=>{menuItemClick(4, 0)}}>
-              <p>사각형</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[4] === 1} on:click={()=>{menuItemClick(4, 1)}}>
-              <p>둥근 사각형</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[4] === 2} on:click={()=>{menuItemClick(4, 2)}}>
-              <p>원형</p>
-            </div>
-            
+          {#if menuState.selectedMenuId == 4}
+            <ShapeMenu/>
           {/if}
-          {#if menuId == 5}
-            <div class:selected-tool={selectedToolIds[5] === 0} on:click={()=>{menuItemClick(5, 0)}}>
-              <p>1px</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[5] === 1} on:click={()=>{menuItemClick(5, 1)}}>
-              <p>2px</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[5] === 2} on:click={()=>{menuItemClick(5, 2)}}>
-              <p>3px</p>
-            </div>
+       
+          {#if menuState.selectedMenuId == 6}
+            <ColorMenu/>
           {/if}
-          {#if menuId == 6}
-            <div class:selected-tool={selectedToolIds[6] === 0} on:click={()=>{menuItemClick(6, 0)}}>
-              <p>검정색</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[6] === 1} on:click={()=>{menuItemClick(6, 1)}}>
-              <p>흰색</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[6] === 2} on:click={()=>{menuItemClick(6, 2)}}>
-              <p>빨강</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[6] === 3} on:click={()=>{menuItemClick(6, 3)}}>
-              <p>노랑</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[6] === 4} on:click={()=>{menuItemClick(6, 4)}}>
-              <p>연한파랑</p>
-            </div>
-            <div class:selected-tool={selectedToolIds[6] === 5} on:click={()=>{menuItemClick(6, 5)}}>
-              <p>투명</p>
-            </div>
-          {/if}
-        </div>
+         </div>
       {/if}
+     
    </div>
   
 </header>
@@ -317,13 +161,10 @@
      background-color: #fff;
      border: 1px solid #ccc;
      padding: 8px;
-     display: none;
      z-index: 10;
    }
 
-   .menu.show {
-     display: block;
-   }
+
   .selected-menu{
      background: gray;
   }
