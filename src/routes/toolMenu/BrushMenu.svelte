@@ -2,18 +2,10 @@
   export let value;
   import { TOOL_AIRBRUSH, TOOL_BRUSH } from "../../paint/tools";
 
-  import { menuState } from "../../store/menuState.svelte.js";
+  import { menuState, changeTool } from "../../store/menuState.svelte.js";
 
   function setTool(toolId){
-    console.log(toolId);
-
-    menuState.toolMenuId = 3;
-    menuState.selectedTool = toolId;
-    menuState.selectedTools[3] = toolId;
-
-    const toolObj = window.svelteApp.get_tool_by_id(toolId);
-    window.svelteApp.select_tool(toolObj);
-    window.globApp.$canvas.css({ cursor: window.svelteApp.make_css_cursor(...toolObj.cursor)});
+    changeTool(toolId, 3);
   }
 
 </script>

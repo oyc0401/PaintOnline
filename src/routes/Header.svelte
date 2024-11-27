@@ -21,22 +21,10 @@
   
   import { onMount } from 'svelte';
   
-  import { menuState } from "../store/menuState.svelte.js";
+  import { menuState, changeTool as setTool} from "../store/menuState.svelte.js";
 
   let buttons = Array(7);
 
-  function setTool(toolId, menuId){
-    console.log(toolId);
-    
-    menuState.toolMenuId = menuId;
-    menuState.selectedTool = toolId;
-    menuState.selectedTools[menuId]=toolId;
- 
-    const toolObj = window.svelteApp.get_tool_by_id(toolId);
-    window.svelteApp.select_tool(toolObj);
-    window.globApp.$canvas.css({ cursor: window.svelteApp.make_css_cursor(...toolObj.cursor)});
-  }
-  
   const openMenu = (id) => {
     if(!menuState.showMenu){
       menuState.showMenu = true;

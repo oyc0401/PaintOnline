@@ -2,18 +2,10 @@
   export let value;
   import { TOOL_ERASER, TOOL_FILL, TOOL_MAGNIFIER, TOOL_PENCIL, TOOL_PICK_COLOR} from "../../paint/tools";
 
-  import { menuState } from "../../store/menuState.svelte.js";
+  import { menuState, changeTool } from "../../store/menuState.svelte.js";
   
   function setTool(toolId){
-    console.log(toolId);
-
-    menuState.toolMenuId = 2;
-    menuState.selectedTool = toolId;
-    menuState.selectedTools[2] = toolId;
-
-    const toolObj = window.svelteApp.get_tool_by_id(toolId);
-    window.svelteApp.select_tool(toolObj);
-    window.globApp.$canvas.css({ cursor: window.svelteApp.make_css_cursor(...toolObj.cursor)});
+    changeTool(toolId, 2);
   }
   
 </script>
