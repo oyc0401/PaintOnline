@@ -6,6 +6,7 @@
   
   function setTool(toolId){
     changeTool(toolId, 2);
+    console.log(toolId)
   }
   
 </script>

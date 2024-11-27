@@ -556,7 +556,7 @@ export function setupApp() {
     "wheel",
     (e) => {
       //console.log(e);  || e.ctrlKey
-      if (e.altKey || e.ctrlKey) {
+      if (e.altKey) {
         e.preventDefault();
         let new_magnification = appState.magnification;
         if (e.deltaY < 0) {

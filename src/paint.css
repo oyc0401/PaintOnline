@@ -276,46 +276,7 @@ html, body, .jspaint {
   width: 31px;
   height: 32px;
 }
-.current-colors,
-.color-button {
-  position: relative;
-}
-.foreground-color {
-  position: absolute;
-  left: 2px;
-  top: 4px;
-}
-.background-color {
-  position: absolute;
-  right: 3px;
-  bottom: 3px;
-}
-.colors-component.tall .foreground-color {
-  left: 4px;
-  top: 3px;
-}
-.colors-component.tall .background-color {
-  right: 3px;
-  bottom: 3px;
-}
 
-.colors-component.wide .color-button,
-.colors-component.wide .color-selection {
-  margin-left: 1px;
-}
-.colors-component.tall .color-button,
-.colors-component.tall .color-selection {
-  margin-top: 1px;
-}
-.color-button,
-.color-selection {
-  display: flex;
-  padding: 0;
-  box-sizing: border-box;
-  width: 15px;
-  height: 15px;
-  border: 0;
-}
 
 .edit-colors-window .color-grid {
   width: 222px;
@@ -1202,33 +1163,6 @@ body {
   content: "+";
 }
 
-
-.color-selection {
-  width: 18px;
-  height: 18px;
-}
-.color-button, /* this outer one is only for detection for the hover halo in eye gaze mode */
-.edit-colors-window .swatch, /* this outer one is only for detection for the hover halo in eye gaze mode */
-.color-button canvas,
-.color-selection canvas,
-.edit-colors-window .swatch canvas,
-.color-button:after,
-.color-selection:after,
-.edit-colors-window .swatch:after {
-  border-radius: 3px;
-  position: relative;
-}
-.color-button::after,
-.color-selection::after,
-.edit-colors-window .swatch::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5) inset;
-}
 
 .edit-colors-window .inset-shallow {
   border: 1px solid rgba(0, 0, 0, 0.5);

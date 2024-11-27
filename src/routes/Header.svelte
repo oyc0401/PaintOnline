@@ -57,7 +57,7 @@
   onMount(() => {
      
     const handleClickOutside = (event) => {
-      if (menuState.showMenu && !event.target.closest('.menu') && !event.target.closest('button')) {
+      if (menuState.showMenu && !event.target.closest('.menu-area') && !event.target.closest('button')) {
           closeMenu();
       }
     };
@@ -115,7 +115,7 @@
       </div>
     
       {#if menuState.showMenu}
-        <div class="menu show"
+        <div class="menu-area"
            style="top: 88px;">
           {#if menuState.selectedMenuId == 0}
             <ActionMenu/>
@@ -144,22 +144,16 @@
 </header>
 
 <style>
-  .menu {
+  .menu-area {
      position: absolute;
-     background-color: #fff;
-     border: 1px solid #ccc;
-     padding: 8px;
      z-index: 10;
+     width:100%;
    }
 
-
   .selected-menu{
-     background: gray;
+     background: #FCFCFD;
   }
 
-  .selected-tool{
-    background: gray;
-    font-weight: 700;
-  }
+ 
   
 </style>
