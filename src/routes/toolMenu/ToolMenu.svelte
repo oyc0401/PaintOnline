@@ -1,51 +1,57 @@
 <script>
-  export let value;
-  import { TOOL_ERASER, TOOL_FILL, TOOL_MAGNIFIER, TOOL_PENCIL, TOOL_PICK_COLOR} from "../../paint/tools";
+  import {
+    TOOL_ERASER,
+    TOOL_FILL,
+    TOOL_MAGNIFIER,
+    TOOL_PENCIL,
+    TOOL_PICK_COLOR,
+  } from "../../paint/tools";
 
   import { menuState, changeTool } from "../../store/menuState.svelte.js";
-  
-  function setTool(toolId){
+
+  function setTool(toolId) {
     changeTool(toolId, 2);
-    console.log(toolId)
+    console.log(toolId);
   }
-  
 </script>
-<div class='menuDropdown'>
-  <div class:selected-tool={menuState.selectedTool === TOOL_PENCIL} on:click={() => { setTool(TOOL_PENCIL); }}>
+
+<div class="menuDropdown">
+  <button
+    class:selected-tool={menuState.selectedTool === TOOL_PENCIL}
+    onclick={() => setTool(TOOL_PENCIL)}
+  >
     <p>연필</p>
-  </div>
-  <div class:selected-tool={menuState.selectedTool === TOOL_ERASER} on:click={() => { setTool(TOOL_ERASER); }}>
+  </button>
+  <button
+    class:selected-tool={menuState.selectedTool === TOOL_ERASER}
+    onclick={() => setTool(TOOL_ERASER)}
+  >
     <p>지우개</p>
-  </div>
-  <div class:selected-tool={menuState.selectedTool === TOOL_FILL} on:click={() => { setTool(TOOL_FILL); }}>
+  </button>
+  <button
+    class:selected-tool={menuState.selectedTool === TOOL_FILL}
+    onclick={() => setTool(TOOL_FILL)}
+  >
     <p>칠하기</p>
-  </div>
-  <div class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER} on:click={() => { setTool(TOOL_MAGNIFIER); }}>
+  </button>
+  <button
+    class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER}
+    onclick={() => setTool(TOOL_MAGNIFIER)}
+  >
     <p>돋보기</p>
-  </div>
-  <div class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR} on:click={() => { setTool(TOOL_PICK_COLOR); }}>
+  </button>
+  <button
+    class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR}
+    onclick={() => setTool(TOOL_PICK_COLOR)}
+  >
     <p>pick color</p>
-  </div>
-  
+  </button>
 </div>
 
 <style>
-  .menu {
-     position: absolute;
-     background-color: #fff;
-     border: 1px solid #ccc;
-     padding: 8px;
-     z-index: 10;
-   }
 
-
-  .selected-menu{
-     background: gray;
-  }
-
-  .selected-tool{
+  .selected-tool {
     background: gray;
     font-weight: 700;
   }
-
 </style>

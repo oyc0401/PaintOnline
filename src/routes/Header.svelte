@@ -88,25 +88,25 @@
       </div>
    </div>
    <div class="menus">
-      <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 0} bind:this={buttons[0]} on:click={()=>{openMenu(0)}}>
+      <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 0} bind:this={buttons[0]} onclick={()=>openMenu(0)}>
          <img src={MenuIcon} alt="menu" />
       </button>
-      <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 1} bind:this={buttons[1]} on:click={()=>{openMenu(1)}}>
+      <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 1} bind:this={buttons[1]} onclick={()=>openMenu(1)}>
         <img src={SelectionIcon} alt="selection" />
       </button>
-     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 2} bind:this={buttons[2]} on:click={()=>{openMenu(2)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 2} bind:this={buttons[2]} onclick={()=>openMenu(2)}>
        <img src={PenIcon} alt="tools" />
      </button>
-     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 3} bind:this={buttons[3]} on:click={()=>{openMenu(3)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 3} bind:this={buttons[3]} onclick={()=>openMenu(3)}>
         <img src={BrushIcon} alt="brush" />
       </button>
-     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 4} bind:this={buttons[4]} on:click={()=>{openMenu(4)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 4} bind:this={buttons[4]} onclick={()=>openMenu(4)}>
         <img src={RectangleIcon} alt="shapes" />
       </button>
-     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 5} bind:this={buttons[5]} on:click={()=>{openMenu(5)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 5} bind:this={buttons[5]} onclick={()=>openMenu(5)}>
         <img src={LineIcon} alt="line" />
       </button>
-     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 6} bind:this={buttons[6]} on:click={()=>{openMenu(6)}}>
+     <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 6} bind:this={buttons[6]} onclick={()=>openMenu(6)}>
         <img src={ColorIcon} alt="color" />
       </button>
       <div class="flex-1"></div>

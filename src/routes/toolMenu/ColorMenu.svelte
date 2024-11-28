@@ -76,21 +76,23 @@
     <button
       class="color-button"
       class:select={menuState.selectedColor == 0}
-      on:click={() => {
-        onclickColorButton(0);
-      }}
+      onclick={() => onclickColorButton(0)}
     >
-      <div class="foreground-color" style:box-shadow="inset 0 0 0 36px {menuState.foregroundColor}"></div>
+      <div
+        class="foreground-color"
+        style:box-shadow="inset 0 0 0 36px {menuState.foregroundColor}"
+      ></div>
       <p>색 1</p>
     </button>
     <button
       class="color-button"
       class:select={menuState.selectedColor == 1}
-      on:click={() => {
-        onclickColorButton(1);
-      }}
+      onclick={() => onclickColorButton(1)}
     >
-      <div class="background-color" style:box-shadow="inset 0 0 0 32px {menuState.backgroundColor}"></div>
+      <div
+        class="background-color"
+        style:box-shadow="inset 0 0 0 32px {menuState.backgroundColor}"
+      ></div>
       <p>색 2</p>
     </button>
 
@@ -106,9 +108,7 @@
           class:bright_palette={isBrightColor(color)}
           class="palette-item"
           style="box-shadow: inset 0 0 0 36px {color};"
-          on:click={() => {
-            selectColor(color);
-          }}
+          onclick={() => selectColor(color)}
         ></button>
       {/each}
     </div>
@@ -119,9 +119,7 @@
           class:bright_palette={isBrightColor(color)}
           class="palette-item"
           style="box-shadow: inset 0 0 0 36px {color};"
-          on:click={() => {
-            selectColor(color);
-          }}
+          onclick={() => selectColor(color)}
         ></button>
       {/each}
     </div>
@@ -135,9 +133,7 @@
             style="box-shadow: inset 0 0 0 36px {menuState.colorHistory[
               index
             ]};"
-            on:click={() => {
-              selectColor(color);
-            }}
+            onclick={() => selectColor(color)}
           ></button>
         {:else}
           <div class="palette-item-none"></div>
@@ -180,7 +176,7 @@
     border-radius: 4px;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
       repeat;
-    background-size: 8px;
+    background-size: 18px;
     image-rendering: pixelated;
   }
   .background-color {
@@ -191,7 +187,7 @@
     border-radius: 4px;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
       repeat;
-    background-size: 8px;
+    background-size: 16px;
     image-rendering: pixelated;
   }
 
@@ -218,7 +214,7 @@
     cursor: pointer;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
       repeat;
-    background-size: 8px;
+    background-size: 18px;
     image-rendering: pixelated;
   }
   .palette-item-none {
