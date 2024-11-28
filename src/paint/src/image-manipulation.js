@@ -1,10 +1,10 @@
 console.log('JS 실행:','image-manipulation.js')
 import libtess from '../lib/libtess.min.js';
-
+import $ from 'jquery'
 
 import { localize } from "../../localize/localize.js";
 import { cancel, deselect, show_error_message, undoable, update_title } from "./functions.js";
-import { $G, TAU, get_help_folder_icon, get_rgba_from_color, make_canvas, memoize_synchronous_function } from "./helpers.js";
+import { TAU, get_help_folder_icon, get_rgba_from_color, make_canvas, memoize_synchronous_function } from "./helpers.js";
 
 const fill_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
 
@@ -184,9 +184,9 @@ const get_brush_canvas_implementation = (brush_shape, brush_size) => {
 // Cache size: 12 brush tool options + current brush + current pencil + current eraser + current shape stroke + a few
 const get_brush_canvas = memoize_synchronous_function(get_brush_canvas_implementation, 20);
 
-$G.on("invalidate-brush-canvases", () => {
-	get_brush_canvas.clear_memo_cache();
-});
+// $(window).on("invalidate-brush-canvases", () => {
+// 	get_brush_canvas.clear_memo_cache();
+// });
 
 
 /**
@@ -280,9 +280,9 @@ const get_circumference_points_for_brush_implementation = (brush_shape, brush_si
 };
 const get_circumference_points_for_brush = memoize_synchronous_function(get_circumference_points_for_brush_implementation);
 
-$G.on("invalidate-brush-canvases", () => {
-	get_circumference_points_for_brush.clear_memo_cache();
-});
+// $(window).on("invalidate-brush-canvases", () => {
+// 	get_circumference_points_for_brush.clear_memo_cache();
+// });
 
 
 /** @type {PixelCanvas} */
@@ -1220,14 +1220,16 @@ function draw_grid(ctx, scale) {
 // they're squares equal to one canvas pixel
 // they're offset by a screen pixel tho from the canvas pixel cells
 
-const svg_for_creating_matrices = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
-const horizontal_pattern_canvas = make_canvas(8, 4);
-const vertical_pattern_canvas = make_canvas(4, 8);
+
+
 let horizontal_pattern;
 let vertical_pattern;
 
 function draw_dashes(ctx, x, y, go_x, go_y, scale, translate_x, translate_y) {
+	const horizontal_pattern_canvas = make_canvas(8, 4);
+	const vertical_pattern_canvas = make_canvas(4, 8);
+	
 	if (!vertical_pattern) {
 		horizontal_pattern_canvas.ctx.fillStyle = "white";
 		horizontal_pattern_canvas.ctx.fillRect(4, 0, 4, 4);
@@ -1248,7 +1250,8 @@ function draw_dashes(ctx, x, y, go_x, go_y, scale, translate_x, translate_y) {
 	ctx.translate(x, y);
 	ctx.globalCompositeOperation = "difference";
 
-
+	const svg_for_creating_matrices = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	
 	if (go_x > 0) {
 		const matrix = svg_for_creating_matrices.createSVGMatrix();
 		if (horizontal_pattern.setTransform) { // not supported by Edge as of 2019-12-04
@@ -1480,9 +1483,9 @@ export function init_webgl_stuff() {
 
 		// brushes rendered using WebGL may be invalid (i.e. invisible) since the context was lost
 		// invalidate the cache(s) so that brushes will be re-rendered now that WebGL is restored
-		$G.triggerHandler("invalidate-brush-canvases");
+		$(window).triggerHandler("invalidate-brush-canvases");
 
-		$G.triggerHandler("redraw-tool-options-because-webglcontextrestored");
+		$(window).triggerHandler("redraw-tool-options-because-webglcontextrestored");
 	}, false);
 }
 

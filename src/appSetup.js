@@ -47,8 +47,9 @@ import {
   view_bitmap,
   write_image_file,
 } from "./paint/src/functions.js";
+import $ from 'jquery'
 import {
-  $G,
+
   E,
   TAU,
   get_file_extension,

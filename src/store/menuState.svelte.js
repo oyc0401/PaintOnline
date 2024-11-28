@@ -29,3 +29,4 @@ export function changeTool(toolId, menuId) {
     cursor: window.svelteApp.make_css_cursor(...toolObj.cursor),
   });
 }
+

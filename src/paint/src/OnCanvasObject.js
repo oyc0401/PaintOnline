@@ -1,7 +1,8 @@
 console.log('JS 실행:','OnCanvasObject.js')
 // @ts-check
 /* global $canvas_area, $status_position, $status_size, canvas_handles */
-import { $G, E } from "./helpers.js";
+import $ from 'jquery'
+import {  E } from "./helpers.js";
 // import $ from 'jquery'
 // let{
 // 	update_fill_and_stroke_colors_and_lineWidth ,
@@ -45,7 +46,7 @@ class OnCanvasObject {
 		if (this.hideMainCanvasHandles) {
 			window.globApp.canvas_handles.hide();
 		}
-		$G.on("resize theme-load", this._global_resize_handler = () => {
+		$(window).on("resize theme-load", this._global_resize_handler = () => {
 			this.position();
 		});
 	}
@@ -80,7 +81,7 @@ class OnCanvasObject {
 		if (this.hideMainCanvasHandles) {
 			window.globApp.canvas_handles.show();
 		}
-		$G.off("resize theme-load", this._global_resize_handler);
+		$(window).off("resize theme-load", this._global_resize_handler);
 	}
 }
 

@@ -1,8 +1,8 @@
 <script>
   import { TOOL_AIRBRUSH, TOOL_BRUSH } from "../../paint/tools";
 
-  import { menuState, changeTool } from "../../store/menuState.svelte.js";
-
+  import { menuState } from "../../store/menuState.svelte.js";
+  import {  changeTool } from "../../store/paintFunction.js";
   function setTool(toolId) {
     changeTool(toolId, 3);
   }

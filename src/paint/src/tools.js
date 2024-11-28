@@ -16,7 +16,7 @@ import {
 } from "./functions.js";
 
 import {
-	$G,
+	
 	E,
 	get_icon_for_tool,
 	get_icon_for_tools,
@@ -45,18 +45,10 @@ import {
 	stamp_brush_canvas_color,
 	update_brush_for_drawing_lines,
 } from "./image-manipulation.js";
-import {
-	$ChooseShapeStyle,
-	$choose_airbrush_size,
-	$choose_brush,
-	$choose_eraser_size,
-	$choose_magnification,
-	$choose_stroke_size,
-	$choose_transparent_mode,
-} from "./tool-options.js";
 
 
-// import $ from 'jquery';
+
+import $ from 'jquery';
 // This is for linting stuff at the bottom.
 // It has to be defined per file, so I'm defining it up top and immediately disabling it.
 // It's re-enabled below to disallow the use of `this` in functions that are added to the tool objects
@@ -361,7 +353,6 @@ const tools = [
 
 			ctx.drawImage(this.preview_canvas, 0, 0);
 		},
-		$options: $choose_transparent_mode,
 	},
 	{
 		id: TOOL_SELECT,
@@ -465,7 +456,6 @@ const tools = [
 				}
 			}
 		},
-		$options: $choose_transparent_mode,
 	},
 	{
 		id: TOOL_ERASER,
@@ -728,7 +718,6 @@ const tools = [
 				drawCtx.putImageData(result_image_data, rect_x, rect_y);
 			}
 		},
-		$options: $choose_eraser_size,
 	},
 	{
 		id: TOOL_FILL,
@@ -799,7 +788,6 @@ const tools = [
 			window.globAppstate.selected_colors[window.globAppstate.pick_color_slot] = this.current_color;
 			$G.trigger("option-changed");
 		},
-		$options: $(E("div")),
 	},
 	{
 		id: TOOL_MAGNIFIER,
@@ -995,7 +983,6 @@ const tools = [
 				window.globApp.$canvas_area.trigger("scroll");
 			}
 		},
-		$options: $choose_magnification,
 	},
 	{
 		id: TOOL_PENCIL,
@@ -1022,7 +1009,6 @@ const tools = [
 		get_brush() {
 			return { size: window.globAppstate.brush_size, shape: window.globAppstate.brush_shape };
 		},
-		$options: $choose_brush,
 	},
 	{
 		id: TOOL_AIRBRUSH,
@@ -1044,7 +1030,6 @@ const tools = [
 			}
 			update_helper_layer();
 		},
-		$options: $choose_airbrush_size,
 	},
 	{
 		id: TOOL_LINE,
@@ -1067,7 +1052,6 @@ const tools = [
 			update_brush_for_drawing_lines(window.globAppstate.stroke_size);
 			draw_line(ctx, x, y, x + w, y + h, window.globAppstate.stroke_size);
 		},
-		$options: $choose_stroke_size,
 	},
 	{
 		id: TOOL_CURVE,
@@ -1230,7 +1214,6 @@ const tools = [
 			update_helper_layer();
 			//$status_size.text("");
 		},
-		$options: $choose_stroke_size,
 	},
 	{
 		id: TOOL_RECTANGLE,
@@ -1311,7 +1294,6 @@ const tools = [
 				}
 			}
 		},
-		$options: $ChooseShapeStyle(),
 	},
 	{
 		id: TOOL_POLYGON,
@@ -1562,7 +1544,6 @@ const tools = [
 			this.preview_canvas.height = 1;
 		},
 		shape_colors: true,
-		$options: $ChooseShapeStyle(),
 	},
 	{
 		id: TOOL_ELLIPSE,
@@ -1621,7 +1602,6 @@ const tools = [
 				);
 			}
 		},
-		$options: $ChooseShapeStyle(),
 	},
 	{
 		id: TOOL_ROUNDED_RECTANGLE,
@@ -1765,7 +1745,7 @@ const tools = [
 				);
 			}
 		},
-		$options: $ChooseShapeStyle(),
+
 	},
 ];
 

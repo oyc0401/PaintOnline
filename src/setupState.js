@@ -29,7 +29,7 @@ import {
 
 import { 
    make_canvas,
-   $G,
+   
    E,
    TAU,
    get_file_extension,

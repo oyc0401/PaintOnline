@@ -17,10 +17,10 @@ import {
    undoable,
    update_title,
 } from "./paint/src/functions.js";
-
+import $ from 'jquery'
 import {
    make_canvas,
-   $G,
+   
    get_help_folder_icon,
    to_canvas_coords,
    debounce,
@@ -47,22 +47,6 @@ import { localStore } from "./paint/src/storage.js";
 import { localize } from "./localize/localize.js";
 
 export function preSetting() {
-   console.log("presetting");
-   // Note `defaultMessageBoxTitle` handling in make_iframe_window (or now function enhance_iframe) in 98.js.org
-   // https://github.com/1j01/98/blob/361bd759a6d9b71d0fad9e479840598dc0128bb6/src/iframe-windows.js#L111
-   // Any other default parameters need to be handled there (as it works now)
-
-   window.defaultMessageBoxTitle = localize("Paint");
-
-   // Temporary globals until all dependent code is converted to ES Modules
-   window.showMessageBox = showMessageBox; // used by app-localization.js
-
-   window.are_you_sure = are_you_sure; // used by app-localization.js, electron-injected.js
-   window.show_error_message = show_error_message; // used by app-localization.js, electron-injected.js
-   window.exit_fullscreen_if_ios = exit_fullscreen_if_ios; // used by app-localization.js
-
-   window.tools = tools;
-
    window.svelteApp = {};
    window.svelteApp.get_tool_by_id = get_tool_by_id; // used by svelte tool button
    window.svelteApp.select_tool = select_tool; // used by svelte tool button
@@ -161,7 +145,7 @@ export function setSession() {
          $undo.prop("disabled", window.globAppstate.undos.length < 1);
          $redo.prop("disabled", window.globAppstate.redos.length < 1);
       };
-      $G.on("session-update.session-hook", update_buttons_disabled);
+      $(window).on("session-update.session-hook", update_buttons_disabled);
       update_buttons_disabled();
 
       $w.$Button(localize("Close"), () => {
@@ -255,7 +239,7 @@ export function setSession() {
                this.save_image_to_storage_soon();
             }
          });
-         $G.on("session-update.session-hook", () => {
+         $(window).on("session-update.session-hook", () => {
             this.save_image_to_storage_soon();
          });
       }
@@ -264,7 +248,7 @@ export function setSession() {
          this.save_image_to_storage_soon.cancel();
          this.save_image_to_storage_immediately();
          // Remove session-related hooks
-         $G.off(".session-hook");
+         $(window).off(".session-hook");
       }
    }
 
@@ -483,7 +467,7 @@ export function setSession() {
             100,
          );
          let ignore_session_update = false;
-         $G.on("session-update.session-hook", () => {
+         $(window).on("session-update.session-hook", () => {
             if (ignore_session_update) {
                log("(Ignore session-update from Sync Session undoable)");
                return;
@@ -508,7 +492,7 @@ export function setSession() {
                   img.onload = () => {
                      // Cancel any in-progress pointer operations
                      // if (pointer_operations.length) {
-                     // 	$G.triggerHandler("pointerup", "cancel");
+                     // 	$(window).triggerHandler("pointerup", "cancel");
                      // }
 
                      const test_canvas = make_canvas(img);
@@ -558,7 +542,7 @@ export function setSession() {
                   for (const e of pointer_operations) {
                      // Trigger the event at each place it is listened for
                      $canvas.triggerHandler(e, ["synthetic"]);
-                     $G.triggerHandler(e, ["synthetic"]);
+                     $(window).triggerHandler(e, ["synthetic"]);
                   }
                   */
                   };
@@ -575,7 +559,7 @@ export function setSession() {
             },
          );
          // Update the cursor status
-         $G.on("pointermove.session-hook", (e) => {
+         $(window).on("pointermove.session-hook", (e) => {
             const m = to_canvas_coords(e);
             this.fb_user.child("cursor").update({
                x: m.x,
@@ -583,7 +567,7 @@ export function setSession() {
                away: false,
             });
          });
-         $G.on("blur.session-hook", () => {
+         $(window).on("blur.session-hook", () => {
             this.fb_user.child("cursor").update({
                away: true,
             });
@@ -610,12 +594,12 @@ export function setSession() {
 
                pointer_operations.push(e);
             };
-            $G.on("pointermove.session-hook", pointermove);
-            $G.one("pointerup.session-hook", (e, synthetic) => {
+            $(window).on("pointermove.session-hook", pointermove);
+            $(window).one("pointerup.session-hook", (e, synthetic) => {
                debug_event(e, synthetic);
                if (synthetic) { return; }
 
-               $G.off("pointermove.session-hook", pointermove);
+               $(window).off("pointermove.session-hook", pointermove);
             });
          });
          */
@@ -625,7 +609,7 @@ export function setSession() {
          this.write_canvas_to_database_soon.cancel();
          this.write_canvas_to_database_immediately();
          // Remove session-related hooks
-         $G.off(".session-hook");
+         $(window).off(".session-hook");
          // $canvas_area.off("pointerdown.session-hook");
          // Remove collected Firebase event listeners
          this._fb_listeners.forEach(
@@ -694,7 +678,7 @@ export function setSession() {
             this._write_canvas_to_server_immediately,
             100,
          );
-         $G.on("session-update.session-hook", () => {
+         $(window).on("session-update.session-hook", () => {
             if (this._ignore_session_update) {
                log("(Ignore session-update from Sync Session undoable)");
                return;
@@ -754,7 +738,7 @@ export function setSession() {
 
                // Cancel any in-progress pointer operations
                // if (pointer_operations.length) {
-               // 	$G.triggerHandler("pointerup", "cancel");
+               // 	$(window).triggerHandler("pointerup", "cancel");
                // }
 
                const test_canvas = make_canvas(img);
@@ -805,7 +789,7 @@ export function setSession() {
          this._write_canvas_to_server_soon.cancel();
          this._write_canvas_to_server_immediately();
          // Remove session-related hooks
-         $G.off(".session-hook");
+         $(window).off(".session-hook");
          // Remove any cursor elements
          $app.find(".user-cursor").remove();
          // Reset to "untitled"
@@ -931,7 +915,7 @@ export function setSession() {
       }
    };
 
-   $G.on("hashchange popstate change-url-params", (e) => {
+   $(window).on("hashchange popstate change-url-params", (e) => {
       log(e.type, location.hash);
       update_session_from_location_hash();
    });

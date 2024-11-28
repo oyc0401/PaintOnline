@@ -1,7 +1,7 @@
 // @ts-check
 
 /* eslint-disable @stylistic/space-unary-ops */
-// import $ from "jquery";
+import $ from "jquery";
 //import { AccessKeys } from '../lib/os-gui/MenuBar.js'
 
 console.log('JS 실행:','helpers.js')
@@ -30,7 +30,7 @@ const TAU =
 
 const is_pride_month = new Date().getMonth() === 5; // June (0-based, 0 is January)
 
-const $G = $(window);
+
 
 /**
  * Wrapper for AccessKeys.toHTML that ensures whitespace isn't collapsed in cases like "Fox &Trot" or "Fo&x Trot" where the access key abuts a space.
@@ -429,7 +429,6 @@ function from_canvas_coords({ x, y }) {
 // #endregion
 
 export {
-	$G,
 	E,
 	TAU,
 	debounce,

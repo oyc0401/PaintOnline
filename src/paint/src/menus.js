@@ -21,11 +21,9 @@ import {
 	save_selection_to_file,
 	select_all,
 	set_magnification,
-	show_about_paint,
 	undo,
 	view_bitmap,
 } from "./functions.js";
-import { $G} from "./helpers.js";
 //import {MENU_DIVIDER} from'../lib/os-gui/MenuBar.js'
 
 const looksLikeChrome = !!(

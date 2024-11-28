@@ -6,7 +6,7 @@ console.log('JS 실행:','file-format-data.js')
 
 import { get_direction, localize } from "../../localize/localize.js";
 
-import AnyPalette from '../lib/anypalette-0.6.0.js';
+// import AnyPalette from '../lib/anypalette-0.6.0.js';
 /** @type {ImageFileFormat[]} */
 let image_formats = [];
 // const ext_to_image_formats = {}; // there can be multiple with the same extension, e.g. different bit depth BMP files
@@ -117,23 +117,22 @@ const image_format_categories = (image_formats) => {
 
 /** @type {PaletteFileFormat[]} */
 const palette_formats = [];
-console.log('AnyPalette:',AnyPalette)
-for (const [format_id, format] of Object.entries(AnyPalette.formats)) {
-	if (format.write) {
-		const inside_parens = format.fileExtensions.map((extension) => `*.${extension}`).join(";");
-		palette_formats.push({
-			formatID: format_id,
-			name: format.name,
-			nameWithExtensions: `${format.name} (${inside_parens})`,
-			extensions: format.fileExtensions,
-		});
-	}
-}
-palette_formats.sort((a, b) =>
-	// Order important formats first, starting with RIFF PAL format:
-	+(b.formatID === "RIFF_PALETTE") - +(a.formatID === "RIFF_PALETTE") ||
-	+(b.formatID === "GIMP_PALETTE") - +(a.formatID === "GIMP_PALETTE") ||
-	0
-);
+// for (const [format_id, format] of Object.entries(AnyPalette.formats)) {
+// 	if (format.write) {
+// 		const inside_parens = format.fileExtensions.map((extension) => `*.${extension}`).join(";");
+// 		palette_formats.push({
+// 			formatID: format_id,
+// 			name: format.name,
+// 			nameWithExtensions: `${format.name} (${inside_parens})`,
+// 			extensions: format.fileExtensions,
+// 		});
+// 	}
+// }
+// palette_formats.sort((a, b) =>
+// 	// Order important formats first, starting with RIFF PAL format:
+// 	+(b.formatID === "RIFF_PALETTE") - +(a.formatID === "RIFF_PALETTE") ||
+// 	+(b.formatID === "GIMP_PALETTE") - +(a.formatID === "GIMP_PALETTE") ||
+// 	0
+// );
 
 export { formats_unique_per_file_extension, image_formats, palette_formats };

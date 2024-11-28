@@ -1,6 +1,6 @@
 console.log('JS 실행:','Hendles.js')
-
-import { $G, E, make_css_cursor, to_canvas_coords } from "./helpers.js";
+import $ from 'jquery'
+import {  E, make_css_cursor, to_canvas_coords } from "./helpers.js";
 // import $ from 'jquery'
 /**
  * Handles for resizable, draggable, on-canvas objects.
@@ -181,12 +181,12 @@ function Handles(options) {
 			// console.log('hand pointerdown')
 			dragged = false;
 			//if (event.button === 0) {
-				$G.on("pointermove touchmove", drag);
+				$(window).on("pointermove touchmove", drag);
 				$("body").css({ cursor }).addClass("cursor-bully");
 			//}
-			$G.one("pointerup touchend touchcancel", () => {
+			$(window).one("pointerup touchend touchcancel", () => {
 				//console.log('window pointerup')
-				$G.off("pointermove touchmove", drag);
+				$(window).off("pointermove touchmove", drag);
 				$("body").css({ cursor: "" }).removeClass("cursor-bully");
 
 				$resize_ghost.remove();
@@ -274,7 +274,7 @@ function Handles(options) {
 		};
 
 		$handles_container.on("update resize scroll", update_handle);
-		$G.on("resize theme-load", update_handle);
+		$(window).on("resize theme-load", update_handle);
 		setTimeout(update_handle, 50);
 
 		handles.push($h[0], $grab_region[0]);

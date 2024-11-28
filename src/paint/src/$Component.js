@@ -4,7 +4,7 @@ console.log('JS 실행:','$Component.js')
 
 //import { $ToolWindow } from "./$ToolWindow.js";
 // import { get_direction } from "./app-localization.js";
-import { $G, E } from "./helpers.js";
+import {  E } from "./helpers.js";
 // import $ from "jquery";
 // Segments here represent UI components as far as a layout algorithm is concerned,
 // line segments in one dimension (regardless of whether that dimension is vertical or horizontal),

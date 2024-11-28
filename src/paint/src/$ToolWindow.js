@@ -2,7 +2,7 @@ console.log('JS 실행:','$ToolWindow.js')
 // @ts-check
 /* global $Window */
 
-import { $G, E } from "./helpers.js";
+import { E } from "./helpers.js";
 // import $ from "jquery";
 /**
  * @param {OSGUIWindowOptions} options

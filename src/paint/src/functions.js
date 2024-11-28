@@ -3,8 +3,7 @@ console.log('JS 실행:','functions.js')
 
 
 import UPNG from '../lib/UPNG.js'
-import AnyPalette from '../lib/anypalette-0.6.0.js';
-// import $ from 'jquery'
+//import AnyPalette from '../lib/anypalette-0.6.0.js';
 
 import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
@@ -13,7 +12,7 @@ import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
-import { $G, E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
+import {  E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
 import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
@@ -141,7 +140,7 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 		location.hash = new_hash;
 	}
 
-	$G.triggerHandler("change-url-params");
+	$(window).triggerHandler("change-url-params");
 }
 
 function update_magnified_canvas_size() {
@@ -439,9 +438,9 @@ function set_magnification(new_scale, anchor_point) {
 		behavior: "instant",
 	});
 
-	$G.triggerHandler("resize"); // updates handles & grid
-	$G.trigger("option-changed"); // updates options area
-	$G.trigger("magnification-changed"); // updates custom zoom window
+	$(window).triggerHandler("resize"); // updates handles & grid
+	$(window).trigger("option-changed"); // updates options area
+	$(window).trigger("magnification-changed"); // updates custom zoom window
 }
 
 
@@ -451,7 +450,7 @@ function reset_selected_colors() {
 		background: "#ffffff",
 		ternary: "",
 	};
-	$G.trigger("option-changed");
+	$(window).trigger("option-changed");
 }
 
 function reset_file() {
@@ -487,7 +486,7 @@ function reset_canvas_and_history() {
 	window.globAppstate.current_history_node.image_data = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
 	
 	window.globApp.$canvas_area.trigger("resize");
-	$G.triggerHandler("history-update"); // update history view
+	$(window).triggerHandler("history-update"); // update history view
 }
 
 // TODO: fix inconsistent use of ancestry metaphor (parent vs futures); could use the term "basis" for the parent, or "children" for the futures
@@ -762,7 +761,7 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		cancel();
 
 		if (!into_existing_session) {
-			$G.triggerHandler("session-update"); // autosave old session
+			$(window).triggerHandler("session-update"); // autosave old session
 			new_local_session();
 		}
 
@@ -786,9 +785,9 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 			// right now how it works is the session would be overwritten, so if you reloaded, it'd be lost,
 			// so we'd better save it.
 			// (and we want to save if this is a new session being initialized with an image)
-			$G.triggerHandler("session-update"); // autosave
+			$(window).triggerHandler("session-update"); // autosave
 		}
-		$G.triggerHandler("history-update"); // update history view
+		$(window).triggerHandler("history-update"); // update history view
 
 		if (info.source_blob instanceof File) {
 			window.globAppstate.file_name = info.source_blob.name;
@@ -829,16 +828,16 @@ function open_from_file(file, source_file_handle) {
 	// Try loading as an image file first, then as a palette file, but show a combined error message if both fail.
 	read_image_file(file, (as_image_error, image_info) => {
 		if (as_image_error) {
-			AnyPalette.loadPalette(file, (as_palette_error, new_palette) => {
-				if (as_palette_error) {
-					show_file_format_errors({ as_image_error, as_palette_error });
-					return;
-				}
-				window.globAppstate.palette = new_palette.map((color) => color.toString());
-				//$colorbox.rebuild_palette();
-				window.console?.log(`Loaded palette: ${window.globAppstate.palette.map(() => "%c█").join("")}`, ...window.globAppstate.palette.map((color) => `color: ${color};`));
-			});
-			return;
+			// AnyPalette.loadPalette(file, (as_palette_error, new_palette) => {
+			// 	if (as_palette_error) {
+			// 		show_file_format_errors({ as_image_error, as_palette_error });
+			// 		return;
+			// 	}
+			// 	window.globAppstate.palette = new_palette.map((color) => color.toString());
+			// 	//$colorbox.rebuild_palette();
+			// 	window.console?.log(`Loaded palette: ${window.globAppstate.palette.map(() => "%c█").join("")}`, ...window.globAppstate.palette.map((color) => `color: ${color};`));
+			// });
+			// return;
 		}
 		image_info.source_file_handle = source_file_handle;
 		open_from_image_info(image_info);
@@ -860,7 +859,7 @@ function apply_file_format_and_palette_info(info) {
 		window.globAppstate.palette = info.palette;
 		window.globAppstate.selected_colors.foreground = window.globAppstate.palette[0];
 		window.globAppstate.selected_colors.background = window.globAppstate.palette.length === 14 * 2 ? window.globAppstate.palette[14] : window.globAppstate.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
-		$G.trigger("option-changed");
+		$(window).trigger("option-changed");
 	} else if (monochrome && !info.monochrome) {
 		window.globAppstate.palette = default_palette;
 		reset_selected_colors();
@@ -883,7 +882,7 @@ function load_theme_from_text(fileText) {
 
 	window.themeCSSProperties = cssProperties;
 
-	$G.triggerHandler("theme-load");
+	$(window).triggerHandler("theme-load");
 }
 
 function file_new() {
@@ -891,7 +890,7 @@ function file_new() {
 		deselect();
 		cancel();
 
-		$G.triggerHandler("session-update"); // autosave old session
+		$(window).triggerHandler("session-update"); // autosave old session
 		new_local_session();
 
 		reset_file();
@@ -899,7 +898,7 @@ function file_new() {
 		reset_canvas_and_history(); // (with newly reset colors)
 		set_magnification(window.globAppstate.default_magnification);
 
-		$G.triggerHandler("session-update"); // autosave
+		$(window).triggerHandler("session-update"); // autosave
 	});
 }
 
@@ -1294,135 +1293,6 @@ function show_file_format_errors({ as_image_error, as_palette_error }) {
 	});
 }
 
-/** @type {OSGUI$Window} */
-let $about_paint_window;
-const $about_paint_content = $("#about-paint");
-
-/** @type {OSGUI$Window} */
-let $news_window;
-const $this_version_news = $("#news");
-let $latest_news = $this_version_news;
-
-// not included directly in the HTML as a simple way of not showing it if it's loaded with fetch
-// (...not sure how to phrase this clearly and concisely...)
-// "Showing the news as of this version of JS Paint. For the latest, see <a href='https://jspaint.app'>jspaint.app</a>"
-if (location.origin !== "https://jspaint.app") {
-	$this_version_news.prepend(
-		$("<p>For the latest news, visit <a href='https://jspaint.app'>jspaint.app</a></p>")
-			.css({ padding: "8px 15px" })
-	);
-}
-
-function show_about_paint() {
-	if ($about_paint_window) {
-		$about_paint_window.close();
-	}
-	$about_paint_window = $Window({
-		title: localize("About Paint"),
-		resizable: false,
-		maximizeButton: false,
-		minimizeButton: false,
-	});
-	$about_paint_window.addClass("about-paint squish");
-	if (is_pride_month) {
-		$("#about-paint-icon").attr("src", "./images/icons/gay-es-paint-128x128.png");
-	}
-
-	$about_paint_window.$content.append($about_paint_content.show()).css({ padding: "15px" });
-
-	$("#jspaint-update-status-area").removeAttr("hidden");
-
-	$("#failed-to-check-if-outdated").attr("hidden", "hidden");
-	$("#outdated").attr("hidden", "hidden");
-
-	$about_paint_window.$Button(localize("OK"), () => {
-		$about_paint_window.close();
-	})
-		.attr("id", "close-about-paint")
-		.focus()
-		.css({
-			float: "right",
-			marginBottom: "10px",
-		});
-
-	$("#refresh-to-update").on("click", (event) => {
-		event.preventDefault();
-		are_you_sure(() => {
-			exit_fullscreen_if_ios();
-			location.reload();
-		});
-	});
-
-	// Hack to avoid mis-centering within small screens,
-	// due to dynamic width of window when it abuts the right side of the screen
-	// (due to line wrapping of text content at the right edge of the screen)
-	// TODO: include this in OS-GUI library's centering logic
-	$about_paint_window.css({ left: -innerWidth, top: -innerHeight });
-	$about_paint_window.center();
-
-
-	$("#checking-for-updates").removeAttr("hidden");
-
-	// Forward compatibility note: I could change what's served at /?news and remove the news from the HTML,
-	// but I've only added this query string on 2024-04-12, so I may not choose to take advantage of this.
-	// I wish I had used a separate URL from the beginning, maybe a proper blog with an RSS feed.
-	// It's somewhat unsustainable to add news continuously to the HTML of the app,
-	// especially when images are requested even though the container is hidden. (https://github.com/1j01/jspaint/issues/320)
-	// Also note: as long as I preserve the basic structure of the news entries at /, I should be able to
-	// have old versions of the app still say they're outdated, and I could include some short message instead of full news articles.
-	// Maybe I could even include the news in an iframe, just for old versions of the app, within the latest `.news-entry`...
-	// as long as it doesn't have the same problem as images, of loading in the background.
-	const url =
-		// ".";
-		// "test-news-newer.html";
-		"https://jspaint.app/?news";
-	fetch(url)
-		.then((response) => response.text())
-		.then((text) => {
-			const parser = new DOMParser();
-			const htmlDoc = parser.parseFromString(text, "text/html");
-			$latest_news = $(htmlDoc).find("#news");
-
-			const $latest_entries = $latest_news.find(".news-entry");
-			const $this_version_entries = $this_version_news.find(".news-entry");
-
-			if (!$latest_entries.length) {
-				$latest_news = $this_version_news;
-				throw new Error(`No news found at fetched site (${url})`);
-			}
-
-			function entries_contains_update($entries, id) {
-				return $entries.get().some((el_from_this_version) =>
-					id === el_from_this_version.id
-				);
-			}
-
-			// @TODO: visibly mark entries that overlap
-			const entries_newer_than_this_version =
-				$latest_entries.get().filter((el_from_latest) =>
-					!entries_contains_update($this_version_entries, el_from_latest.id)
-				);
-
-			const entries_new_in_this_version = // i.e. in development, when updating the news
-				$this_version_entries.get().filter((el_from_latest) =>
-					!entries_contains_update($latest_entries, el_from_latest.id)
-				);
-
-			if (entries_newer_than_this_version.length > 0) {
-				$("#outdated").removeAttr("hidden");
-			} else if (entries_new_in_this_version.length > 0) {
-				$latest_news = $this_version_news; // show this version's news for development
-			}
-
-			$("#checking-for-updates").attr("hidden", "hidden");
-			update_css_classes_for_conditional_messages();
-		}).catch((exception) => {
-			$("#failed-to-check-if-outdated").removeAttr("hidden");
-			$("#checking-for-updates").attr("hidden", "hidden");
-			update_css_classes_for_conditional_messages();
-			window.console?.log("Couldn't check for updates.", exception);
-		});
-}
 
 function exit_fullscreen_if_ios() {
 	if ($("body").hasClass("ios")) {
@@ -1636,8 +1506,8 @@ function go_to_history_node(target_history_node, canceling) {
 	// window.console?.log("new redos:", redos);
 
 	window.globApp.$canvas_area.trigger("resize");
-	$G.triggerHandler("session-update"); // autosave
-	$G.triggerHandler("history-update"); // update history view
+	$(window).triggerHandler("session-update"); // autosave
+	$(window).triggerHandler("history-update"); // update history view
 }
 
 // Note: This function is part of the API.
@@ -1692,9 +1562,9 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 	window.globAppstate.current_history_node.futures.push(new_history_node);
 	window.globAppstate.current_history_node = new_history_node;
 
-	$G.triggerHandler("history-update"); // update history view
+	$(window).triggerHandler("history-update"); // update history view
 
-	$G.triggerHandler("session-update"); // autosave
+	$(window).triggerHandler("session-update"); // autosave
 }
 /**
  * @param {ActionMetadataUpdate} undoable_meta
@@ -1710,7 +1580,7 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 		if (undoable_meta.update_name) {
 			window.globAppstate.current_history_node.name = undoable_meta.name;
 		}
-		$G.triggerHandler("history-update"); // update history view
+		$(window).triggerHandler("history-update"); // update history view
 	} else {
 		undoable(undoable_meta, undoable_action);
 	}
@@ -1918,9 +1788,9 @@ function show_document_history() {
 		}
 	});
 
-	$G.on("history-update", render_tree);
+	$(window).on("history-update", render_tree);
 	$w.on("close", () => {
-		$G.off("history-update", render_tree);
+		$(window).off("history-update", render_tree);
 	});
 
 	$w.center();
@@ -1954,7 +1824,7 @@ function cancel(going_to_history_node, discard_document_state) {
 	// console.log("history_node_to_discard", history_node_to_discard, "window.globAppstate.current_history_node", window.globAppstate.current_history_node, "window.globAppstate.history_node_to_cancel_to", window.globAppstate.history_node_to_cancel_to);
 
 	// window.globAppstate.history_node_to_cancel_to = window.globAppstate.history_node_to_cancel_to || window.globAppstate.current_history_node;
-	$G.triggerHandler("pointerup", ["canceling", discard_document_state]);
+	$(window).triggerHandler("pointerup", ["canceling", discard_document_state]);
 	for (const selected_tool of window.globAppstate.selected_tools) {
 		selected_tool.cancel?.();
 	}
@@ -1972,7 +1842,7 @@ function cancel(going_to_history_node, discard_document_state) {
 				console.log("history_node_to_discard.parent", history_node_to_discard.parent);
 			} else {
 				history_node_to_discard.parent.futures.splice(index, 1);
-				$G.triggerHandler("history-update"); // update history view (don't want you to be able to click on the excised node)
+				$(window).triggerHandler("history-update"); // update history view (don't want you to be able to click on the excised node)
 				// (@TODO: prevent duplicate update, here vs go_to_history_node)
 			}
 		}
@@ -2037,12 +1907,13 @@ function select_all() {
 	});
 }
 
-const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
-const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
 /**
  * @param {string} commandId
  */
 function try_exec_command(commandId) {
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
+
 	if (document.queryCommandEnabled(commandId)) { // not a reliable source for whether it'll work, if I recall
 		document.execCommand(commandId);
 		if (!navigator.userAgent.includes("Firefox") || commandId === "paste") {
@@ -2078,6 +1949,9 @@ function getSelectionText() {
  * @param {boolean} [execCommandFallback]
  */
 function edit_copy(execCommandFallback) {
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
+
 	const text = getSelectionText();
 
 	if (text.length > 0) {
@@ -2121,6 +1995,9 @@ function edit_copy(execCommandFallback) {
  * @param {boolean} [execCommandFallback]
  */
 function edit_cut(execCommandFallback) {
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
+
 	if (!navigator.clipboard || !navigator.clipboard.write) {
 		if (execCommandFallback) {
 			return try_exec_command("cut");
@@ -2140,6 +2017,9 @@ function edit_cut(execCommandFallback) {
  * @param {boolean} [execCommandFallback]
  */
 async function edit_paste(execCommandFallback) {
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
+
 	if (
 		document.activeElement instanceof HTMLInputElement ||
 		document.activeElement instanceof HTMLTextAreaElement
@@ -3557,11 +3437,10 @@ function show_multi_user_setup_dialog(from_current_document) {
 }
 
 export {
-	$this_version_news,
 	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect,
 	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_new, file_open, file_print, file_save,
 	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node,  make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
-	open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
+	open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
 	try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
 };
