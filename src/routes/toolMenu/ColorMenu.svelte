@@ -2,6 +2,8 @@
   import "./colorMenu.css";
 
   import { menuState } from "../../store/menuState.svelte.js";
+  import PickColorIcon from "$lib/images/pick_color.png";
+  import TransparantIcon from "$lib/images/transparent_icon.png";
 
   const palette1 = [
     "rgb(0,0,0)", // Black
@@ -69,6 +71,11 @@
       window.globAppstate.selected_colors.background = color;
     }
   }
+
+  function setBackgroundColor(color) {
+    menuState.backgroundColor = color;
+    window.globAppstate.selected_colors.background = color;
+  }
 </script>
 
 <div class="menu">
@@ -96,8 +103,19 @@
       <p>색 2</p>
     </button>
 
-    <div>
-      <div>투명지우개</div>
+    <div class="flex-1 flex flex-col justify-between">
+      <div class="icon-button">
+        <img
+          src={TransparantIcon}
+          class="w-6 h-6"
+          alt="transparant_background"
+        />
+        <p>투명한 배경</p>
+      </div>
+      <div class="icon-button">
+        <img src={PickColorIcon} class="m-2 w-4 h-4" alt="pick_color" />
+        <p>색상 선택</p>
+      </div>
     </div>
   </div>
   <div class="palette-area">
@@ -109,6 +127,10 @@
           class="palette-item"
           style="box-shadow: inset 0 0 0 36px {color};"
           onclick={() => selectColor(color)}
+          oncontextmenu={(event) => {
+            event.preventDefault();
+            setBackgroundColor(color);
+          }}
         ></button>
       {/each}
     </div>
@@ -120,6 +142,10 @@
           class="palette-item"
           style="box-shadow: inset 0 0 0 36px {color};"
           onclick={() => selectColor(color)}
+          oncontextmenu={(event) => {
+            event.preventDefault();
+            setBackgroundColor(color);
+          }}
         ></button>
       {/each}
     </div>
@@ -134,6 +160,10 @@
               index
             ]};"
             onclick={() => selectColor(color)}
+            oncontextmenu={(event) => {
+              event.preventDefault();
+              setBackgroundColor(color);
+            }}
           ></button>
         {:else}
           <div class="palette-item-none"></div>
@@ -168,6 +198,11 @@
     background: #e2e2e3;
     border: solid 1px #8b8b8d;
   }
+  .color-button > p {
+    font-size: 14px;
+    color: #515154;
+  }
+
   .foreground-color {
     width: 36px;
     height: 36px;
@@ -191,8 +226,23 @@
     image-rendering: pixelated;
   }
 
-  .color-button > p {
+  .icon-button {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    height: 44px;
+    max-width: 268px;
+    border-radius: 4px;
+    background: #f3f3f4;
+    padding: 12px;
+    cursor: pointer;
+  }
+  .icon-button > p {
+    flex-grow: 1;
+    text-align: center;
+    color: #515154;
     font-size: 14px;
+    margin-left: 8px;
   }
 
   .palette-area {
