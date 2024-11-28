@@ -10,8 +10,9 @@ export const menuState = $state({
   backgroundColor: "rgb(255,255,255)",
   selectedColor: 0, // 0: foreground, 1: background
   colorHistory: [],
-  transparentBackground=false;
-  
+  transparentBackground:false,
+  undo:[],
+  redo:[],
   /* ... */
 });
 

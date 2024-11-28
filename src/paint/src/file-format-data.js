@@ -4,7 +4,7 @@ console.log('JS 실행:','file-format-data.js')
 // @ts-check
 /* global get_direction, localize */
 
-// import { get_direction, localize } from "./app-localization.js";
+import { get_direction, localize } from "../../localize/localize.js";
 
 import AnyPalette from '../lib/anypalette-0.6.0.js';
 /** @type {ImageFileFormat[]} */

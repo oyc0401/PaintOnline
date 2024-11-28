@@ -10,7 +10,7 @@ import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
 import { OnCanvasMaskLayer } from './OnCanvasMaskLayer.js';
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
-// import { localize } from "./app-localization.js";
+import { localize } from "../../localize/localize.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
 import { $G, E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";

@@ -1,86 +1,53 @@
-
-import { showMessageBox } from './paint/src/msgbox.js';
-import { 
+import { showMessageBox } from "./paint/src/msgbox.js";
+import {
    are_you_sure,
    exit_fullscreen_if_ios,
    get_tool_by_id,
-   make_history_node,
    show_error_message,
-   cancel,
    change_url_param,
-   clear,
-   confirm_overwrite_capability,
-   delete_selection,
-   deselect,
-   edit_copy,
-   edit_cut,
-   edit_paste,
-   file_new,
-   file_open,
-   file_save,
-   file_save_as,
    get_uris,
-   image_attributes,
-   image_flip_and_rotate,
-   image_invert_colors,
-   image_stretch_and_skew,
    load_image_from_uri,
-   make_or_update_undoable,
-   open_from_file,
-   paste,
-   paste_image_from_file,
    redo,
    reset_canvas_and_history,
    reset_file,
-   reset_selected_colors,
-   resize_canvas_and_save_dimensions,
-   resize_canvas_without_saving_dimensions,
-   save_as_prompt,
-   select_all,
    select_tool,
-   select_tools,
-   set_magnification,
-   show_document_history,
    show_resource_load_error_message,
    undo,
-   update_canvas_rect,
-   update_disable_aa,
-   update_helper_layer,
-   update_magnified_canvas_size,
-   view_bitmap,
-   write_image_file,
    open_from_image_info,
    undoable,
-   update_title
-} from './paint/src/functions.js';
+   update_title,
+} from "./paint/src/functions.js";
 
-import { 
+import {
    make_canvas,
    $G,
-   E,
-   TAU,
-   get_file_extension,
    get_help_folder_icon,
    to_canvas_coords,
    debounce,
    image_data_match,
-   make_css_cursor
-} from './paint/src/helpers.js';
+   make_css_cursor,
+} from "./paint/src/helpers.js";
 
-import { TOOL_PENCIL, tools, TOOL_AIRBRUSH, TOOL_BRUSH, TOOL_CURVE, TOOL_ELLIPSE, TOOL_ERASER, TOOL_LINE, TOOL_POLYGON, TOOL_RECTANGLE, TOOL_ROUNDED_RECTANGLE, TOOL_SELECT } from './paint/src/tools.js';
+import {
+   TOOL_PENCIL,
+   tools,
+   TOOL_AIRBRUSH,
+   TOOL_BRUSH,
+   TOOL_CURVE,
+   TOOL_ELLIPSE,
+   TOOL_ERASER,
+   TOOL_LINE,
+   TOOL_POLYGON,
+   TOOL_RECTANGLE,
+   TOOL_ROUNDED_RECTANGLE,
+   TOOL_SELECT,
+} from "./paint/src/tools.js";
 
-import { default_palette, get_winter_palette } from './paint/src/color-data.js';
-import { image_formats } from './paint/src/file-format-data.js';
-import { init_webgl_stuff, rotate } from './paint/src/image-manipulation.js';
-import { menus } from './paint/src/menus.js';
-import { localStore } from './paint/src/storage.js';
-import { Handles } from "./paint/src/Handles.js";
+import { localStore } from "./paint/src/storage.js";
+import { localize } from "./localize/localize.js";
 
-
-
-
-export function preSetting(){
-   console.log('presetting')
+export function preSetting() {
+   console.log("presetting");
    // Note `defaultMessageBoxTitle` handling in make_iframe_window (or now function enhance_iframe) in 98.js.org
    // https://github.com/1j01/98/blob/361bd759a6d9b71d0fad9e479840598dc0128bb6/src/iframe-windows.js#L111
    // Any other default parameters need to be handled there (as it works now)
@@ -90,37 +57,26 @@ export function preSetting(){
    // Temporary globals until all dependent code is converted to ES Modules
    window.showMessageBox = showMessageBox; // used by app-localization.js
 
-
    window.are_you_sure = are_you_sure; // used by app-localization.js, electron-injected.js
    window.show_error_message = show_error_message; // used by app-localization.js, electron-injected.js
    window.exit_fullscreen_if_ios = exit_fullscreen_if_ios; // used by app-localization.js
 
    window.tools = tools;
 
-   
-
-   window.svelteApp={};
+   window.svelteApp = {};
    window.svelteApp.get_tool_by_id = get_tool_by_id; // used by svelte tool button
    window.svelteApp.select_tool = select_tool; // used by svelte tool button
    window.svelteApp.make_css_cursor = make_css_cursor;
-
-   
 }
 
+////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////
 
-
-
-
-////////////////////////////////////////////////////////
-
-
-export function setSession(){
-   console.log('setSession')
+export function setSession() {
+   console.log("setSession");
 
    // import { localize } from "./app-localization.js";
-
 
    const log = (...args) => {
       window.console?.log(...args);
@@ -131,7 +87,9 @@ export function setSession(){
       localStorage._available = true;
       localStorageAvailable = localStorage._available;
       delete localStorage._available;
-   } catch (_error) { /* ignore */ }
+   } catch (_error) {
+      /* ignore */
+   }
 
    // @TODO: keep other data in addition to the image data
    // such as the file_name and other state
@@ -140,24 +98,36 @@ export function setSession(){
 
    const match_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
    const canvas_has_any_apparent_image_data = () =>
-      window.globAppstate.main_canvas.ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height).data.some((v) => v > match_threshold);
+      window.globAppstate.main_canvas.ctx
+         .getImageData(
+            0,
+            0,
+            window.globAppstate.main_canvas.width,
+            window.globAppstate.main_canvas.height,
+         )
+         .data.some((v) => v > match_threshold);
 
    let $recovery_window;
    function show_recovery_window(no_longer_blank) {
       $recovery_window?.close();
-      const $w = $recovery_window = $DialogWindow();
+      const $w = ($recovery_window = $DialogWindow());
       $w.on("close", () => {
          $recovery_window = null;
       });
       $w.title("Recover Document");
       let backup_impossible = false;
-      try { window.localStorage.getItem("bogus test key"); } catch (_error) { backup_impossible = true; }
+      try {
+         window.localStorage.getItem("bogus test key");
+      } catch (_error) {
+         backup_impossible = true;
+      }
       // TODO: get rid of this invasive dialog https://github.com/1j01/jspaint/issues/325
       // It appears when it shouldn't, in basic scenarios like Ctrl+A in a transparent document,
       // and it gets bigger once you edit the document, which feels... almost aggressive.
       // That said, I've made it more compact and delineated the expanded section with a horizontal rule,
       // so it doesn't feel as much like it's changed out from under you and you have to re-read it.
-      $w.$main.append($(`
+      $w.$main.append(
+         $(`
          <p>Woah! The canvas became empty.</p>
          <p>If this was on purpose, please ignore this message.</p>
          <p>
@@ -165,21 +135,21 @@ export function setSession(){
             click Undo to recover the document.
          </p>
          <!--<p>Remember to save with <b>File > Save</b>!</p>-->
-         ${backup_impossible ?
-            "<p><b>Note:</b> No automatic backup is possible unless you enable Cookies in your browser.</p>" :
-            (
-               no_longer_blank ?
-                  `<hr>
+         ${
+            backup_impossible
+               ? "<p><b>Note:</b> No automatic backup is possible unless you enable Cookies in your browser.</p>"
+               : no_longer_blank
+                 ? `<hr>
                   <p style="opacity: 0.8; font-size: 0.9em;">
                      Auto-save is paused while this dialog is open.
                   </p>
                   <p style="opacity: 0.8; font-size: 0.9em;">
                      (See <b>File &gt; Manage Storage</b> to view backups.)
-                  </p>` :
-                  ""
-            )
+                  </p>`
+                 : ""
          }
-      `));
+      `),
+      );
 
       const $undo = $w.$Button("Undo", () => {
          undo();
@@ -233,36 +203,53 @@ export function setSession(){
                return;
             }
             log(`Saving image to storage: ${ls_key}`);
-            localStore.set(ls_key, window.globAppstate.main_canvas.toDataURL("image/png"), (err) => {
-               if (err) {
-                  // @ts-ignore (quotaExceeded is added by storage.js)
-                  // if (err.quotaExceeded) {
-                  // 	storage_quota_exceeded();
-                  // } else {
-                  // 	// e.g. localStorage is disabled
-                  // 	// (or there's some other error?)
-                  // 	// @TODO: show warning with "Don't tell me again" type option
-                  // }
-               }
-            });
+            localStore.set(
+               ls_key,
+               window.globAppstate.main_canvas.toDataURL("image/png"),
+               (err) => {
+                  if (err) {
+                     // @ts-ignore (quotaExceeded is added by storage.js)
+                     // if (err.quotaExceeded) {
+                     // 	storage_quota_exceeded();
+                     // } else {
+                     // 	// e.g. localStorage is disabled
+                     // 	// (or there's some other error?)
+                     // 	// @TODO: show warning with "Don't tell me again" type option
+                     // }
+                  }
+               },
+            );
          };
-         this.save_image_to_storage_soon = debounce(this.save_image_to_storage_immediately, 100);
+         this.save_image_to_storage_soon = debounce(
+            this.save_image_to_storage_immediately,
+            100,
+         );
          localStore.get(ls_key, (err, uri) => {
             if (err) {
                if (localStorageAvailable) {
-                  show_error_message("Failed to retrieve image from local storage.", err);
+                  show_error_message(
+                     "Failed to retrieve image from local storage.",
+                     err,
+                  );
                } else {
                   // @TODO: DRY with storage manager message
                   showMessageBox({
-                     message: "Please enable local storage in your browser's settings for local backup. It may be called Cookies, Storage, or Site Data.",
+                     message:
+                        "Please enable local storage in your browser's settings for local backup. It may be called Cookies, Storage, or Site Data.",
                   });
                }
             } else if (uri) {
-               load_image_from_uri(uri).then((info) => {
-                  open_from_image_info(info, null, null, true, true);
-               }, (error) => {
-                  show_error_message("Failed to open image from local storage.", error);
-               });
+               load_image_from_uri(uri).then(
+                  (info) => {
+                     open_from_image_info(info, null, null, true, true);
+                  },
+                  (error) => {
+                     show_error_message(
+                        "Failed to open image from local storage.",
+                        error,
+                     );
+                  },
+               );
             } else {
                // no uri so lets save the blank canvas
                this.save_image_to_storage_soon();
@@ -280,7 +267,6 @@ export function setSession(){
          $G.off(".session-hook");
       }
    }
-
 
    // The user ID is not persistent
    // A person can enter a session multiple times,
@@ -316,11 +302,9 @@ export function setSession(){
    // (@TODO) The color (that may be) used in the toolbar indicating to other users it is selected by this user
    user.color_desaturated = `hsla(${user.hue}, ${~~(user.saturation * 0.4)}%, ${user.lightness}%, 0.8)`;
 
-
    // The image used for other people's cursors
    const cursor_image = new Image();
    cursor_image.src = "images/cursors/default.png";
-
 
    class FirebaseSession {
       constructor(session_id) {
@@ -350,7 +334,9 @@ export function setSession(){
                on_firebase_loaded();
             });
             script.addEventListener("error", () => {
-               show_error_message("Failed to load Firebase; the document will not load, and changes will not be saved.");
+               show_error_message(
+                  "Failed to load Firebase; the document will not load, and changes will not be saved.",
+               );
                window.globAppstate.file_name = `[Failed to load ${this.id}]`;
                update_title();
             });
@@ -377,7 +363,12 @@ export function setSession(){
          // Wrap the Firebase API because they don't
          // provide a great way to clean up event listeners
          const _fb_on = (fb, event_type, callback, error_callback) => {
-            this._fb_listeners.push({ fb, event_type, callback, error_callback });
+            this._fb_listeners.push({
+               fb,
+               event_type,
+               callback,
+               error_callback,
+            });
             fb.on(event_type, callback, error_callback);
          };
          // Get Firebase references
@@ -411,7 +402,9 @@ export function setSession(){
             // @TODO: display selections
             const cursor_canvas = make_canvas(32, 32);
             // Make the cursor element
-            const $cursor = $(cursor_canvas).addClass("user-cursor").appendTo($app);
+            const $cursor = $(cursor_canvas)
+               .addClass("user-cursor")
+               .appendTo($app);
             $cursor.css({
                display: "none",
                position: "absolute",
@@ -436,7 +429,12 @@ export function setSession(){
                      cursor_canvas.height = cursor_image.height;
                      const cursor_ctx = cursor_canvas.ctx;
                      cursor_ctx.fillStyle = other_user.color;
-                     cursor_ctx.fillRect(0, 0, cursor_canvas.width, cursor_canvas.height);
+                     cursor_ctx.fillRect(
+                        0,
+                        0,
+                        cursor_canvas.width,
+                        cursor_canvas.height,
+                     );
                      cursor_ctx.globalCompositeOperation = "multiply";
                      cursor_ctx.drawImage(cursor_image, 0, 0);
                      cursor_ctx.globalCompositeOperation = "destination-atop";
@@ -448,11 +446,13 @@ export function setSession(){
                      $(cursor_image).one("load", draw_cursor);
                   }
                   // Update the cursor element
-                  const canvas_rect = window.globApp.canvas_bounding_client_rect;
+                  const canvas_rect =
+                     window.globApp.canvas_bounding_client_rect;
                   $cursor.css({
                      display: "block",
                      position: "absolute",
-                     left: canvas_rect.left + magnification * other_user.cursor.x,
+                     left:
+                        canvas_rect.left + magnification * other_user.cursor.x,
                      top: canvas_rect.top + magnification * other_user.cursor.y,
                      opacity: 1 - other_user.cursor.away,
                   });
@@ -478,7 +478,10 @@ export function setSession(){
                log("(Don't write canvas data to Firebase; it hasn't changed)");
             }
          };
-         this.write_canvas_to_database_soon = debounce(this.write_canvas_to_database_immediately, 100);
+         this.write_canvas_to_database_soon = debounce(
+            this.write_canvas_to_database_immediately,
+            100,
+         );
          let ignore_session_update = false;
          $G.on("session-update.session-hook", () => {
             if (ignore_session_update) {
@@ -488,44 +491,67 @@ export function setSession(){
             this.write_canvas_to_database_soon();
          });
          // Any time we change or receive the image data
-         _fb_on(this.fb_data, "value", (snap) => {
-            log("Firebase data update");
-            const uri = snap.val();
-            if (uri == null) {
-               // If there's no value at the data location, this is a new session
-               // Sync the current data to it
-               this.write_canvas_to_database_soon();
-            } else {
-               previous_uri = uri;
-               // Load the new image data
-               const img = new Image();
-               img.onload = () => {
-                  // Cancel any in-progress pointer operations
-                  // if (pointer_operations.length) {
-                  // 	$G.triggerHandler("pointerup", "cancel");
-                  // }
+         _fb_on(
+            this.fb_data,
+            "value",
+            (snap) => {
+               log("Firebase data update");
+               const uri = snap.val();
+               if (uri == null) {
+                  // If there's no value at the data location, this is a new session
+                  // Sync the current data to it
+                  this.write_canvas_to_database_soon();
+               } else {
+                  previous_uri = uri;
+                  // Load the new image data
+                  const img = new Image();
+                  img.onload = () => {
+                     // Cancel any in-progress pointer operations
+                     // if (pointer_operations.length) {
+                     // 	$G.triggerHandler("pointerup", "cancel");
+                     // }
 
-                  const test_canvas = make_canvas(img);
-                  const image_data_remote = test_canvas.ctx.getImageData(0, 0, test_canvas.width, test_canvas.height);
-                  const image_data_local = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+                     const test_canvas = make_canvas(img);
+                     const image_data_remote = test_canvas.ctx.getImageData(
+                        0,
+                        0,
+                        test_canvas.width,
+                        test_canvas.height,
+                     );
+                     const image_data_local =
+                        window.globAppstate.main_ctx.getImageData(
+                           0,
+                           0,
+                           window.globAppstate.main_canvas.width,
+                           window.globAppstate.main_canvas.height,
+                        );
 
-                  if (!image_data_match(image_data_remote, image_data_local, 5)) {
-                     ignore_session_update = true;
-                     undoable({
-                        name: "Sync Session",
-                        icon: get_help_folder_icon("p_database.png"),
-                     }, () => {
-                        // Write the image data to the canvas
-                        window.globAppstate.main_ctx.copy(img);
-                        $canvas_area.trigger("resize");
-                     });
-                     ignore_session_update = false;
-                  }
+                     if (
+                        !image_data_match(
+                           image_data_remote,
+                           image_data_local,
+                           5,
+                        )
+                     ) {
+                        ignore_session_update = true;
+                        undoable(
+                           {
+                              name: "Sync Session",
+                              icon: get_help_folder_icon("p_database.png"),
+                           },
+                           () => {
+                              // Write the image data to the canvas
+                              window.globAppstate.main_ctx.copy(img);
+                              $canvas_area.trigger("resize");
+                           },
+                        );
+                        ignore_session_update = false;
+                     }
 
-                  // (transparency = has_any_transparency(main_ctx); here would not be ideal
-                  // Perhaps a better way of syncing transparency
-                  // and other options will be established)
-                  /*
+                     // (transparency = has_any_transparency(main_ctx); here would not be ideal
+                     // Perhaps a better way of syncing transparency
+                     // and other options will be established)
+                     /*
                   // Playback recorded in-progress pointer operations
                   log("Playback", pointer_operations);
 
@@ -535,14 +561,19 @@ export function setSession(){
                      $G.triggerHandler(e, ["synthetic"]);
                   }
                   */
-               };
-               img.src = uri;
-            }
-         }, (error) => {
-            show_error_message("Failed to retrieve data from Firebase. The document will not load, and changes will not be saved.", error);
-            window.globAppstate.file_name = `[Failed to load ${this.id}]`;
-            update_title();
-         });
+                  };
+                  img.src = uri;
+               }
+            },
+            (error) => {
+               show_error_message(
+                  "Failed to retrieve data from Firebase. The document will not load, and changes will not be saved.",
+                  error,
+               );
+               window.globAppstate.file_name = `[Failed to load ${this.id}]`;
+               update_title();
+            },
+         );
          // Update the cursor status
          $G.on("pointermove.session-hook", (e) => {
             const m = to_canvas_coords(e);
@@ -597,10 +628,14 @@ export function setSession(){
          $G.off(".session-hook");
          // $canvas_area.off("pointerdown.session-hook");
          // Remove collected Firebase event listeners
-         this._fb_listeners.forEach(({ fb, event_type, callback, _error_callback }) => {
-            log(`Remove listener for ${fb.path.toString()} .on ${event_type}`);
-            fb.off(event_type, callback);
-         });
+         this._fb_listeners.forEach(
+            ({ fb, event_type, callback, _error_callback }) => {
+               log(
+                  `Remove listener for ${fb.path.toString()} .on ${event_type}`,
+               );
+               fb.off(event_type, callback);
+            },
+         );
          this._fb_listeners.length = 0;
          // Remove the user from the session
          this.fb_user.remove();
@@ -617,7 +652,6 @@ export function setSession(){
     * @type {any} - @TODO: install types for Firebase or ditch Firebase
     */
    FirebaseSession.fb_root = null;
-
 
    class RESTSession {
       constructor(session_id) {
@@ -656,7 +690,10 @@ export function setSession(){
          }
       }
       start() {
-         this._write_canvas_to_server_soon = debounce(this._write_canvas_to_server_immediately, 100);
+         this._write_canvas_to_server_soon = debounce(
+            this._write_canvas_to_server_immediately,
+            100,
+         );
          $G.on("session-update.session-hook", () => {
             if (this._ignore_session_update) {
                log("(Ignore session-update from Sync Session undoable)");
@@ -678,14 +715,20 @@ export function setSession(){
                   received_image_data_uri = await response.text();
                }
             } catch (error) {
-               show_error_message("Failed to load image document from the server.", error);
+               show_error_message(
+                  "Failed to load image document from the server.",
+                  error,
+               );
                window.globAppstate.file_name = `[Failed to load ${this.id}]`;
                update_title();
                return; // Uh, TODO: retry?
             }
             window.globAppstate.file_name = `[${this.id}]`;
             update_title();
-            this.handle_data_snapshot(received_image_data_uri, this._poll_fetch_start_time);
+            this.handle_data_snapshot(
+               received_image_data_uri,
+               this._poll_fetch_start_time,
+            );
             // @ts-ignore  (stupid @types/node interference, with their setTimeout typing)
             this._poll_tid = setTimeout(poll, 1000);
          };
@@ -702,7 +745,6 @@ export function setSession(){
             // Load the new image data
             const img = new Image();
             img.onload = () => {
-
                if (this._last_write_time > start_time) {
                   // If the image data was written since we started fetching it,
                   // ignore the likely-stale data.
@@ -716,25 +758,42 @@ export function setSession(){
                // }
 
                const test_canvas = make_canvas(img);
-               const image_data_remote = test_canvas.ctx.getImageData(0, 0, test_canvas.width, test_canvas.height);
-               const image_data_local = window.globAppstate.main_ctx.getImageData(0, 0, window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+               const image_data_remote = test_canvas.ctx.getImageData(
+                  0,
+                  0,
+                  test_canvas.width,
+                  test_canvas.height,
+               );
+               const image_data_local =
+                  window.globAppstate.main_ctx.getImageData(
+                     0,
+                     0,
+                     window.globAppstate.main_canvas.width,
+                     window.globAppstate.main_canvas.height,
+                  );
 
                if (!image_data_match(image_data_remote, image_data_local, 5)) {
                   this._ignore_session_update = true;
-                  undoable({
-                     name: "Sync Session",
-                     icon: get_help_folder_icon("p_database.png"),
-                  }, () => {
-                     // Write the image data to the canvas
-                     window.globAppstate.main_ctx.copy(img);
-                     $canvas_area.trigger("resize");
-                  });
+                  undoable(
+                     {
+                        name: "Sync Session",
+                        icon: get_help_folder_icon("p_database.png"),
+                     },
+                     () => {
+                        // Write the image data to the canvas
+                        window.globAppstate.main_ctx.copy(img);
+                        $canvas_area.trigger("resize");
+                     },
+                  );
                   this._ignore_session_update = false;
                }
             };
             img.onerror = () => {
                // uri is invalid, so it might be an error message or something; I'll include it in the expandible details.
-               show_error_message("Failed to load image document from the server. Invalid image data.", uri);
+               show_error_message(
+                  "Failed to load image document from the server. Invalid image data.",
+                  uri,
+               );
             };
             img.src = uri;
          }
@@ -754,7 +813,6 @@ export function setSession(){
       }
    }
 
-
    // Handle the starting, switching, and ending of sessions from the location.hash
 
    let current_session;
@@ -765,10 +823,15 @@ export function setSession(){
          current_session = null;
       }
    };
-   const generate_session_id = () => (Math.random() * (2 ** 32)).toString(16).replace(".", "");
+   const generate_session_id = () =>
+      (Math.random() * 2 ** 32).toString(16).replace(".", "");
    const update_session_from_location_hash = () => {
-      const session_match = location.hash.match(/^#?(?:.*,)?(session|local):(.*)$/i);
-      const load_from_url_match = location.hash.match(/^#?(?:.*,)?(load):(.*)$/i);
+      const session_match = location.hash.match(
+         /^#?(?:.*,)?(session|local):(.*)$/i,
+      );
+      const load_from_url_match = location.hash.match(
+         /^#?(?:.*,)?(load):(.*)$/i,
+      );
       if (session_match) {
          const local = session_match[1].toLowerCase() === "local";
          const session_id = session_match[2];
@@ -776,22 +839,37 @@ export function setSession(){
             log("Invalid session ID; session ID cannot be empty");
             end_current_session();
          } else if (!local && session_id.match(/[./[\]#$]/)) {
-            log("Session ID is not a valid Firebase location; it cannot contain any of ./[]#$");
-            end_current_session();
-         } else if (!session_id.match(/[-0-9A-Za-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02af\u1d00-\u1d25\u1d62-\u1d65\u1d6b-\u1d77\u1d79-\u1d9a\u1e00-\u1eff\u2090-\u2094\u2184-\u2184\u2488-\u2490\u271d-\u271d\u2c60-\u2c7c\u2c7e-\u2c7f\ua722-\ua76f\ua771-\ua787\ua78b-\ua78c\ua7fb-\ua7ff\ufb00-\ufb06]+/)) {
-            log("Invalid session ID; it must consist of 'alphanumeric-esque' characters");
+            log(
+               "Session ID is not a valid Firebase location; it cannot contain any of ./[]#$",
+            );
             end_current_session();
          } else if (
-            current_session && current_session.id === session_id &&
-            local === (current_session instanceof LocalSession)
+            !session_id.match(
+               /[-0-9A-Za-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02af\u1d00-\u1d25\u1d62-\u1d65\u1d6b-\u1d77\u1d79-\u1d9a\u1e00-\u1eff\u2090-\u2094\u2184-\u2184\u2488-\u2490\u271d-\u271d\u2c60-\u2c7c\u2c7e-\u2c7f\ua722-\ua76f\ua771-\ua787\ua78b-\ua78c\ua7fb-\ua7ff\ufb00-\ufb06]+/,
+            )
          ) {
-            log("Hash changed but the session ID and session type are the same");
+            log(
+               "Invalid session ID; it must consist of 'alphanumeric-esque' characters",
+            );
+            end_current_session();
+         } else if (
+            current_session &&
+            current_session.id === session_id &&
+            local === current_session instanceof LocalSession
+         ) {
+            log(
+               "Hash changed but the session ID and session type are the same",
+            );
          } else {
             // @TODO: Ask if you want to save before starting a new session
             end_current_session();
-            let online_session_implementation = false ? "RESTSession" : "FirebaseSession";
+            let online_session_implementation = false
+               ? "RESTSession"
+               : "FirebaseSession";
             try {
-               online_session_implementation = localStorage["online_session_implementation"] || online_session_implementation;
+               online_session_implementation =
+                  localStorage["online_session_implementation"] ||
+                  online_session_implementation;
             } catch (_error) {
                // ignore, as this is only for development
             }
@@ -807,7 +885,9 @@ export function setSession(){
                log(`Starting a new FirebaseSession, ID: ${session_id}`);
                current_session = new FirebaseSession(session_id);
             } else {
-               show_error_message(`Invalid online session implementation '${online_session_implementation}'`);
+               show_error_message(
+                  `Invalid online session implementation '${online_session_implementation}'`,
+               );
                current_session = new LocalSession(session_id);
             }
          }
@@ -816,11 +896,15 @@ export function setSession(){
 
          const uris = get_uris(url);
          if (uris.length === 0) {
-            show_error_message("Invalid URL to load (after #load: in the address bar). It must include a protocol (https:// or http://)");
+            show_error_message(
+               "Invalid URL to load (after #load: in the address bar). It must include a protocol (https:// or http://)",
+            );
             return;
          }
 
-         log("Switching to new session from #load: URL (to #local: URL with session ID)");
+         log(
+            "Switching to new session from #load: URL (to #local: URL with session ID)",
+         );
          // Note: could use into_existing_session=false on open_from_image_info instead of creating the new session beforehand
          end_current_session();
          change_url_param("local", generate_session_id());
@@ -828,16 +912,19 @@ export function setSession(){
          load_image_from_uri(url).then((info) => {
             open_from_image_info(info, null, null, true, true);
          }, show_resource_load_error_message);
-
       } else {
          log("No session ID in hash");
          const old_hash = location.hash;
          end_current_session();
-         change_url_param("local", generate_session_id(), { replace_history_state: true });
+         change_url_param("local", generate_session_id(), {
+            replace_history_state: true,
+         });
          log("After replaceState:", location.hash);
          if (old_hash === location.hash) {
             // e.g. on Wayback Machine
-            show_error_message("Autosave is disabled. Failed to update URL to start session.");
+            show_error_message(
+               "Autosave is disabled. Failed to update URL to start session.",
+            );
          } else {
             update_session_from_location_hash();
          }
@@ -855,10 +942,8 @@ export function setSession(){
       change_url_param("local", generate_session_id());
    };
 
-
    log("Initializing with location hash:", location.hash);
    update_session_from_location_hash();
-
 
    // function updateParticipants(participants) {
    // 	// Do something really cool
@@ -868,8 +953,4 @@ export function setSession(){
    //export { new_local_session };
    // Temporary globals until all dependent code is converted to ES Modules
    window.new_local_session = new_local_session; // used by functions.js
-
-
 }
-
-

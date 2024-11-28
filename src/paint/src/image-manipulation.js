@@ -2,12 +2,7 @@ console.log('JS 실행:','image-manipulation.js')
 import libtess from '../lib/libtess.min.js';
 
 
-
-// @ts-check
-// eslint-disable-next-line no-unused-vars
-/* global saved:writable, brush_size:writable, pencil_size:writable, stroke_size:writable */
-/* global $canvas_area, window.globAppstate.aliasing, localize, main_canvas, main_ctx, palette, selected_colors, selection, stroke_color, transparency */
-// import { localize } from "./app-localization.js";
+import { localize } from "../../localize/localize.js";
 import { cancel, deselect, show_error_message, undoable, update_title } from "./functions.js";
 import { $G, TAU, get_help_folder_icon, get_rgba_from_color, make_canvas, memoize_synchronous_function } from "./helpers.js";
 

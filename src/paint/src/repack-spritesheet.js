@@ -1,7 +1,6 @@
 console.log('JS 실행:','repack-spritesheets.js')
-// @ts-check
-/* global localize */
 
+import { localize } from "../../localize/localize.js";
 // This script adds padding between tiles in a spritesheet, to avoid bleeding when at non-integer zoom levels
 // (or indeed, design errors, where one icon accidentally extends into the space of another)
 

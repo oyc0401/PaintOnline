@@ -4,7 +4,7 @@
   import Footer from './Footer.svelte';
   
   import { onMount } from 'svelte';
-  
+  import { menuState } from "../store/menuState.svelte.js";
   onMount( async() => { 
     // 클라이언트 환경에서만 동적으로 import
     const {preSetting, setSession} = await import('../preSetting');
@@ -20,6 +20,8 @@
     setupApp();
   
     setSession();
+    menuState.undo = window.globAppstate.undos;
+    window.menuState = menuState
   });
 
 </script>

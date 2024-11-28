@@ -80,6 +80,7 @@
       </div>
       <p class="pl-2.5 text-md">제목없음 그림판</p>
       <div class="flex-1"></div>
+      <p>{menuState.undo.length}</p>
       <div class="history-button">
          <img src={UndoIcon} alt="undo icon" />
       </div>

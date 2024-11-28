@@ -3,7 +3,7 @@ console.log('JS 실행:','menus.js')
 /* global tool_transparent_mode:writable, palette:writable */
 /* global $canvas_area, $colorbox, $status_area, $toolbox, available_languages, get_iso_language_name, get_language, get_language_emoji, get_language_endonym, localize, magnification, main_canvas, menu_bar, MENU_DIVIDER, redos, selection, set_language, show_grid, show_thumbnail, systemHooks, undos */
 // import { available_languages, get_iso_language_name, get_language, get_language_emoji, get_language_endonym, localize, set_language } from "./app-localization.js";
-
+import { localize,available_languages,get_language_emoji,language_to_default_region,get_language_endonym ,get_iso_language_name } from "../../localize/localize.js";
 import {
 	are_you_sure,
 	choose_file_to_paste,

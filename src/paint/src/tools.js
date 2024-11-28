@@ -4,7 +4,7 @@ console.log('JS 실행:','tools.js')
 /* global window.globApp.$canvas, window.globApp.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, window.globAppstate.pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
-
+import { localize , get_language} from "../../localize/localize.js";
 import {
 	deselect,
 	get_tool_by_id,

@@ -1,6 +1,5 @@
 import { Handles } from "./paint/src/Handles.js";
-import { default_palette, get_winter_palette } from "./paint/src/color-data.js";
-import { image_formats } from "./paint/src/file-format-data.js";
+
 import {
   cancel,
   change_url_param,
@@ -59,9 +58,9 @@ import {
   make_css_cursor
 } from "./paint/src/helpers.js";
 import { init_webgl_stuff, rotate } from "./paint/src/image-manipulation.js";
-// import { menus } from "./paint/src/menus.js";
-// import { showMessageBox } from "./paint/src/msgbox.js";
+
 import { localStore } from "./paint/src/storage.js";
+import { localize } from "./localize/localize.js";
 
 import {
   TOOL_AIRBRUSH,
