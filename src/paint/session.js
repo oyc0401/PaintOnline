@@ -1,26 +1,23 @@
-import { showMessageBox } from "./paint/src/msgbox.js";
+import { showMessageBox } from "./src/msgbox.js";
 import {
-  
+
    show_error_message,
    change_url_param,
    get_uris,
    load_image_from_uri,
    redo,
- 
+
    show_resource_load_error_message,
    undo,
    open_from_image_info,
-  
-} from "./paint/src/functions.js";
-import $ from 'jquery'
-import {
- 
-   debounce,
-} from "./paint/src/helpers.js";
 
-import { localStore } from "./paint/src/storage.js";
-import { localize } from "./localize/localize.js";
-import { PaintJSState } from "./paint/state.js";
+} from "./src/functions.js";
+import $ from 'jquery'
+import {debounce} from "./src/helpers.js";
+
+import { localStore } from "./src/storage.js";
+import { localize } from "../localize/localize.js";
+import { PaintJSState } from "./state.js";
 
 
 ////////////////////////////////////////////////////////
@@ -266,7 +263,7 @@ export function initSesstion() {
          } else {
             // @TODO: Ask if you want to save before starting a new session
             end_current_session();
-            
+
             if (local) {
                log(`Starting a new LocalSession, ID: ${session_id}`);
                current_session = new LocalSession(session_id);

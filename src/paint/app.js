@@ -1,4 +1,4 @@
-import { Handles } from "./paint/src/Handles.js";
+import { Handles } from "./src/Handles.js";
 
 import {
   cancel,
@@ -46,22 +46,19 @@ import {
   update_magnified_canvas_size,
   view_bitmap,
   write_image_file,
-} from "./paint/src/functions.js";
+} from "./src/functions.js";
 import $ from 'jquery'
 import {
-
-  E,
   TAU,
-  get_file_extension,
   get_help_folder_icon,
   make_canvas,
   to_canvas_coords,
   make_css_cursor
-} from "./paint/src/helpers.js";
-import { init_webgl_stuff, rotate } from "./paint/src/image-manipulation.js";
+} from "./src/helpers.js";
+import { init_webgl_stuff, rotate } from "./src/image-manipulation.js";
 
-import { localStore } from "./paint/src/storage.js";
-import { localize } from "./localize/localize.js";
+import { localStore } from "./src/storage.js";
+import { localize } from "../localize/localize.js";
 
 import {
   TOOL_AIRBRUSH,
@@ -76,39 +73,32 @@ import {
   TOOL_ROUNDED_RECTANGLE,
   TOOL_SELECT,
   tools,
-} from "./paint/src/tools.js";
+} from "./src/tools.js";
 
-import { PaintJSState } from "./paint/state.js";
+import { PaintJSState } from "./state.js";
 
 
 export function initApp() {
-  
-
-  const appState = PaintJSState;
 
   const globApp = {};
-   window.globApp = globApp;
+  window.globApp = globApp;
 
-  
-  const $app = $(".jspaint");
-
-  
   const $canvas_area = $(".canvas-area");
 
-  const $canvas = $(appState.main_canvas).appendTo($canvas_area);
+  const $canvas = $(PaintJSState.main_canvas).appendTo($canvas_area);
 
   $canvas.css("touch-action", "none");
   $canvas_area.css("touch-action", "none");
 
-  
+
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
     $object_container: $canvas_area,
     get_rect: () => ({
       x: 0,
       y: 0,
-      width: appState.main_canvas.width,
-      height: appState.main_canvas.height,
+      width: PaintJSState.main_canvas.width,
+      height: PaintJSState.main_canvas.height,
     }),
     set_rect: ({ width, height }) =>
       resize_canvas_and_save_dimensions(width, height),
@@ -126,12 +116,12 @@ export function initApp() {
   // 위치
   const $status_position = $("status-text");
   const $status_size = $status_position;
-  
-  globApp.$app = $app;
+
+
   globApp.update_fill_and_stroke_colors_and_lineWidth = update_fill_and_stroke_colors_and_lineWidth;
   globApp.$canvas_area = $canvas_area;
   globApp.$canvas = $canvas;
-  globApp.canvas_bounding_client_rect = appState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
+  globApp.canvas_bounding_client_rect = PaintJSState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
   globApp.canvas_handles = canvas_handles;
   globApp.$status_position = $status_position;
   globApp.$status_size = $status_size;
@@ -143,11 +133,11 @@ export function initApp() {
 
 
 
- 
+
 
   $(window).on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
-    
+
     update_canvas_rect();
     update_disable_aa();
     update_magnified_canvas_size();
@@ -300,11 +290,11 @@ export function initApp() {
     // also, ideally check that modifiers *aren't* pressed
     // probably best to use a library at this point!
 
-    if (appState.selection) {
+    if (PaintJSState.selection) {
       const nudge_selection = (delta_x, delta_y) => {
-        appState.selection.x += delta_x;
-        appState.selection.y += delta_y;
-        appState.selection.position();
+        PaintJSState.selection.x += delta_x;
+        PaintJSState.selection.y += delta_y;
+        PaintJSState.selection.position();
       };
       switch (e.key) {
         case "ArrowLeft":
@@ -328,13 +318,13 @@ export function initApp() {
 
     if (e.key === "Escape") {
       // Note: Escape handled above too!
-      if (appState.selection) {
+      if (PaintJSState.selection) {
         deselect();
       } else {
         cancel();
       }
     } else if (e.key === "Enter") {
-      if (appState.selection) {
+      if (PaintJSState.selection) {
         deselect();
       }
     } else if (e.key === "F4") {
@@ -373,48 +363,48 @@ export function initApp() {
       const minus = e.code === "NumpadSubtract" || e.key === "-";
       const delta = Number(plus) - Number(minus); // const delta = +plus++ -minus--; // Δ = ±±±±
 
-      if (appState.selection) {
-        appState.selection.scale(2 ** delta);
+      if (PaintJSState.selection) {
+        PaintJSState.selection.scale(2 ** delta);
       } else {
-        if (appState.selected_tool.id === TOOL_BRUSH) {
-          appState.brush_size = Math.max(
+        if (PaintJSState.selected_tool.id === TOOL_BRUSH) {
+          PaintJSState.brush_size = Math.max(
             1,
-            Math.min(appState.brush_size + delta, 500),
+            Math.min(PaintJSState.brush_size + delta, 500),
           );
-        } else if (appState.selected_tool.id === TOOL_ERASER) {
-          appState.eraser_size = Math.max(
+        } else if (PaintJSState.selected_tool.id === TOOL_ERASER) {
+          PaintJSState.eraser_size = Math.max(
             1,
-            Math.min(appState.eraser_size + delta, 500),
+            Math.min(PaintJSState.eraser_size + delta, 500),
           );
-        } else if (appState.selected_tool.id === TOOL_AIRBRUSH) {
-          appState.airbrush_size = Math.max(
+        } else if (PaintJSState.selected_tool.id === TOOL_AIRBRUSH) {
+          PaintJSState.airbrush_size = Math.max(
             1,
-            Math.min(appState.airbrush_size + delta, 500),
+            Math.min(PaintJSState.airbrush_size + delta, 500),
           );
-        } else if (appState.selected_tool.id === TOOL_PENCIL) {
-          appState.pencil_size = Math.max(
+        } else if (PaintJSState.selected_tool.id === TOOL_PENCIL) {
+          PaintJSState.pencil_size = Math.max(
             1,
-            Math.min(appState.pencil_size + delta, 50),
+            Math.min(PaintJSState.pencil_size + delta, 50),
           );
         } else if (
-          appState.selected_tool.id === TOOL_LINE ||
-          appState.selected_tool.id === TOOL_CURVE ||
-          appState.selected_tool.id === TOOL_RECTANGLE ||
-          appState.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
-          appState.selected_tool.id === TOOL_ELLIPSE ||
-          appState.selected_tool.id === TOOL_POLYGON
+          PaintJSState.selected_tool.id === TOOL_LINE ||
+          PaintJSState.selected_tool.id === TOOL_CURVE ||
+          PaintJSState.selected_tool.id === TOOL_RECTANGLE ||
+          PaintJSState.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
+          PaintJSState.selected_tool.id === TOOL_ELLIPSE ||
+          PaintJSState.selected_tool.id === TOOL_POLYGON
         ) {
-          appState.stroke_size = Math.max(
+          PaintJSState.stroke_size = Math.max(
             1,
-            Math.min(appState.stroke_size + delta, 500),
+            Math.min(PaintJSState.stroke_size + delta, 500),
           );
         }
 
         $(window).trigger("option-changed");
-        if (appState.button !== undefined && appState.pointer) {
+        if (PaintJSState.button !== undefined && PaintJSState.pointer) {
           // pointer may only be needed for tests
 
-          tool_go(appState.selected_tool);
+          tool_go(PaintJSState.selected_tool);
         }
         update_helper_layer();
       }
@@ -560,7 +550,7 @@ export function initApp() {
       //console.log(e);  || e.ctrlKey
       if (e.altKey) {
         e.preventDefault();
-        let new_magnification = appState.magnification;
+        let new_magnification = PaintJSState.magnification;
         if (e.deltaY < 0) {
           new_magnification = nextZoom[getClosestZoom(PaintJSState.magnification)]
         } else {
@@ -596,10 +586,10 @@ export function initApp() {
     }
 
     if (e.type === "copy" || e.type === "cut") {
-      if (appState.selection && appState.selection.canvas) {
+      if (PaintJSState.selection && PaintJSState.selection.canvas) {
         const do_sync_clipboard_copy_or_cut = () => {
           // works only for pasting within a jspaint instance
-          const data_url = appState.selection.canvas.toDataURL();
+          const data_url = PaintJSState.selection.canvas.toDataURL();
           cd.setData("text/x-data-uri; type=image/png", data_url);
           cd.setData("text/uri-list", data_url);
           cd.setData("URL", data_url);
@@ -656,21 +646,21 @@ export function initApp() {
   reset_file();
   reset_selected_colors();
   reset_canvas_and_history(); // (with newly reset colors)
-  set_magnification(appState.default_magnification);
+  set_magnification(PaintJSState.default_magnification);
 
   // this is synchronous for now, but @TODO: handle possibility of loading a document before callback
   // when switching to asynchronous storage, e.g. with localforage
   localStore.get(
     {
-      width: appState.default_canvas_width,
-      height: appState.default_canvas_height,
+      width: PaintJSState.default_canvas_width,
+      height: PaintJSState.default_canvas_height,
     },
     (err, stored_values) => {
       if (err) {
         return;
       }
-      appState.my_canvas_width = Number(stored_values.width);
-      appState.my_canvas_height = Number(stored_values.height);
+      PaintJSState.my_canvas_width = Number(stored_values.width);
+      PaintJSState.my_canvas_height = Number(stored_values.height);
 
       make_or_update_undoable(
         {
@@ -679,16 +669,16 @@ export function initApp() {
           icon: get_help_folder_icon("p_stretch_both.png"),
         },
         () => {
-          appState.main_canvas.width = Math.max(1, appState.my_canvas_width);
-          appState.main_canvas.height = Math.max(1, appState.my_canvas_height);
-          appState.main_ctx.disable_image_smoothing();
-          if (!appState.transparency) {
-            appState.main_ctx.fillStyle = appState.selected_colors.background;
-            appState.main_ctx.fillRect(
+          PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
+          PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
+          PaintJSState.main_ctx.disable_image_smoothing();
+          if (!PaintJSState.transparency) {
+            PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
+            PaintJSState.main_ctx.fillRect(
               0,
               0,
-              appState.main_canvas.width,
-              appState.main_canvas.height,
+              PaintJSState.main_canvas.width,
+              PaintJSState.main_canvas.height,
             );
           }
           $canvas_area.trigger("resize");
@@ -718,7 +708,7 @@ export function initApp() {
   // #region Palette Updating From Theme
 
   function update_fill_and_stroke_colors_and_lineWidth(selected_tooool) {
-    appState.main_ctx.lineWidth = appState.stroke_size;
+    PaintJSState.main_ctx.lineWidth = PaintJSState.stroke_size;
 
     const reverse_because_fill_only = !!(
       selected_tooool.$options &&
@@ -727,23 +717,23 @@ export function initApp() {
     );
     /** @type {ColorSelectionSlot} */
     const color_k =
-      appState.ctrl &&
-      appState.selected_colors.ternary &&
-      appState.pointer_active
+      PaintJSState.ctrl &&
+      PaintJSState.selected_colors.ternary &&
+      PaintJSState.pointer_active
         ? "ternary"
-        : appState.reverse !== reverse_because_fill_only
+        : PaintJSState.reverse !== reverse_because_fill_only
           ? "background"
           : "foreground";
-    appState.main_ctx.fillStyle =
-      appState.fill_color =
-      appState.main_ctx.strokeStyle =
-      appState.stroke_color =
-        appState.selected_colors[color_k];
+    PaintJSState.main_ctx.fillStyle =
+      PaintJSState.fill_color =
+      PaintJSState.main_ctx.strokeStyle =
+      PaintJSState.stroke_color =
+        PaintJSState.selected_colors[color_k];
 
     /** @type {ColorSelectionSlot} */
-    let fill_color_k = appState.ctrl
+    let fill_color_k = PaintJSState.ctrl
       ? "ternary"
-      : appState.reverse !== reverse_because_fill_only
+      : PaintJSState.reverse !== reverse_because_fill_only
         ? "background"
         : "foreground";
     /** @type {ColorSelectionSlot} */
@@ -751,7 +741,7 @@ export function initApp() {
 
     if (selected_tooool.shape || selected_tooool.shape_colors) {
       if (!selected_tooool.stroke_only) {
-        if (appState.reverse !== reverse_because_fill_only) {
+        if (PaintJSState.reverse !== reverse_because_fill_only) {
           fill_color_k = "foreground";
           stroke_color_k = "background";
         } else {
@@ -759,12 +749,12 @@ export function initApp() {
           stroke_color_k = "foreground";
         }
       }
-      appState.main_ctx.fillStyle = appState.fill_color =
-        appState.selected_colors[fill_color_k];
-      appState.main_ctx.strokeStyle = appState.stroke_color =
-        appState.selected_colors[stroke_color_k];
+      PaintJSState.main_ctx.fillStyle = PaintJSState.fill_color =
+        PaintJSState.selected_colors[fill_color_k];
+      PaintJSState.main_ctx.strokeStyle = PaintJSState.stroke_color =
+        PaintJSState.selected_colors[stroke_color_k];
     }
-    appState.pick_color_slot = fill_color_k;
+    PaintJSState.pick_color_slot = fill_color_k;
   }
 
   // #region Primary Canvas Interaction
@@ -773,36 +763,36 @@ export function initApp() {
 
     if (selected_tooool[event_name]) {
       selected_tooool[event_name](
-        appState.main_ctx,
-        appState.pointer.x,
-        appState.pointer.y,
+        PaintJSState.main_ctx,
+        PaintJSState.pointer.x,
+        PaintJSState.pointer.y,
       );
     }
     if (selected_tooool.paint) {
       selected_tooool.paint(
-        appState.main_ctx,
-        appState.pointer.x,
-        appState.pointer.y,
+        PaintJSState.main_ctx,
+        PaintJSState.pointer.x,
+        PaintJSState.pointer.y,
       );
     }
   }
   function canvas_pointer_move(e) {
-    appState.ctrl = e.ctrlKey;
-    appState.shift = e.shiftKey;
-    appState.pointer = to_canvas_coords(e);
+    PaintJSState.ctrl = e.ctrlKey;
+    PaintJSState.shift = e.shiftKey;
+    PaintJSState.pointer = to_canvas_coords(e);
 
     // Quick Undo (for mouse/pen)
     // (Note: pointermove also occurs when the set of buttons pressed changes,
     // except when another event would fire like pointerdown)
-    if (appState.pointers.length && e.button != -1) {
+    if (PaintJSState.pointers.length && e.button != -1) {
       // compare buttons other than middle mouse button by using bitwise OR to make that bit of the number the same
       const MMB = 4;
       if (
-        e.pointerType != appState.pointer_type ||
-        (e.buttons | MMB) != (appState.pointer_buttons | MMB)
+        e.pointerType != PaintJSState.pointer_type ||
+        (e.buttons | MMB) != (PaintJSState.pointer_buttons | MMB)
       ) {
         cancel();
-        appState.pointer_active = false; // NOTE: appState.pointer_active used in cancel()
+        PaintJSState.pointer_active = false; // NOTE: PaintJSState.pointer_active used in cancel()
         return;
       }
     }
@@ -811,82 +801,82 @@ export function initApp() {
       // TODO: snap to 45 degrees for Pencil and Polygon tools
       // TODO: manipulating the pointer object directly is a bit of a hack
       if (
-        appState.selected_tool.id === TOOL_LINE ||
-        appState.selected_tool.id === TOOL_CURVE
+        PaintJSState.selected_tool.id === TOOL_LINE ||
+        PaintJSState.selected_tool.id === TOOL_CURVE
       ) {
         // snap to eight directions
         const dist = Math.sqrt(
-          (appState.pointer.y - appState.pointer_start.y) *
-            (appState.pointer.y - appState.pointer_start.y) +
-            (appState.pointer.x - appState.pointer_start.x) *
-              (appState.pointer.x - appState.pointer_start.x),
+          (PaintJSState.pointer.y - PaintJSState.pointer_start.y) *
+            (PaintJSState.pointer.y - PaintJSState.pointer_start.y) +
+            (PaintJSState.pointer.x - PaintJSState.pointer_start.x) *
+              (PaintJSState.pointer.x - PaintJSState.pointer_start.x),
         );
         const eighth_turn = TAU / 8;
         const angle_0_to_8 =
           Math.atan2(
-            appState.pointer.y - appState.pointer_start.y,
-            appState.pointer.x - appState.pointer_start.x,
+            PaintJSState.pointer.y - PaintJSState.pointer_start.y,
+            PaintJSState.pointer.x - PaintJSState.pointer_start.x,
           ) / eighth_turn;
         const angle = Math.round(angle_0_to_8) * eighth_turn;
-        appState.pointer.x = Math.round(
-          appState.pointer_start.x + Math.cos(angle) * dist,
+        PaintJSState.pointer.x = Math.round(
+          PaintJSState.pointer_start.x + Math.cos(angle) * dist,
         );
-        appState.pointer.y = Math.round(
-          appState.pointer_start.y + Math.sin(angle) * dist,
+        PaintJSState.pointer.y = Math.round(
+          PaintJSState.pointer_start.y + Math.sin(angle) * dist,
         );
-      } else if (appState.selected_tool.shape) {
+      } else if (PaintJSState.selected_tool.shape) {
         // snap to four diagonals
-        const w = Math.abs(appState.pointer.x - appState.pointer_start.x);
-        const h = Math.abs(appState.pointer.y - appState.pointer_start.y);
+        const w = Math.abs(PaintJSState.pointer.x - PaintJSState.pointer_start.x);
+        const h = Math.abs(PaintJSState.pointer.y - PaintJSState.pointer_start.y);
         if (w < h) {
-          if (appState.pointer.y > appState.pointer_start.y) {
-            appState.pointer.y = appState.pointer_start.y + w;
+          if (PaintJSState.pointer.y > PaintJSState.pointer_start.y) {
+            PaintJSState.pointer.y = PaintJSState.pointer_start.y + w;
           } else {
-            appState.pointer.y = appState.pointer_start.y - w;
+            PaintJSState.pointer.y = PaintJSState.pointer_start.y - w;
           }
         } else {
-          if (appState.pointer.x > appState.pointer_start.x) {
-            appState.pointer.x = appState.pointer_start.x + h;
+          if (PaintJSState.pointer.x > PaintJSState.pointer_start.x) {
+            PaintJSState.pointer.x = PaintJSState.pointer_start.x + h;
           } else {
-            appState.pointer.x = appState.pointer_start.x - h;
+            PaintJSState.pointer.x = PaintJSState.pointer_start.x - h;
           }
         }
       }
     }
-    appState.selected_tools.forEach((selected_tool) => {
+    PaintJSState.selected_tools.forEach((selected_tool) => {
       tool_go(selected_tool);
     });
-    appState.pointer_previous = appState.pointer;
+    PaintJSState.pointer_previous = PaintJSState.pointer;
   }
-  
+
   $canvas.on("pointermove", (e) => {
-    appState.pointer = to_canvas_coords(e);
-    $status_position.text(`${appState.pointer.x}, ${appState.pointer.y} px`);
+    PaintJSState.pointer = to_canvas_coords(e);
+    $status_position.text(`${PaintJSState.pointer.x}, ${PaintJSState.pointer.y} px`);
   });
-  
+
   $canvas.on("pointerenter", (e) => {
-    appState.pointer_over_canvas = true;
+    PaintJSState.pointer_over_canvas = true;
 
     update_helper_layer(e);
 
-    if (!appState.update_helper_layer_on_pointermove_active) {
+    if (!PaintJSState.update_helper_layer_on_pointermove_active) {
       $(window).on("pointermove", update_helper_layer);
-      appState.update_helper_layer_on_pointermove_active = true;
+      PaintJSState.update_helper_layer_on_pointermove_active = true;
     }
   });
   $canvas.on("pointerleave", (e) => {
-    appState.pointer_over_canvas = false;
+    PaintJSState.pointer_over_canvas = false;
 
     $status_position.text("");
 
     update_helper_layer(e);
 
     if (
-      !appState.pointer_active &&
-      appState.update_helper_layer_on_pointermove_active
+      !PaintJSState.pointer_active &&
+      PaintJSState.update_helper_layer_on_pointermove_active
     ) {
       $(window).off("pointermove", update_helper_layer);
-      appState.update_helper_layer_on_pointermove_active = false;
+      PaintJSState.update_helper_layer_on_pointermove_active = false;
     }
   });
   // #endregion
@@ -918,12 +908,12 @@ export function initApp() {
     }
 
     if (
-      appState.pointers.every(
+      PaintJSState.pointers.every(
         (pointer) =>
           // prevent multitouch panning in case of synthetic events from eye gaze mode
           pointer.pointerId !== 1234567890 &&
           // prevent multitouch panning in case of dragging across iframe boundary with a mouse/pen
-          // Note: there can be multiple active primary appState.pointers, one per pointer type
+          // Note: there can be multiple active primary PaintJSState.pointers, one per pointer type
           !(
             pointer.isPrimary &&
             (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
@@ -931,7 +921,7 @@ export function initApp() {
         // @TODO: handle case of dragging across iframe boundary with touch
       )
     ) {
-      appState.pointers.push({
+      PaintJSState.pointers.push({
         pointerId: event.pointerId,
         pointerType: event.pointerType,
         // isPrimary not available on jQuery.Event, and originalEvent not available in synthetic case
@@ -943,52 +933,52 @@ export function initApp() {
         y: event.clientY,
       });
     }
-    if (appState.pointers.length === 1) {
+    if (PaintJSState.pointers.length === 1) {
       first_pointer_time = performance.now();
     }
-    if (appState.pointers.length == 2) {
+    if (PaintJSState.pointers.length == 2) {
       last_zoom_pointer_distance = Math.hypot(
-        appState.pointers[0].x - appState.pointers[1].x,
-        appState.pointers[0].y - appState.pointers[1].y,
+        PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
+        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y,
       );
-      pan_last_pos = average_points(appState.pointers);
+      pan_last_pos = average_points(PaintJSState.pointers);
       // pan_start_magnification = magnification;
     }
-    // Quick Undo when there are multiple appState.pointers (i.e. for touch)
+    // Quick Undo when there are multiple PaintJSState.pointers (i.e. for touch)
     // See pointermove for other pointer types
     // SEE OTHER POINTERDOWN HANDLER ALSO
-    if (appState.pointers.length >= 2) {
+    if (PaintJSState.pointers.length >= 2) {
       // If you press two fingers quickly, it shouldn't make a new history entry.
       // But if you draw something and then press a second finger to clear it, it should let you redo.
       const discard_document_state =
         first_pointer_time &&
         performance.now() - first_pointer_time < discard_quick_undo_period;
       cancel(false, discard_document_state);
-      appState.pointer_active = false; // NOTE: appState.pointer_active used in cancel(); must be set after cancel()
+      PaintJSState.pointer_active = false; // NOTE: PaintJSState.pointer_active used in cancel(); must be set after cancel()
       return;
     }
   });
   $(window).on("pointerup pointercancel", (event) => {
-    appState.pointers = appState.pointers.filter(
+    PaintJSState.pointers = PaintJSState.pointers.filter(
       (pointer) => pointer.pointerId !== event.pointerId,
     );
   });
   $(window).on("pointermove", (event) => {
-    for (const pointer of appState.pointers) {
+    for (const pointer of PaintJSState.pointers) {
       if (pointer.pointerId === event.pointerId) {
         pointer.x = event.clientX;
         pointer.y = event.clientY;
       }
     }
-    if (appState.pointers.length >= 2) {
-      const current_pos = average_points(appState.pointers);
+    if (PaintJSState.pointers.length >= 2) {
+      const current_pos = average_points(PaintJSState.pointers);
       const distance = Math.hypot(
-        appState.pointers[0].x - appState.pointers[1].x,
-        appState.pointers[0].y - appState.pointers[1].y,
+        PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
+        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y,
       );
       const difference_in_distance = distance - last_zoom_pointer_distance;
-      let new_magnification = appState.magnification;
-       
+      let new_magnification = PaintJSState.magnification;
+
 
       if (Math.abs(difference_in_distance) > 60) {
         last_zoom_pointer_distance = distance;
@@ -998,7 +988,7 @@ export function initApp() {
           new_magnification = nextout[getClosestZoom(PaintJSState.magnification)];
         }
       }
-      if (new_magnification != appState.magnification) {
+      if (new_magnification != PaintJSState.magnification) {
         set_magnification(
           new_magnification,
           to_canvas_coords({ clientX: current_pos.x, clientY: current_pos.y }),
@@ -1019,64 +1009,64 @@ export function initApp() {
     $status_size.text("");
     update_canvas_rect();
 
-    // Quick Undo when there are multiple appState.pointers (i.e. for touch)
+    // Quick Undo when there are multiple PaintJSState.pointers (i.e. for touch)
     // see pointermove for other pointer types
     // SEE OTHER POINTERDOWN HANDLER ALSO
     // NOTE: this relies on event handler order for pointerdown
-    // pointer is not added to appState.pointers yet
-    if (appState.pointers.length >= 1) {
+    // pointer is not added to PaintJSState.pointers yet
+    if (PaintJSState.pointers.length >= 1) {
       // If you press two fingers quickly, it shouldn't make a new history entry.
       // But if you draw something and then press a second finger to clear it, it should let you redo.
       const discard_document_state =
         first_pointer_time &&
         performance.now() - first_pointer_time < discard_quick_undo_period;
       cancel(false, discard_document_state);
-      appState.pointer_active = false; // NOTE: appState.pointer_active used in cancel(); must be set after cancel()
+      PaintJSState.pointer_active = false; // NOTE: PaintJSState.pointer_active used in cancel(); must be set after cancel()
 
       // in eye gaze mode, allow drawing with mouse after canceling gaze gesture with mouse
-      appState.pointers = appState.pointers.filter(
+      PaintJSState.pointers = PaintJSState.pointers.filter(
         (pointer) => pointer.pointerId !== 1234567890,
       );
       return;
     }
 
-    appState.history_node_to_cancel_to = appState.current_history_node;
+    PaintJSState.history_node_to_cancel_to = PaintJSState.current_history_node;
 
-    appState.pointer_active = !!(e.buttons & (1 | 2)); // as far as tools are concerned
-    appState.pointer_type = e.pointerType;
-    appState.pointer_buttons = e.buttons;
+    PaintJSState.pointer_active = !!(e.buttons & (1 | 2)); // as far as tools are concerned
+    PaintJSState.pointer_type = e.pointerType;
+    PaintJSState.pointer_buttons = e.buttons;
     $(window).one("pointerup", (e) => {
-      appState.pointer_active = false;
+      PaintJSState.pointer_active = false;
       update_helper_layer(e);
 
       if (
-        !appState.pointer_over_canvas &&
-        appState.update_helper_layer_on_pointermove_active
+        !PaintJSState.pointer_over_canvas &&
+        PaintJSState.update_helper_layer_on_pointermove_active
       ) {
         $(window).off("pointermove", update_helper_layer);
-        appState.update_helper_layer_on_pointermove_active = false;
+        PaintJSState.update_helper_layer_on_pointermove_active = false;
       }
     });
 
     if (e.button === 0) {
-      appState.reverse = false;
+      PaintJSState.reverse = false;
     } else if (e.button === 2) {
-      appState.reverse = true;
+      PaintJSState.reverse = true;
     } else {
       return;
     }
 
-    appState.button = e.button;
-    appState.ctrl = e.ctrlKey;
-    appState.shift = e.shiftKey;
-    appState.pointer_start =
-      appState.pointer_previous =
-      appState.pointer =
+    PaintJSState.button = e.button;
+    PaintJSState.ctrl = e.ctrlKey;
+    PaintJSState.shift = e.shiftKey;
+    PaintJSState.pointer_start =
+      PaintJSState.pointer_previous =
+      PaintJSState.pointer =
         to_canvas_coords(e);
 
     const pointerdown_action = () => {
       let interval_ids = [];
-      appState.selected_tools.forEach((selected_tool) => {
+      PaintJSState.selected_tools.forEach((selected_tool) => {
         if (selected_tool.paint || selected_tool.pointerdown) {
           tool_go(selected_tool, "pointerdown");
         }
@@ -1092,29 +1082,29 @@ export function initApp() {
       $(window).on("pointermove", canvas_pointer_move);
 
       $(window).one("pointerup", (e, canceling, no_undoable) => {
-        appState.button = undefined;
-        appState.reverse = false;
+        PaintJSState.button = undefined;
+        PaintJSState.reverse = false;
 
         if (e.clientX !== undefined) {
           // may be synthetic event without coordinates
-          appState.pointer = to_canvas_coords(e);
-          //console.log('appState.pointer:',appState.pointer)
+          PaintJSState.pointer = to_canvas_coords(e);
+          //console.log('PaintJSState.pointer:',PaintJSState.pointer)
         }
         // don't create undoables if you're two-finger-panning
         // @TODO: do any tools use pointerup for cleanup?
         if (!no_undoable) {
-          appState.selected_tools.forEach((selected_tool) => {
+          PaintJSState.selected_tools.forEach((selected_tool) => {
             selected_tool.pointerup?.(
-              appState.main_ctx,
-              appState.pointer.x,
-              appState.pointer.y,
+              PaintJSState.main_ctx,
+              PaintJSState.pointer.x,
+              PaintJSState.pointer.y,
             );
           });
         }
 
-        if (appState.selected_tools.length === 1) {
-          if (appState.selected_tool.deselect) {
-            select_tools(appState.return_to_tools);
+        if (PaintJSState.selected_tools.length === 1) {
+          if (PaintJSState.selected_tool.deselect) {
+            select_tools(PaintJSState.return_to_tools);
           }
         }
         $(window).off("pointermove", canvas_pointer_move);
@@ -1123,7 +1113,7 @@ export function initApp() {
         }
 
         if (!canceling) {
-          appState.history_node_to_cancel_to = null;
+          PaintJSState.history_node_to_cancel_to = null;
         }
       });
     };
@@ -1137,7 +1127,7 @@ export function initApp() {
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
       if ($canvas_area.is(e.target)) {
-        if (appState.selection) {
+        if (PaintJSState.selection) {
           deselect();
         }
       }
@@ -1208,8 +1198,8 @@ export function initApp() {
 
   init_webgl_stuff();
 
-  
 
- 
+
+
 }
 

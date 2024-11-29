@@ -2,9 +2,11 @@ import { PaintJSState } from "./state.js";
 import { EventManager } from "./eventManager.js";
 import { PaintHandler } from "./handler.js";
 import { localStore } from "./storage.js";
-import { make_canvas } from "./src/helpers.js";
-import { get_tool_by_id, make_history_node } from "./src/functions.js";
-import { TOOL_PENCIL } from "./src/tools.js";
+
+import { initApp } from "./app.js";
+import { initSesstion } from "./session.js";
+import { initState } from "./appstate.js";
+
 class Paint {
     constructor(paintState, eventManager, localStore) {
         this.paintState = paintState; // 상태 관리 객체
@@ -35,20 +37,9 @@ class Paint {
     }
 
     create() {
-        const main_canvas = make_canvas();
-        main_canvas.classList.add("main-canvas");
-        this.paintState.main_canvas = main_canvas;
-        this.paintState.main_ctx = main_canvas.ctx;
-            
-        const mask_canvas = make_canvas();
-        mask_canvas.classList.add("mask-canvas");
-        this.paintState.mask_canvas = mask_canvas;
-
-        this.paintState.root_history_node = make_history_node({ name: "App Not Loaded Properly - Please send a bug report." }); // will be replaced
-
-        this.paintState.default_tool = get_tool_by_id(TOOL_PENCIL);
-        this.paintState.root_history_node = make_history_node({ name: "App Not Loaded Properly - Please send a bug report." }); // will be replaced
-    
+        initState(PaintJSState);
+        initApp();
+        initSesstion();
     }
 
     initSession() {}

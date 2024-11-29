@@ -1,7 +1,0 @@
-class PaintState{
-  
-}
-
-const paintState = {
-  
-}
