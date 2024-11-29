@@ -1225,10 +1225,20 @@ function draw_grid(ctx, scale) {
 
 let horizontal_pattern;
 let vertical_pattern;
+let horizontal_pattern_canvas;
+let vertical_pattern_canvas;
+
+function get_horizontal_pattern_canvas() {
+    return horizontal_pattern_canvas || (horizontal_pattern_canvas = make_canvas(8, 4));
+}
+
+function get_vertical_pattern_canvas() {
+    return vertical_pattern_canvas || (vertical_pattern_canvas = make_canvas(4, 8));
+}
 
 function draw_dashes(ctx, x, y, go_x, go_y, scale, translate_x, translate_y) {
-	const horizontal_pattern_canvas = make_canvas(8, 4);
-	const vertical_pattern_canvas = make_canvas(4, 8);
+	const horizontal_pattern_canvas = get_horizontal_pattern_canvas();
+	const vertical_pattern_canvas = get_vertical_pattern_canvas();
 	
 	if (!vertical_pattern) {
 		horizontal_pattern_canvas.ctx.fillStyle = "white";

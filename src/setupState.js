@@ -1,52 +1,18 @@
-
-
 console.log('setup-appstate')
 
 import { 
    get_tool_by_id,
-   make_history_node,
-   reset_selected_colors,
-   resize_canvas_and_save_dimensions,
-   resize_canvas_without_saving_dimensions,
-   save_as_prompt,
-   select_all,
-   select_tool,
-   select_tools,
-   set_magnification,
-   show_document_history,
-   show_resource_load_error_message,
-   undo,
-   update_canvas_rect,
-   update_disable_aa,
-   update_helper_layer,
-   update_magnified_canvas_size,
-   view_bitmap,
-   write_image_file,
-   open_from_image_info,
-   undoable,
-   update_title
+   make_history_node
 } from './paint/src/functions.js';
 
 import { 
    make_canvas,
-   
-   E,
-   TAU,
-   get_file_extension,
-   get_help_folder_icon,
-   to_canvas_coords,
-   debounce,
-   image_data_match
 } from './paint/src/helpers.js';
 
-import { TOOL_PENCIL, tools, TOOL_AIRBRUSH, TOOL_BRUSH, TOOL_CURVE, TOOL_ELLIPSE, TOOL_ERASER, TOOL_LINE, TOOL_POLYGON, TOOL_RECTANGLE, TOOL_ROUNDED_RECTANGLE, TOOL_SELECT } from './paint/src/tools.js';
+import { TOOL_PENCIL } from './paint/src/tools.js';
 
-import { default_palette, get_winter_palette } from './paint/src/color-data.js';
-import { image_formats } from './paint/src/file-format-data.js';
-import { init_webgl_stuff, rotate } from './paint/src/image-manipulation.js';
-import { menus } from './paint/src/menus.js';
-import { localStore } from './paint/src/storage.js';
-import { Handles } from "./paint/src/Handles.js";
+import { default_palette } from './paint/src/color-data.js';
+
 
 export const appState={};
 
@@ -79,11 +45,6 @@ export function setupState() {
   /** @type {PixelCanvas} */
   const mask_canvas = make_canvas();
   mask_canvas.classList.add("mask-canvas");
-
-  /** @type {PixelContext} */
-  const mask_ctx = main_canvas.ctx;
-  
-
 
   /** @type {(string | CanvasPattern)[]} */
   let palette = default_palette;
@@ -232,6 +193,8 @@ export function setupState() {
    * @type {{ x: number, y: number, pointerId: number, pointerType: string, isPrimary: boolean }[]} */
   let pointers = [];
 
+  let fill = false;
+  let stroke = true;
 
   const state = {};
   state.default_magnification  = default_magnification ;
@@ -295,7 +258,9 @@ export function setupState() {
   state.pointers = pointers;
   state.mask_layer = mask_layer;
   state.pointer_float_previous = pointer_float_previous;
-  
+  state.fill = fill;
+  state.stroke = stroke;
+
 
   window.globAppstate={};
 

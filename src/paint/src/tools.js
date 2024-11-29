@@ -763,15 +763,15 @@ const tools = [
 
 		current_color: "",
 		display_current_color() {
-			this.$options.css({
-				background: this.current_color,
-			});
+			// this.$options.css({
+			// 	background: this.current_color,
+			// });
 		},
 		pointerdown() {
-			$G.one("pointerup", () => {
-				this.$options.css({
-					background: "",
-				});
+			$(window).one("pointerup", () => {
+				// this.$options.css({
+				// 	background: "",
+				// });
 			});
 		},
 		paint(ctx, x, y) {
@@ -786,7 +786,7 @@ const tools = [
 		},
 		pointerup() {
 			window.globAppstate.selected_colors[window.globAppstate.pick_color_slot] = this.current_color;
-			$G.trigger("option-changed");
+			$(window).trigger("option-changed");
 		},
 	},
 	{
@@ -1274,10 +1274,10 @@ const tools = [
 				h = -h;
 			}
 
-			if (this.$options.fill) {
+			if (window.globAppstate.fill) {
 				ctx.fillRect(x, y, w, h);
 			}
-			if (this.$options.stroke) {
+			if (window.globAppstate.stroke) {
 				if (w < window.globAppstate.stroke_size * 2 || h < window.globAppstate.stroke_size * 2) {
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
@@ -1426,7 +1426,7 @@ const tools = [
 				this.preview_canvas.width,
 				this.preview_canvas.height,
 			);
-			if (this.$options.fill && !this.$options.stroke) {
+			if (window.globAppstate.fill && !window.globAppstate.stroke) {
 				this.preview_canvas.ctx.drawImage(window.globAppstate.main_canvas, 0, 0);
 				this.preview_canvas.ctx.strokeStyle = "white";
 				this.preview_canvas.ctx.globalCompositeOperation = "difference";
@@ -1481,7 +1481,7 @@ const tools = [
 						ctx.strokeStyle = window.globAppstate.stroke_color;
 
 						var orig_stroke_size = window.globAppstate.stroke_size;
-						if (this.$options.fill && !this.$options.stroke) {
+						if (window.globAppstate.fill && !window.globAppstate.stroke) {
 							window.globAppstate.stroke_size = 2;
 							ctx.strokeStyle = window.globAppstate.fill_color;
 						}
@@ -1489,9 +1489,9 @@ const tools = [
 						draw_polygon(
 							ctx,
 							this.points,
-							this.$options.stroke ||
-								(this.$options.fill && !this.$options.stroke),
-							this.$options.fill,
+							window.globAppstate.stroke ||
+								(window.globAppstate.fill && !window.globAppstate.stroke),
+							window.globAppstate.fill,
 						);
 
 						window.globAppstate.stroke_size = orig_stroke_size;
@@ -1597,8 +1597,8 @@ const tools = [
 					y + ~~(window.globAppstate.stroke_size / 2),
 					w - window.globAppstate.stroke_size,
 					h - window.globAppstate.stroke_size,
-					this.$options.stroke,
-					this.$options.fill,
+					window.globAppstate.stroke,
+					window.globAppstate.fill,
 				);
 			}
 		},
@@ -1740,8 +1740,8 @@ const tools = [
 					radius,
 					radius,
 					// radius_x, radius_y,
-					this.$options.stroke,
-					this.$options.fill,
+					window.globAppstate.stroke,
+					window.globAppstate.fill,
 				);
 			}
 		},
@@ -1766,7 +1766,7 @@ tools.forEach((tool) => {
 			drag_start_x = window.globAppstate.pointer.x;
 			drag_start_y = window.globAppstate.pointer.y;
 			pointer_has_moved = false;
-			$G.one("pointermove", () => {
+			$(window).one("pointermove", () => {
 				pointer_has_moved = true;
 			});
 			if (window.globAppstate.selection) {
