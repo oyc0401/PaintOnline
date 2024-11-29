@@ -21,7 +21,8 @@
   
   import { onMount } from 'svelte';
   
-  import { menuState, changeTool as setTool} from "../store/menuState.svelte.js";
+  import { menuState } from "../store/menuState.svelte.js";
+  import {changeTool as setTool} from '../store/paintFunction.js'
 
   let buttons = Array(7);
 

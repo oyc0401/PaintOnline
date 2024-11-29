@@ -28,29 +28,11 @@ import {
    make_css_cursor,
 } from "./paint/src/helpers.js";
 
-import {
-   TOOL_PENCIL,
-   tools,
-   TOOL_AIRBRUSH,
-   TOOL_BRUSH,
-   TOOL_CURVE,
-   TOOL_ELLIPSE,
-   TOOL_ERASER,
-   TOOL_LINE,
-   TOOL_POLYGON,
-   TOOL_RECTANGLE,
-   TOOL_ROUNDED_RECTANGLE,
-   TOOL_SELECT,
-} from "./paint/src/tools.js";
-
 import { localStore } from "./paint/src/storage.js";
 import { localize } from "./localize/localize.js";
 
 export function preSetting() {
-   window.svelteApp = {};
-   window.svelteApp.get_tool_by_id = get_tool_by_id; // used by svelte tool button
-   window.svelteApp.select_tool = select_tool; // used by svelte tool button
-   window.svelteApp.make_css_cursor = make_css_cursor;
+
 }
 
 ////////////////////////////////////////////////////////

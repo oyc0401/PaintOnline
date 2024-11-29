@@ -1,7 +1,7 @@
-// class PaintState{
+class PaintState{
   
-// }
+}
 
-// const paintState = {
+const paintState = {
   
-// }
+}
