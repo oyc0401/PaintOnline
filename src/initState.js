@@ -1,4 +1,4 @@
-console.log('setup-appstate')
+console.log('initState')
 
 import { 
    get_tool_by_id,
@@ -16,7 +16,7 @@ import { default_palette } from './paint/src/color-data.js';
 
 export const appState={};
 
-export function setupState() {
+export function initState() {
 
   const default_magnification = 1;
 

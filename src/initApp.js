@@ -80,7 +80,7 @@ import {
 
 
 
-export function setupApp() {
+export function initApp() {
   
 
   const appState = window.globAppstate;
