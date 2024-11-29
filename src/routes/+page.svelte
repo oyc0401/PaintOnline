@@ -9,6 +9,7 @@
   import { initApp } from "../initApp.js";
   import { initSesstion } from "../initSesstion";
   import { PaintJS } from "../paint/main";
+  import {PaintJSState} from '../paint/state';
   onMount(async () => {
 
     PaintJS.create();
@@ -20,7 +21,7 @@
     initSesstion();
     
     // 아래껀 실험용
-    menuState.undo = window.globAppstate.undos;
+    menuState.undo = PaintJSState.undos;
     window.menuState = menuState;
   });
 </script>

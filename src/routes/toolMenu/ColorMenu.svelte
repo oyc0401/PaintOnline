@@ -4,7 +4,7 @@
   import { menuState } from "../../store/menuState.svelte.js";
   import PickColorIcon from "$lib/images/pick_color.png";
   import TransparantIcon from "$lib/images/transparent_icon.png";
-
+  import {PaintJSState} from '../../paint/state';
   const palette1 = [
     "rgb(0,0,0)", // Black
     "rgb(128,128,128)", // Dark Gray
@@ -65,16 +65,16 @@
   function selectColor(color) {
     if (menuState.selectedColor == 0) {
       menuState.foregroundColor = color;
-      window.globAppstate.selected_colors.foreground = color;
+      PaintJSState.selected_colors.foreground = color;
     } else {
       menuState.backgroundColor = color;
-      window.globAppstate.selected_colors.background = color;
+      PaintJSState.selected_colors.background = color;
     }
   }
 
   function setBackgroundColor(color) {
     menuState.backgroundColor = color;
-    window.globAppstate.selected_colors.background = color;
+    PaintJSState.selected_colors.background = color;
   }
 </script>
 

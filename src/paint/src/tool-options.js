@@ -5,7 +5,7 @@ import { set_magnification } from "./functions.js";
 import {  E, make_canvas } from "./helpers.js";
 import { render_brush, replace_colors_with_swatch, stamp_brush_canvas } from "./image-manipulation.js";
 import $ from "jquery";
-
+import {PaintJSState} from '../state';
 const ChooserCanvas = (
 	url,
 	invert,

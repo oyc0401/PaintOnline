@@ -20,6 +20,7 @@ import {
 
 import { localStore } from "./paint/src/storage.js";
 import { localize } from "./localize/localize.js";
+import { PaintJSState } from "./paint/state.js";
 
 
 ////////////////////////////////////////////////////////
@@ -45,12 +46,12 @@ export function initSesstion() {
 
    const match_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
    const canvas_has_any_apparent_image_data = () =>
-      window.globAppstate.main_canvas.ctx
+      PaintJSState.main_canvas.ctx
          .getImageData(
             0,
             0,
-            window.globAppstate.main_canvas.width,
-            window.globAppstate.main_canvas.height,
+            PaintJSState.main_canvas.width,
+            PaintJSState.main_canvas.height,
          )
          .data.some((v) => v > match_threshold);
 
@@ -105,8 +106,8 @@ export function initSesstion() {
          redo();
       });
       const update_buttons_disabled = () => {
-         $undo.prop("disabled", window.globAppstate.undos.length < 1);
-         $redo.prop("disabled", window.globAppstate.redos.length < 1);
+         $undo.prop("disabled", PaintJSState.undos.length < 1);
+         $redo.prop("disabled", PaintJSState.redos.length < 1);
       };
       $(window).on("session-update.session-hook", update_buttons_disabled);
       update_buttons_disabled();
@@ -119,7 +120,7 @@ export function initSesstion() {
       $w.find("button:enabled").focus();
    }
 
-   let last_undos_length = window.globAppstate.undos.length;
+   let last_undos_length = PaintJSState.undos.length;
    function handle_data_loss() {
       const window_is_open = $recovery_window && !$recovery_window.closed;
       let save_paused = false;
@@ -129,12 +130,12 @@ export function initSesstion() {
          }
          save_paused = true;
       } else if (window_is_open) {
-         if (window.globAppstate.undos.length > last_undos_length) {
+         if (PaintJSState.undos.length > last_undos_length) {
             show_recovery_window(true);
          }
          save_paused = true;
       }
-      last_undos_length = window.globAppstate.undos.length;
+      last_undos_length = PaintJSState.undos.length;
       return save_paused;
    }
 
@@ -152,7 +153,7 @@ export function initSesstion() {
             log(`Saving image to storage: ${ls_key}`);
             localStore.set(
                ls_key,
-               window.globAppstate.main_canvas.toDataURL("image/png"),
+               PaintJSState.main_canvas.toDataURL("image/png"),
                (err) => {
                   if (err) {
                      // @ts-ignore (quotaExceeded is added by storage.js)

@@ -2,7 +2,7 @@
 
 /* eslint-disable @stylistic/space-unary-ops */
 //import { AccessKeys } from '../lib/os-gui/MenuBar.js'
-
+import {PaintJSState} from '../state';
 console.log('JS 실행:','helpers.js')
 const TAU =
 		//                //////|//////                //
@@ -410,8 +410,8 @@ function to_canvas_coords(event) {
 	}
 	const rect = window.globApp.canvas_bounding_client_rect;
 	return {
-		x: ~~((clientX - rect.left) / rect.width * window.globAppstate.main_canvas.width),
-		y: ~~((clientY - rect.top) / rect.height * window.globAppstate.main_canvas.height),
+		x: ~~((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
+		y: ~~((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
 	};
 }
 /**
@@ -421,8 +421,8 @@ function to_canvas_coords(event) {
 function from_canvas_coords({ x, y }) {
 	const rect = window.globApp.canvas_bounding_client_rect;
 	return {
-		clientX: ~~(x / window.globAppstate.main_canvas.width * rect.width + rect.left),
-		clientY: ~~(y / window.globAppstate.main_canvas.height * rect.height + rect.top),
+		clientX: ~~(x / PaintJSState.main_canvas.width * rect.width + rect.left),
+		clientY: ~~(y / PaintJSState.main_canvas.height * rect.height + rect.top),
 	};
 }
 // #endregion

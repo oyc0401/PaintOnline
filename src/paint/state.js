@@ -1,8 +1,3 @@
-import { get_tool_by_id, make_history_node } from "./src/functions.js";
-
-
-import { TOOL_PENCIL } from "./src/tools.js";
-import { default_palette } from "./src/color-data.js";
 
 export class PaintState {
   constructor() {
@@ -22,11 +17,11 @@ export class PaintState {
   
 }
 
+
 function defaultState() {
   const default_magnification = 1;
 
-  /** @type {Tool} */
-  const default_tool = get_tool_by_id(TOOL_PENCIL);
+  let default_tool = "TOOL_PENCIL";
 
   const default_canvas_width = 330;
   const default_canvas_height = 450;
@@ -52,7 +47,7 @@ function defaultState() {
   // mask_canvas.classList.add("mask-canvas");
 
   /** @type {(string | CanvasPattern)[]} */
-  let palette = default_palette;
+  let palette;
   /** @type {(string | CanvasPattern)[]} */
   let polychrome_palette = palette;
 
@@ -143,7 +138,7 @@ function defaultState() {
   };
 
   /** @type {HistoryNode} */
-  let root_history_node = make_history_node({ name: "App Not Loaded Properly - Please send a bug report." }); // will be replaced
+  let root_history_node;
   /** @type {HistoryNode} */
   let current_history_node = root_history_node;
   /** @type {HistoryNode | null} */
@@ -268,3 +263,5 @@ function defaultState() {
   };
 
 }
+
+export const PaintJSState = new PaintState();

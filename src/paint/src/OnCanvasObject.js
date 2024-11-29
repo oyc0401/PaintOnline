@@ -3,6 +3,7 @@ console.log('JS 실행:','OnCanvasObject.js')
 /* global $canvas_area, $status_position, $status_size, canvas_handles */
 import $ from 'jquery'
 import {  E } from "./helpers.js";
+import {PaintJSState} from '../state';
 // import $ from 'jquery'
 // let{
 // 	update_fill_and_stroke_colors_and_lineWidth ,
@@ -61,7 +62,7 @@ class OnCanvasObject {
 		const dpr = window.devicePixelRatio;
 		const targetDpr = roundDPR(dpr);
 		const div = targetDpr / dpr;
-		const dprMagnification=window.globAppstate.magnification * div;
+		const dprMagnification=PaintJSState.magnification * div;
 
 		this.$el.css({
 			position: "absolute",

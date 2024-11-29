@@ -251,7 +251,7 @@ export function initState() {
   // state.stroke = stroke;
 
   // window.globAppstate={};
-  window.globAppstate = PaintJS.state;
+ // window.globAppstate = PaintJS.state;
 
   // Object.keys(state).forEach(key => {
   //     window['globAppstate'][key] = state[key];

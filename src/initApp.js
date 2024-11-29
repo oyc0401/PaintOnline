@@ -78,12 +78,13 @@ import {
   tools,
 } from "./paint/src/tools.js";
 
+import { PaintJSState } from "./paint/state.js";
 
 
 export function initApp() {
   
 
-  const appState = window.globAppstate;
+  const appState = PaintJSState;
 
   const globApp = {};
    window.globApp = globApp;
@@ -135,9 +136,9 @@ export function initApp() {
   globApp.$status_position = $status_position;
   globApp.$status_size = $status_size;
 
-  console.log(window.globAppstate)
+  console.log(PaintJSState)
   $canvas.css({
-     cursor: make_css_cursor(...window.globAppstate.default_tool.cursor),
+     cursor: make_css_cursor(...PaintJSState.default_tool.cursor),
    });
 
 
@@ -561,9 +562,9 @@ export function initApp() {
         e.preventDefault();
         let new_magnification = appState.magnification;
         if (e.deltaY < 0) {
-          new_magnification = nextZoom[getClosestZoom(window.globAppstate.magnification)]
+          new_magnification = nextZoom[getClosestZoom(PaintJSState.magnification)]
         } else {
-          new_magnification =nextout[getClosestZoom(window.globAppstate.magnification)]
+          new_magnification =nextout[getClosestZoom(PaintJSState.magnification)]
         }
         set_magnification(new_magnification, to_canvas_coords(e));
         return;
@@ -992,9 +993,9 @@ export function initApp() {
       if (Math.abs(difference_in_distance) > 60) {
         last_zoom_pointer_distance = distance;
         if (difference_in_distance > 0) {
-           new_magnification = nextZoom[getClosestZoom(window.globAppstate.magnification)];
+           new_magnification = nextZoom[getClosestZoom(PaintJSState.magnification)];
         } else {
-          new_magnification = nextout[getClosestZoom(window.globAppstate.magnification)];
+          new_magnification = nextout[getClosestZoom(PaintJSState.magnification)];
         }
       }
       if (new_magnification != appState.magnification) {

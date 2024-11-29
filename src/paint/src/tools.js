@@ -1,7 +1,7 @@
 console.log('JS 실행:','tools.js')
 // @ts-check
-/* global selection:writable, window.globAppstate.stroke_size:writable, textbox:writable */
-/* global window.globApp.$canvas, window.globApp.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, window.globAppstate.main_canvas, window.globAppstate.main_ctx, pencil_size, pointer, window.globAppstate.pointer_active, window.globAppstate.pointer_over_canvas, pointer_previous, window.globAppstate.pointer_start, return_to_magnification, selected_colors, shift, window.globAppstate.stroke_color, transparency */
+/* global selection:writable, PaintJSState.stroke_size:writable, textbox:writable */
+/* global window.globApp.$canvas, window.globApp.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, PaintJSState.main_canvas, PaintJSState.main_ctx, pencil_size, pointer, PaintJSState.pointer_active, PaintJSState.pointer_over_canvas, pointer_previous, PaintJSState.pointer_start, return_to_magnification, selected_colors, shift, PaintJSState.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
 import { localize , get_language} from "../../localize/localize.js";
@@ -14,7 +14,7 @@ import {
 	undoable,
 	update_helper_layer,
 } from "./functions.js";
-
+import {PaintJSState} from '../state';
 import {
 	
 	E,
@@ -215,12 +215,12 @@ const tools = [
 		y_max: -Infinity,
 
 		pointerdown() {
-			this.x_min = window.globAppstate.pointer.x;
-			this.x_max = window.globAppstate.pointer.x + 1;
-			this.y_min = window.globAppstate.pointer.y;
-			this.y_max = window.globAppstate.pointer.y + 1;
+			this.x_min = PaintJSState.pointer.x;
+			this.x_max = PaintJSState.pointer.x + 1;
+			this.y_min = PaintJSState.pointer.y;
+			this.y_max = PaintJSState.pointer.y + 1;
 			this.points = [];
-			this.preview_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+			this.preview_canvas = make_canvas(PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
 
 			// End prior selection, drawing it to the canvas
 
@@ -228,23 +228,23 @@ const tools = [
 		},
 		paint(_ctx, _x, _y) {
 			// Constrain the pointer to the canvas
-			window.globAppstate.pointer.x = Math.min(window.globAppstate.main_canvas.width, window.globAppstate.pointer.x);
-			window.globAppstate.pointer.x = Math.max(0, window.globAppstate.pointer.x);
-			window.globAppstate.pointer.y = Math.min(window.globAppstate.main_canvas.height, window.globAppstate.pointer.y);
-			window.globAppstate.pointer.y = Math.max(0, window.globAppstate.pointer.y);
+			PaintJSState.pointer.x = Math.min(PaintJSState.main_canvas.width, PaintJSState.pointer.x);
+			PaintJSState.pointer.x = Math.max(0, PaintJSState.pointer.x);
+			PaintJSState.pointer.y = Math.min(PaintJSState.main_canvas.height, PaintJSState.pointer.y);
+			PaintJSState.pointer.y = Math.max(0, PaintJSState.pointer.y);
 			// Add the point
-			this.points.push(window.globAppstate.pointer);
+			this.points.push(PaintJSState.pointer);
 			// Update the boundaries of the polygon
-			this.x_min = Math.min(window.globAppstate.pointer.x, this.x_min);
-			this.x_max = Math.max(window.globAppstate.pointer.x, this.x_max);
-			this.y_min = Math.min(window.globAppstate.pointer.y, this.y_min);
-			this.y_max = Math.max(window.globAppstate.pointer.y, this.y_max);
+			this.x_min = Math.min(PaintJSState.pointer.x, this.x_min);
+			this.x_max = Math.max(PaintJSState.pointer.x, this.x_max);
+			this.y_min = Math.min(PaintJSState.pointer.y, this.y_min);
+			this.y_max = Math.max(PaintJSState.pointer.y, this.y_max);
 
 			bresenham_line(
-				window.globAppstate.pointer_previous.x,
-				window.globAppstate.pointer_previous.y,
-				window.globAppstate.pointer.x,
-				window.globAppstate.pointer.y,
+				PaintJSState.pointer_previous.x,
+				PaintJSState.pointer_previous.y,
+				PaintJSState.pointer.x,
+				PaintJSState.pointer.y,
 				(x, y) => {
 					this.ffs_paint_iteration(x, y);
 				},
@@ -258,9 +258,9 @@ const tools = [
 		},
 		ffs_paint_iteration(x, y) {
 			// Constrain the inversion paint brush position to the canvas
-			x = Math.min(window.globAppstate.main_canvas.width, x);
+			x = Math.min(PaintJSState.main_canvas.width, x);
 			x = Math.max(0, x);
-			y = Math.min(window.globAppstate.main_canvas.height, y);
+			y = Math.min(PaintJSState.main_canvas.height, y);
 			y = Math.max(0, y);
 
 			// Find the dimensions on the canvas of the tiny square to invert
@@ -271,7 +271,7 @@ const tools = [
 			const rect_h = inversion_size;
 
 			const ctx_dest = this.preview_canvas.ctx;
-			const id_src = window.globAppstate.main_ctx.getImageData(rect_x, rect_y, rect_w, rect_h);
+			const id_src = PaintJSState.main_ctx.getImageData(rect_x, rect_y, rect_w, rect_h);
 			const id_dest = ctx_dest.getImageData(rect_x, rect_y, rect_w, rect_h);
 
 			for (let i = 0, l = id_dest.data.length; i < l; i += 4) {
@@ -291,7 +291,7 @@ const tools = [
 			this.preview_canvas.height = 1;
 
 			const contents_within_polygon = copy_contents_within_polygon(
-				window.globAppstate.main_canvas,
+				PaintJSState.main_canvas,
 				this.points,
 				this.x_min,
 				this.y_min,
@@ -299,7 +299,7 @@ const tools = [
 				this.y_max,
 			);
 
-			if (window.globAppstate.selection) {
+			if (PaintJSState.selection) {
 				// for silly multitools feature
 				show_error_message(
 					"This isn't supposed to happen: Free-Form Select after Select in the tool chain?",
@@ -314,14 +314,14 @@ const tools = [
 					soft: true,
 				},
 				() => {
-					window.globAppstate.selection = new OnCanvasSelection(
+					PaintJSState.selection = new OnCanvasSelection(
 						this.x_min,
 						this.y_min,
 						this.x_max - this.x_min,
 						this.y_max - this.y_min,
 						contents_within_polygon,
 					);
-					window.globAppstate.selection.cut_out_background();
+					PaintJSState.selection.cut_out_background();
 				},
 			);
 		},
@@ -341,7 +341,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
+			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
 			if (!this.preview_canvas) {
@@ -365,16 +365,16 @@ const tools = [
 		cursor: ["precise", [16, 16], "crosshair"],
 		selectBox(rect_x, rect_y, rect_width, rect_height) {
 			if (rect_width > 1 && rect_height > 1) {
-				var free_form_selection = window.globAppstate.selection;
-				if (window.globAppstate.selection) {
+				var free_form_selection = PaintJSState.selection;
+				if (PaintJSState.selection) {
 					// for silly multitools feature
 					meld_selection_into_canvas();
 				}
-				if (window.globAppstate.ctrl) {
+				if (PaintJSState.ctrl) {
 					undoable({ name: "Crop" }, () => {
 						var cropped_canvas = make_canvas(rect_width, rect_height);
-						cropped_canvas.ctx.drawImage(window.globAppstate.main_canvas, -rect_x, -rect_y);
-						window.globAppstate.main_ctx.copy(cropped_canvas);
+						cropped_canvas.ctx.drawImage(PaintJSState.main_canvas, -rect_x, -rect_y);
+						PaintJSState.main_ctx.copy(cropped_canvas);
 						window.globApp.canvas_handles.show();
 						window.globApp.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
@@ -396,7 +396,7 @@ const tools = [
 					var contents_canvas = make_canvas(x_max - x_min, y_max - y_min);
 					var rect_canvas = make_canvas(x_max - x_min, y_max - y_min);
 					rect_canvas.ctx.drawImage(
-						window.globAppstate.main_canvas,
+						PaintJSState.main_canvas,
 						// source:
 						rect_x,
 						rect_y,
@@ -427,14 +427,14 @@ const tools = [
 							soft: true,
 						},
 						() => {
-							window.globAppstate.selection = new OnCanvasSelection(
+							PaintJSState.selection = new OnCanvasSelection(
 								x_min,
 								y_min,
 								x_max - x_min,
 								y_max - y_min,
 								contents_canvas,
 							);
-								window.globAppstate.cut_out_background();
+								PaintJSState.cut_out_background();
 						},
 					);
 				} else {
@@ -445,7 +445,7 @@ const tools = [
 							soft: true,
 						},
 						() => {
-							window.globAppstate.selection = new OnCanvasSelection(
+							PaintJSState.selection = new OnCanvasSelection(
 								rect_x,
 								rect_y,
 								rect_width,
@@ -471,10 +471,10 @@ const tools = [
 		mask_canvas: null,
 
 		get_rect(x, y) {
-			const rect_x = Math.ceil(x - window.globAppstate.eraser_size / 2);
-			const rect_y = Math.ceil(y - window.globAppstate.eraser_size / 2);
-			const rect_w = window.globAppstate.eraser_size;
-			const rect_h = window.globAppstate.eraser_size;
+			const rect_x = Math.ceil(x - PaintJSState.eraser_size / 2);
+			const rect_y = Math.ceil(y - PaintJSState.eraser_size / 2);
+			const rect_w = PaintJSState.eraser_size;
+			const rect_h = PaintJSState.eraser_size;
 			return { rect_x, rect_y, rect_w, rect_h };
 		},
 
@@ -487,7 +487,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
+			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
@@ -499,7 +499,7 @@ const tools = [
 				this.render_from_mask(ctx, true);
 			}
 
-			ctx.fillStyle = window.globAppstate.selected_colors.background;
+			ctx.fillStyle = PaintJSState.selected_colors.background;
 			ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
 		},
 		drawPreviewAboveGrid(
@@ -511,7 +511,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
+			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
 
@@ -540,7 +540,7 @@ const tools = [
 			}
 		},
 		pointerdown() {
-			this.mask_canvas = window.globAppstate.mask_layer.canvas;
+			this.mask_canvas = PaintJSState.mask_layer.canvas;
 			this.laterCanvas = new OffscreenCanvas(this.mask_canvas.width, this.mask_canvas.height);
 			this.laterCtx = this.laterCanvas.getContext('2d')
 		},
@@ -551,14 +551,14 @@ const tools = [
 			ctx.restore();
 
 			/** @type {string | CanvasPattern | CanvasGradient} */
-			let color = window.globAppstate.selected_colors.background;
+			let color = PaintJSState.selected_colors.background;
 
 			const translucent = get_rgba_from_color(color)[3] < 1;
 
 			if (translucent) {
 				color = previewing
 					? "rgba(255, 0, 0, 0.25)"
-					: window.globAppstate.selected_colors.background;
+					: PaintJSState.selected_colors.background;
 			}
 
 			//const mask_fill_canvas = make_canvas(this.mask_canvas);
@@ -581,21 +581,21 @@ const tools = [
 				() => {
 				
 					// 메인 캔버스에 그 만든캔버스를 사용하여 투명도 제거
-					window.globAppstate.main_ctx.globalCompositeOperation = "destination-out";
-					window.globAppstate.main_ctx.drawImage(this.laterCanvas, 0, 0);
+					PaintJSState.main_ctx.globalCompositeOperation = "destination-out";
+					PaintJSState.main_ctx.drawImage(this.laterCanvas, 0, 0);
 					
 
 					// 지워진 이후
-					let color = window.globAppstate.selected_colors.background;
+					let color = PaintJSState.selected_colors.background;
 
 					const translucent = get_rgba_from_color(color)[3] < 1;
 
-					window.globAppstate.main_ctx.globalCompositeOperation = "source-over";
+					PaintJSState.main_ctx.globalCompositeOperation = "source-over";
 					
 					if (translucent) {
 						// 투명지우개면 안 칠해도 됌	
 					}else{
-						window.globAppstate.main_ctx.drawImage(this.mask_canvas, 0, 0);
+						PaintJSState.main_ctx.drawImage(this.mask_canvas, 0, 0);
 					}
 					
 					this.mask_canvas.width=1;
@@ -610,13 +610,13 @@ const tools = [
 		},
 		paint(ctx, _x, _y) {
 
-			const eraser_size=window.globAppstate.eraser_size / 2;
+			const eraser_size=PaintJSState.eraser_size / 2;
 	
 			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
-			const startX = Math.min(window.globAppstate.pointer_previous.x, window.globAppstate.pointer.x);
-			const startY = Math.min(window.globAppstate.pointer_previous.y, window.globAppstate.pointer.y);
-			const endX = Math.max(window.globAppstate.pointer_previous.x, window.globAppstate.pointer.x);
-			const endY = Math.max(window.globAppstate.pointer_previous.y, window.globAppstate.pointer.y);
+			const startX = Math.min(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
+			const startY = Math.min(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
+			const endX = Math.max(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
+			const endY = Math.max(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
 			const width = endX - startX + eraser_size * 2;
 			const height = endY - startY + eraser_size * 2;
 
@@ -628,10 +628,10 @@ const tools = [
 			tempCtx.fillStyle = 'black';
 			tempCtx.globalCompositeOperation = 'source-over';
 			bresenham_line(
-				window.globAppstate.pointer_previous.x - startX,
-				window.globAppstate.pointer_previous.y - startY,
-				window.globAppstate.pointer.x - startX,
-				window.globAppstate.pointer.y - startY,
+				PaintJSState.pointer_previous.x - startX,
+				PaintJSState.pointer_previous.y - startY,
+				PaintJSState.pointer.x - startX,
+				PaintJSState.pointer.y - startY,
 				(x, y) => {
 					this.eraser_paint_iteration(ctx, x+eraser_size, y+eraser_size, tempCtx, startX-eraser_size, startY-eraser_size);
 				},
@@ -648,7 +648,7 @@ const tools = [
 			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
 			// 투명색이면 붉은색으로 바꾸기
 			// let color='black'
-			let color = window.globAppstate.selected_colors.background;
+			let color = PaintJSState.selected_colors.background;
 			const translucent = get_rgba_from_color(color)[3] < 1;
 
 			if (translucent) {
@@ -670,7 +670,7 @@ const tools = [
 		
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
 
-			this.color_eraser_mode = window.globAppstate.button !== 0;
+			this.color_eraser_mode = PaintJSState.button !== 0;
 
 			if (!this.color_eraser_mode) {
 				// Eraser
@@ -681,7 +681,7 @@ const tools = [
 				// Right click with the eraser to selectively replace
 				// the selected foreground color with the selected background color
 
-				const fg_rgba = get_rgba_from_color(window.globAppstate.selected_colors.foreground);
+				const fg_rgba = get_rgba_from_color(PaintJSState.selected_colors.foreground);
 
 				const test_image_data = ctx.getImageData(
 					rect_x+startX,
@@ -727,7 +727,7 @@ const tools = [
 		description: "Fills an area with the selected drawing color.",
 		cursor: ["fill-bucket", [8, 22], "crosshair"],
 		pointerdown(ctx, x, y) {
-			if (window.globAppstate.shift) {
+			if (PaintJSState.shift) {
 				undoable(
 					{
 						name: "Replace Color",
@@ -735,7 +735,7 @@ const tools = [
 					},
 					() => {
 						// Perform global color replacement
-						draw_noncontiguous_fill(ctx, x, y, window.globAppstate.fill_color);
+						draw_noncontiguous_fill(ctx, x, y, PaintJSState.fill_color);
 					},
 				);
 			} else {
@@ -746,7 +746,7 @@ const tools = [
 					},
 					() => {
 						// Perform a normal fill operation
-						draw_fill(ctx, x, y, window.globAppstate.fill_color);
+						draw_fill(ctx, x, y, PaintJSState.fill_color);
 					},
 				);
 			}
@@ -775,7 +775,7 @@ const tools = [
 			});
 		},
 		paint(ctx, x, y) {
-			if (x >= 0 && y >= 0 && x < window.globAppstate.main_canvas.width && y < window.globAppstate.main_canvas.height) {
+			if (x >= 0 && y >= 0 && x < PaintJSState.main_canvas.width && y < PaintJSState.main_canvas.height) {
 				const id = ctx.getImageData(~~x, ~~y, 1, 1);
 				const [r, g, b, a] = id.data;
 				this.current_color = `rgba(${r},${g},${b},${a / 255})`;
@@ -785,7 +785,7 @@ const tools = [
 			this.display_current_color();
 		},
 		pointerup() {
-			window.globAppstate.selected_colors[window.globAppstate.pick_color_slot] = this.current_color;
+			PaintJSState.selected_colors[PaintJSState.pick_color_slot] = this.current_color;
 			$(window).trigger("option-changed");
 		},
 	},
@@ -826,10 +826,10 @@ const tools = [
 			}
 
 			if (button == 2) {
-				return nextout[getClosestZoom(window.globAppstate.magnification)];
+				return nextout[getClosestZoom(PaintJSState.magnification)];
 			}
 
-			return nextZoom[getClosestZoom(window.globAppstate.magnification)];
+			return nextZoom[getClosestZoom(PaintJSState.magnification)];
 		},
 		drawPreviewAboveGrid(
 			ctx,
@@ -840,20 +840,20 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
+			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
-			if (window.globAppstate.pointer_active) {
+			if (PaintJSState.pointer_active) {
 				return;
 			}
 			const prospective_magnification = this.getProspectiveMagnification();
-			console.log(prospective_magnification,window.globAppstate.magnification)
+			console.log(prospective_magnification,PaintJSState.magnification)
 			//console.log("scale:", scale);
 			// hacky place to put this but whatever
 			// use specific zoom-in/zoom-out as fallback,
 			// even though the custom cursor image is less descriptive
 			// because there's no generic "zoom" css cursor
-			if (prospective_magnification < window.globAppstate.magnification) {
+			if (prospective_magnification < PaintJSState.magnification) {
 				window.globApp.$canvas.css({
 					cursor: make_css_cursor("magnifier", [16, 16], "zoom-out"),
 				});
@@ -863,7 +863,7 @@ const tools = [
 				});
 			}
 
-			if (prospective_magnification < window.globAppstate.magnification) {
+			if (prospective_magnification < PaintJSState.magnification) {
 				return;
 			} // hide if would be zooming out
 
@@ -877,8 +877,8 @@ const tools = [
 			// try to move rect into bounds without squishing
 			rect_x1 = Math.max(0, rect_x1);
 			rect_y1 = Math.max(0, rect_y1);
-			rect_x1 = Math.min(window.globAppstate.main_canvas.width - w, rect_x1);
-			rect_y1 = Math.min(window.globAppstate.main_canvas.height - h, rect_y1);
+			rect_x1 = Math.min(PaintJSState.main_canvas.width - w, rect_x1);
+			rect_y1 = Math.min(PaintJSState.main_canvas.height - h, rect_y1);
 
 			let rect_x2 = rect_x1 + w;
 			let rect_y2 = rect_y1 + h;
@@ -886,8 +886,8 @@ const tools = [
 			// clamp rect to bounds (with squishing)
 			rect_x1 = Math.max(0, rect_x1);
 			rect_y1 = Math.max(0, rect_y1);
-			rect_x2 = Math.min(window.globAppstate.main_canvas.width, rect_x2);
-			rect_y2 = Math.min(window.globAppstate.main_canvas.height, rect_y2);
+			rect_x2 = Math.min(PaintJSState.main_canvas.width, rect_x2);
+			rect_y2 = Math.min(PaintJSState.main_canvas.height, rect_y2);
 
 			const rect_w = rect_x2 - rect_x1;
 			const rect_h = rect_y2 - rect_y1;
@@ -895,7 +895,7 @@ const tools = [
 			const rect_y = rect_y1;
 
 			
-			const id_src = window.globAppstate.main_canvas.ctx.getImageData(
+			const id_src = PaintJSState.main_canvas.ctx.getImageData(
 				rect_x,
 				rect_y,
 				rect_w + 1,
@@ -949,9 +949,9 @@ const tools = [
 			// ctx.strokeRect(rect_x1, rect_y1, rect_w, rect_h);
 		},
 		pointerdown(_ctx, x, y) {
-			const prev_magnification = window.globAppstate.magnification;
+			const prev_magnification = PaintJSState.magnification;
 			const prospective_magnification =
-				this.getProspectiveMagnification(window.globAppstate.button);
+				this.getProspectiveMagnification(PaintJSState.button);
 
 			//console.log("예정 배율:", prospective_magnification);
 			
@@ -959,14 +959,14 @@ const tools = [
 
 			//console.log("이전배율:", prev_magnification);
 			
-			if (window.globAppstate.magnification > prev_magnification) {
+			if (PaintJSState.magnification > prev_magnification) {
 			
 				// (new) viewport size in document coords
-				const w = window.globApp.$canvas_area.width() / window.globAppstate.magnification;
-				const h = window.globApp.$canvas_area.height() / window.globAppstate.magnification;
+				const w = window.globApp.$canvas_area.width() / PaintJSState.magnification;
+				const h = window.globApp.$canvas_area.height() / PaintJSState.magnification;
 				
 				window.globApp.$canvas_area.scrollLeft(
-					((x - w / 2) * window.globAppstate.magnification),
+					((x - w / 2) * PaintJSState.magnification),
 				);
 				// Nevermind, canvas, isn't aligned to the right in RTL layout!
 				// if (get_direction() === "rtl") {
@@ -976,7 +976,7 @@ const tools = [
 				// 	window.globApp.$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
 				// }
 				window.globApp.$canvas_area.scrollTop(
-					((y - h / 2) * window.globAppstate.magnification),
+					((y - h / 2) * PaintJSState.magnification),
 				);
 
 				//console.log("스크롤 이동",((x - w / 2) * magnification),((y - h / 2) * magnification));
@@ -993,7 +993,7 @@ const tools = [
 		cursor: ["pencil", [13, 23], "crosshair"],
 		stroke_only: true,
 		get_brush() {
-			return { size: window.globAppstate.pencil_size, shape: "circle" };
+			return { size: PaintJSState.pencil_size, shape: "circle" };
 		},
 	},
 	{
@@ -1007,7 +1007,7 @@ const tools = [
 		cursor: ["precise-dotted", [16, 16], "crosshair"],
 		dynamic_preview_cursor: true,
 		get_brush() {
-			return { size: window.globAppstate.brush_size, shape: window.globAppstate.brush_shape };
+			return { size: PaintJSState.brush_size, shape: PaintJSState.brush_shape };
 		},
 	},
 	{
@@ -1019,7 +1019,7 @@ const tools = [
 		cursor: ["airbrush", [7, 22], "crosshair"],
 		paint_on_time_interval: 5,
 		paint_mask(ctx, x, y) {
-			const r = window.globAppstate.airbrush_size / 2;
+			const r = PaintJSState.airbrush_size / 2;
 			for (let i = 0; i < 6 + r / 5; i++) {
 				const rx = (Math.random() * 2 - 1) * r;
 				const ry = (Math.random() * 2 - 1) * r;
@@ -1049,8 +1049,8 @@ const tools = [
 		cursor: ["precise", [16, 16], "crosshair"],
 		stroke_only: true,
 		shape(ctx, x, y, w, h) {
-			update_brush_for_drawing_lines(window.globAppstate.stroke_size);
-			draw_line(ctx, x, y, x + w, y + h, window.globAppstate.stroke_size);
+			update_brush_for_drawing_lines(PaintJSState.stroke_size);
+			draw_line(ctx, x, y, x + w, y + h, PaintJSState.stroke_size);
 		},
 	},
 	{
@@ -1101,8 +1101,8 @@ const tools = [
 		pointerdown(_ctx, x, y) {
 			if (this.points.length < 1) {
 				this.preview_canvas = make_canvas(
-					window.globAppstate.main_canvas.width,
-					window.globAppstate.main_canvas.height,
+					PaintJSState.main_canvas.width,
+					PaintJSState.main_canvas.height,
 				);
 				this.points.push({ x, y });
 				if (!$("body").hasClass("eye-gaze-mode")) {
@@ -1118,7 +1118,7 @@ const tools = [
 				return;
 			}
 
-			update_brush_for_drawing_lines(window.globAppstate.stroke_size);
+			update_brush_for_drawing_lines(PaintJSState.stroke_size);
 
 			const i = this.points.length - 1;
 			this.points[i].x = x;
@@ -1130,7 +1130,7 @@ const tools = [
 				this.preview_canvas.width,
 				this.preview_canvas.height,
 			);
-			this.preview_canvas.ctx.strokeStyle = window.globAppstate.stroke_color;
+			this.preview_canvas.ctx.strokeStyle = PaintJSState.stroke_color;
 
 			// Draw curves on preview canvas
 			if (this.points.length === 4) {
@@ -1144,7 +1144,7 @@ const tools = [
 					this.points[3].y,
 					this.points[1].x,
 					this.points[1].y,
-					window.globAppstate.stroke_size,
+					PaintJSState.stroke_size,
 				);
 			} else if (this.points.length === 3) {
 				draw_quadratic_curve(
@@ -1155,7 +1155,7 @@ const tools = [
 					this.points[2].y,
 					this.points[1].x,
 					this.points[1].y,
-					window.globAppstate.stroke_size,
+					PaintJSState.stroke_size,
 				);
 			} else if (this.points.length === 2) {
 				draw_line(
@@ -1164,7 +1164,7 @@ const tools = [
 					this.points[0].y,
 					this.points[1].x,
 					this.points[1].y,
-					window.globAppstate.stroke_size,
+					PaintJSState.stroke_size,
 				);
 			} else {
 				draw_line(
@@ -1173,7 +1173,7 @@ const tools = [
 					this.points[0].y,
 					this.points[0].x,
 					this.points[0].y,
-					window.globAppstate.stroke_size,
+					PaintJSState.stroke_size,
 				);
 			}
 
@@ -1194,7 +1194,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			// if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) { return; }
+			// if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) { return; }
 			if (!this.preview_canvas) {
 				return;
 			}
@@ -1274,11 +1274,11 @@ const tools = [
 				h = -h;
 			}
 
-			if (window.globAppstate.fill) {
+			if (PaintJSState.fill) {
 				ctx.fillRect(x, y, w, h);
 			}
-			if (window.globAppstate.stroke) {
-				if (w < window.globAppstate.stroke_size * 2 || h < window.globAppstate.stroke_size * 2) {
+			if (PaintJSState.stroke) {
+				if (w < PaintJSState.stroke_size * 2 || h < PaintJSState.stroke_size * 2) {
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
 					ctx.fillRect(x, y, w, h);
@@ -1286,10 +1286,10 @@ const tools = [
 				} else {
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
-					ctx.fillRect(x, y, window.globAppstate.stroke_size, h);
-					ctx.fillRect(x + w - window.globAppstate.stroke_size, y, window.globAppstate.stroke_size, h);
-					ctx.fillRect(x, y, w, window.globAppstate.stroke_size);
-					ctx.fillRect(x, y + h - window.globAppstate.stroke_size, w, window.globAppstate.stroke_size);
+					ctx.fillRect(x, y, PaintJSState.stroke_size, h);
+					ctx.fillRect(x + w - PaintJSState.stroke_size, y, PaintJSState.stroke_size, h);
+					ctx.fillRect(x, y, w, PaintJSState.stroke_size);
+					ctx.fillRect(x, y + h - PaintJSState.stroke_size, w, PaintJSState.stroke_size);
 					ctx.restore();
 				}
 			}
@@ -1364,12 +1364,12 @@ const tools = [
 			const d = Math.sqrt(dx * dx + dy * dy);
 			if ($("body").hasClass("eye-gaze-mode")) {
 				if (this.points.length >= 3) {
-					if (d < window.globAppstate.stroke_size * 10 + 20) {
+					if (d < PaintJSState.stroke_size * 10 + 20) {
 						this.complete(ctx);
 					}
 				}
 			} else {
-				if (d < window.globAppstate.stroke_size * 5.1010101) {
+				if (d < PaintJSState.stroke_size * 5.1010101) {
 					// arbitrary number (@TODO: find correct value (or formula))
 					this.complete(ctx);
 				}
@@ -1382,8 +1382,8 @@ const tools = [
 		pointerdown(ctx, x, y) {
 			if (this.points.length < 1) {
 				this.preview_canvas = make_canvas(
-					window.globAppstate.main_canvas.width,
-					window.globAppstate.main_canvas.height,
+					PaintJSState.main_canvas.width,
+					PaintJSState.main_canvas.height,
 				);
 
 				// Add the first point of the polygon
@@ -1426,16 +1426,16 @@ const tools = [
 				this.preview_canvas.width,
 				this.preview_canvas.height,
 			);
-			if (window.globAppstate.fill && !window.globAppstate.stroke) {
-				this.preview_canvas.ctx.drawImage(window.globAppstate.main_canvas, 0, 0);
+			if (PaintJSState.fill && !PaintJSState.stroke) {
+				this.preview_canvas.ctx.drawImage(PaintJSState.main_canvas, 0, 0);
 				this.preview_canvas.ctx.strokeStyle = "white";
 				this.preview_canvas.ctx.globalCompositeOperation = "difference";
-				var orig_stroke_size = window.globAppstate.stroke_size;
-				window.globAppstate.stroke_size = 2;
+				var orig_stroke_size = PaintJSState.stroke_size;
+				PaintJSState.stroke_size = 2;
 				draw_line_strip(this.preview_canvas.ctx, this.points);
-				window.globAppstate.stroke_size = orig_stroke_size;
+				PaintJSState.stroke_size = orig_stroke_size;
 			} else if (this.points.length > 1) {
-				this.preview_canvas.ctx.strokeStyle = window.globAppstate.stroke_color;
+				this.preview_canvas.ctx.strokeStyle = PaintJSState.stroke_color;
 				draw_line_strip(this.preview_canvas.ctx, this.points);
 			} else {
 				draw_line(
@@ -1444,7 +1444,7 @@ const tools = [
 					this.points[0].y,
 					this.points[0].x,
 					this.points[0].y,
-					window.globAppstate.stroke_size,
+					PaintJSState.stroke_size,
 				);
 			}
 
@@ -1459,7 +1459,7 @@ const tools = [
 			translate_x,
 			translate_y,
 		) {
-			// if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) { return; }
+			// if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) { return; }
 			if (!this.preview_canvas) {
 				return;
 			}
@@ -1477,24 +1477,24 @@ const tools = [
 						icon: get_icon_for_tool(this),
 					},
 					() => {
-						ctx.fillStyle = window.globAppstate.fill_color;
-						ctx.strokeStyle = window.globAppstate.stroke_color;
+						ctx.fillStyle = PaintJSState.fill_color;
+						ctx.strokeStyle = PaintJSState.stroke_color;
 
-						var orig_stroke_size = window.globAppstate.stroke_size;
-						if (window.globAppstate.fill && !window.globAppstate.stroke) {
-							window.globAppstate.stroke_size = 2;
-							ctx.strokeStyle = window.globAppstate.fill_color;
+						var orig_stroke_size = PaintJSState.stroke_size;
+						if (PaintJSState.fill && !PaintJSState.stroke) {
+							PaintJSState.stroke_size = 2;
+							ctx.strokeStyle = PaintJSState.fill_color;
 						}
 
 						draw_polygon(
 							ctx,
 							this.points,
-							window.globAppstate.stroke ||
-								(window.globAppstate.fill && !window.globAppstate.stroke),
-							window.globAppstate.fill,
+							PaintJSState.stroke ||
+								(PaintJSState.fill && !PaintJSState.stroke),
+							PaintJSState.fill,
 						);
 
-						window.globAppstate.stroke_size = orig_stroke_size;
+						PaintJSState.stroke_size = orig_stroke_size;
 					},
 				);
 			}
@@ -1587,18 +1587,18 @@ const tools = [
 				h = -h;
 			}
 
-			if (w < window.globAppstate.stroke_size || h < window.globAppstate.stroke_size) {
+			if (w < PaintJSState.stroke_size || h < PaintJSState.stroke_size) {
 				ctx.fillStyle = ctx.strokeStyle;
 				draw_ellipse(ctx, x, y, w, h, false, true);
 			} else {
 				draw_ellipse(
 					ctx,
-					x + ~~(window.globAppstate.stroke_size / 2),
-					y + ~~(window.globAppstate.stroke_size / 2),
-					w - window.globAppstate.stroke_size,
-					h - window.globAppstate.stroke_size,
-					window.globAppstate.stroke,
-					window.globAppstate.fill,
+					x + ~~(PaintJSState.stroke_size / 2),
+					y + ~~(PaintJSState.stroke_size / 2),
+					w - PaintJSState.stroke_size,
+					h - PaintJSState.stroke_size,
+					PaintJSState.stroke,
+					PaintJSState.fill,
 				);
 			}
 		},
@@ -1706,7 +1706,7 @@ const tools = [
 				h = -h;
 			}
 
-			if (w < window.globAppstate.stroke_size || h < window.globAppstate.stroke_size) {
+			if (w < PaintJSState.stroke_size || h < PaintJSState.stroke_size) {
 				ctx.fillStyle = ctx.strokeStyle;
 				const radius = Math.min(8, w / 2, h / 2);
 				// const radius_x = Math.min(8, w/2);
@@ -1726,22 +1726,22 @@ const tools = [
 			} else {
 				const radius = Math.min(
 					8,
-					(w - window.globAppstate.stroke_size) / 2,
-					(h - window.globAppstate.stroke_size) / 2,
+					(w - PaintJSState.stroke_size) / 2,
+					(h - PaintJSState.stroke_size) / 2,
 				);
-				// const radius_x = Math.min(8, (w - window.globAppstate.stroke_size)/2);
-				// const radius_y = Math.min(8, (h - window.globAppstate.stroke_size)/2);
+				// const radius_x = Math.min(8, (w - PaintJSState.stroke_size)/2);
+				// const radius_y = Math.min(8, (h - PaintJSState.stroke_size)/2);
 				draw_rounded_rectangle(
 					ctx,
-					x + ~~(window.globAppstate.stroke_size / 2),
-					y + ~~(window.globAppstate.stroke_size / 2),
-					w - window.globAppstate.stroke_size,
-					h - window.globAppstate.stroke_size,
+					x + ~~(PaintJSState.stroke_size / 2),
+					y + ~~(PaintJSState.stroke_size / 2),
+					w - PaintJSState.stroke_size,
+					h - PaintJSState.stroke_size,
 					radius,
 					radius,
 					// radius_x, radius_y,
-					window.globAppstate.stroke,
-					window.globAppstate.fill,
+					PaintJSState.stroke,
+					PaintJSState.fill,
 				);
 			}
 		},
@@ -1753,7 +1753,7 @@ const tools = [
 
 tools.forEach((tool) => {
 	if (tool.selectBox) {
-		// TODO: is drag_start_x/y redundant with window.globAppstate.pointer_start.x/y?
+		// TODO: is drag_start_x/y redundant with PaintJSState.pointer_start.x/y?
 		let drag_start_x = 0;
 		let drag_start_y = 0;
 		let pointer_has_moved = false;
@@ -1763,25 +1763,25 @@ tools.forEach((tool) => {
 		let rect_height = 0;
 
 		tool.pointerdown = () => {
-			drag_start_x = window.globAppstate.pointer.x;
-			drag_start_y = window.globAppstate.pointer.y;
+			drag_start_x = PaintJSState.pointer.x;
+			drag_start_y = PaintJSState.pointer.y;
 			pointer_has_moved = false;
 			$(window).one("pointermove", () => {
 				pointer_has_moved = true;
 			});
-			if (window.globAppstate.selection) {
+			if (PaintJSState.selection) {
 				meld_selection_into_canvas();
 			}
 			window.globApp.canvas_handles.hide();
 		};
 		tool.paint = () => {
-			rect_x = ~~Math.max(0, Math.min(drag_start_x, window.globAppstate.pointer.x));
-			rect_y = ~~Math.max(0, Math.min(drag_start_y, window.globAppstate.pointer.y));
+			rect_x = ~~Math.max(0, Math.min(drag_start_x, PaintJSState.pointer.x));
+			rect_y = ~~Math.max(0, Math.min(drag_start_y, PaintJSState.pointer.y));
 			rect_width =
-				~~Math.min(window.globAppstate.main_canvas.width, Math.max(drag_start_x, window.globAppstate.pointer.x) + 1) -
+				~~Math.min(PaintJSState.main_canvas.width, Math.max(drag_start_x, PaintJSState.pointer.x) + 1) -
 				rect_x;
 			rect_height =
-				~~Math.min(window.globAppstate.main_canvas.height, Math.max(drag_start_y, window.globAppstate.pointer.y + 1)) -
+				~~Math.min(PaintJSState.main_canvas.height, Math.max(drag_start_y, PaintJSState.pointer.y + 1)) -
 				rect_y;
 			//$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 		};
@@ -1802,7 +1802,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!window.globAppstate.pointer_active) {
+			if (!PaintJSState.pointer_active) {
 				return;
 			}
 			if (!pointer_has_moved) {
@@ -1813,7 +1813,7 @@ tools.forEach((tool) => {
 			ctx.translate(translate_x, translate_y);
 
 			// make the document canvas part of the helper canvas so that inversion can apply to it
-			ctx.drawImage(window.globAppstate.main_canvas, 0, 0);
+			ctx.drawImage(PaintJSState.main_canvas, 0, 0);
 		};
 		tool.drawPreviewAboveGrid = (
 			ctx,
@@ -1824,7 +1824,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!window.globAppstate.pointer_active) {
+			if (!PaintJSState.pointer_active) {
 				return;
 			}
 			if (!pointer_has_moved) {
@@ -1846,7 +1846,7 @@ tools.forEach((tool) => {
 	if (tool.shape) {
 		tool.shape_canvas = null;
 		tool.pointerdown = () => {
-			tool.shape_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+			tool.shape_canvas = make_canvas(PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
 		};
 		tool.paint = () => {
 			tool.shape_canvas.ctx.clearRect(
@@ -1855,18 +1855,18 @@ tools.forEach((tool) => {
 				tool.shape_canvas.width,
 				tool.shape_canvas.height,
 			);
-			tool.shape_canvas.ctx.fillStyle = window.globAppstate.main_ctx.fillStyle;
-			tool.shape_canvas.ctx.strokeStyle = window.globAppstate.main_ctx.strokeStyle;
-			tool.shape_canvas.ctx.lineWidth = window.globAppstate.main_ctx.lineWidth;
+			tool.shape_canvas.ctx.fillStyle = PaintJSState.main_ctx.fillStyle;
+			tool.shape_canvas.ctx.strokeStyle = PaintJSState.main_ctx.strokeStyle;
+			tool.shape_canvas.ctx.lineWidth = PaintJSState.main_ctx.lineWidth;
 			tool.shape(
 				tool.shape_canvas.ctx,
-				window.globAppstate.pointer_start.x,
-				window.globAppstate.pointer_start.y,
-				window.globAppstate.pointer.x - window.globAppstate.pointer_start.x,
-				window.globAppstate.pointer.y - window.globAppstate.pointer_start.y,
+				PaintJSState.pointer_start.x,
+				PaintJSState.pointer_start.y,
+				PaintJSState.pointer.x - PaintJSState.pointer_start.x,
+				PaintJSState.pointer.y - PaintJSState.pointer_start.y,
 			);
-			const signed_width = window.globAppstate.pointer.x - window.globAppstate.pointer_start.x || 1;
-			const signed_height = window.globAppstate.pointer.y - window.globAppstate.pointer_start.y || 1;
+			const signed_width = PaintJSState.pointer.x - PaintJSState.pointer_start.x || 1;
+			const signed_height = PaintJSState.pointer.y - PaintJSState.pointer_start.y || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
 		};
 		tool.pointerup = () => {
@@ -1880,7 +1880,7 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					window.globAppstate.main_ctx.drawImage(tool.shape_canvas, 0, 0);
+					PaintJSState.main_ctx.drawImage(tool.shape_canvas, 0, 0);
 					tool.shape_canvas = null;
 				},
 			);
@@ -1894,7 +1894,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!window.globAppstate.pointer_active) {
+			if (!PaintJSState.pointer_active) {
 				return;
 			}
 			if (!tool.shape_canvas) {
@@ -1913,13 +1913,13 @@ tools.forEach((tool) => {
 
 		tool.pointerdown = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = make_canvas(window.globAppstate.main_canvas.width, window.globAppstate.main_canvas.height);
+				tool.mask_canvas = make_canvas(PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
 			}
-			if (tool.mask_canvas.width !== window.globAppstate.main_canvas.width) {
-				tool.mask_canvas.width = window.globAppstate.main_canvas.width;
+			if (tool.mask_canvas.width !== PaintJSState.main_canvas.width) {
+				tool.mask_canvas.width = PaintJSState.main_canvas.width;
 			}
-			if (tool.mask_canvas.height !== window.globAppstate.main_canvas.height) {
-				tool.mask_canvas.height = window.globAppstate.main_canvas.height;
+			if (tool.mask_canvas.height !== PaintJSState.main_canvas.height) {
+				tool.mask_canvas.height = PaintJSState.main_canvas.height;
 			}
 			tool.mask_canvas.ctx.disable_image_smoothing();
 		};
@@ -1933,7 +1933,7 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					tool.render_from_mask(window.globAppstate.main_ctx);
+					tool.render_from_mask(PaintJSState.main_ctx);
 
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
@@ -1957,7 +1957,7 @@ tools.forEach((tool) => {
 			ctx.restore();
 
 			/** @type {string | CanvasGradient | CanvasPattern} */
-			let color = window.globAppstate.stroke_color;
+			let color = PaintJSState.stroke_color;
 			// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
 			// or other values
 			// even with privacy.resistFingerprinting set to false
@@ -1985,7 +1985,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
+			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
 
@@ -2010,13 +2010,13 @@ tools.forEach((tool) => {
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = window.globAppstate.mask_layer.canvas;
+				tool.mask_canvas = PaintJSState.mask_layer.canvas;
 			}
-			if (tool.mask_canvas.width !== window.globAppstate.main_canvas.width) {
-				tool.mask_canvas.width = window.globAppstate.main_canvas.width;
+			if (tool.mask_canvas.width !== PaintJSState.main_canvas.width) {
+				tool.mask_canvas.width = PaintJSState.main_canvas.width;
 			}
-			if (tool.mask_canvas.height !== window.globAppstate.main_canvas.height) {
-				tool.mask_canvas.height = window.globAppstate.main_canvas.height;
+			if (tool.mask_canvas.height !== PaintJSState.main_canvas.height) {
+				tool.mask_canvas.height = PaintJSState.main_canvas.height;
 			}
 			tool.mask_canvas.ctx.disable_image_smoothing();
 		};
@@ -2030,8 +2030,8 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					window.globAppstate.main_ctx.drawImage(tool.mask_canvas, 0, 0);
-					//tool.render_from_mask(window.globAppstate.main_ctx);
+					PaintJSState.main_ctx.drawImage(tool.mask_canvas, 0, 0);
+					//tool.render_from_mask(PaintJSState.main_ctx);
 
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
@@ -2046,17 +2046,17 @@ tools.forEach((tool) => {
 				brush.shape,
 				brush.size,
 			);
-			tool.mask_canvas.ctx.fillStyle = window.globAppstate.stroke_color;
+			tool.mask_canvas.ctx.fillStyle = PaintJSState.stroke_color;
 
 			const iterate_line =
 				brush.size > 1 ? bresenham_dense_line : bresenham_line;
 			////////////
 
 			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
-			const startX = Math.min(window.globAppstate.pointer_previous.x, window.globAppstate.pointer.x);
-			const startY = Math.min(window.globAppstate.pointer_previous.y, window.globAppstate.pointer.y);
-			const endX = Math.max(window.globAppstate.pointer_previous.x, window.globAppstate.pointer.x);
-			const endY = Math.max(window.globAppstate.pointer_previous.y, window.globAppstate.pointer.y);
+			const startX = Math.min(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
+			const startY = Math.min(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
+			const endX = Math.max(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
+			const endY = Math.max(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
 			const width = endX - startX + brush.size * 2;
 			const height = endY - startY + brush.size * 2;
 
@@ -2068,10 +2068,10 @@ tools.forEach((tool) => {
 			tempCtx.fillStyle = 'white';
 			tempCtx.globalCompositeOperation = 'source-over';
 			iterate_line(
-				window.globAppstate.pointer_previous.x - startX,
-					window.globAppstate.pointer_previous.y - startY,
-					window.globAppstate.pointer.x - startX,
-					window.globAppstate.pointer.y - startY,
+				PaintJSState.pointer_previous.x - startX,
+					PaintJSState.pointer_previous.y - startY,
+					PaintJSState.pointer.x - startX,
+					PaintJSState.pointer.y - startY,
 				(x, y) => {
 					stamp_brush_canvas(
 						tempCtx,
@@ -2085,15 +2085,15 @@ tools.forEach((tool) => {
 			);
 			// stamp_brush_canvas(
 			// 	tempCtx,
-			// 	window.globAppstate.pointer_previous.x-startX+brush.size,
-			// 	window.globAppstate.pointer_previous.y-startY+brush.size,
+			// 	PaintJSState.pointer_previous.x-startX+brush.size,
+			// 	PaintJSState.pointer_previous.y-startY+brush.size,
 			// 	brush.shape,
 			// 	brush.size
 			// );
 			// stamp_brush_canvas(
 			// 	tempCtx,
-			// 	window.globAppstate.pointer.x-startX+brush.size,
-			// 	window.globAppstate.pointer.y-startY+brush.size,
+			// 	PaintJSState.pointer.x-startX+brush.size,
+			// 	PaintJSState.pointer.y-startY+brush.size,
 			// 	brush.shape,
 			// 	brush.size
 			// );
@@ -2105,7 +2105,7 @@ tools.forEach((tool) => {
 
 			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
 			tempCtx.globalCompositeOperation = 'source-in';
-			tempCtx.fillStyle = window.globAppstate.stroke_color;
+			tempCtx.fillStyle = PaintJSState.stroke_color;
 			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
 			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
@@ -2123,8 +2123,8 @@ tools.forEach((tool) => {
 			}
 		};
 		tool.render_from_mask = (ctx, previewing) => {
-			// if(window.globAppstate.pointer.x == window.globAppstate.pointer_float_previous.x
-			// 	&& window.globAppstate.pointer.y == window.globAppstate.pointer_float_previous.y){
+			// if(PaintJSState.pointer.x == PaintJSState.pointer_float_previous.x
+			// 	&& PaintJSState.pointer.y == PaintJSState.pointer_float_previous.y){
 
 			// 	return false;
 			// }
@@ -2137,18 +2137,18 @@ tools.forEach((tool) => {
 				// stamp just onto this temporary canvas so it's temporary
 				stamp_brush_canvas_color(
 					ctx,
-					window.globAppstate.pointer.x,
-					window.globAppstate.pointer.y,
+					PaintJSState.pointer.x,
+					PaintJSState.pointer.y,
 					brush.shape,
 					brush.size,
-					window.globAppstate.stroke_color
+					PaintJSState.stroke_color
 				);
-				//console.log('helper',window.globAppstate.stroke_color)
+				//console.log('helper',PaintJSState.stroke_color)
 			}
 
-			// console.log(, window.globAppstate.pointer.y);
-			// console.log(window.globAppstate.pointer_previous.x, window.globAppstate.pointer_previous.y);
-			//console.log(window.globAppstate.pointer,window.globAppstate.pointer_float_previous)
+			// console.log(, PaintJSState.pointer.y);
+			// console.log(PaintJSState.pointer_previous.x, PaintJSState.pointer_previous.y);
+			//console.log(PaintJSState.pointer,PaintJSState.pointer_float_previous)
 			
 			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			//ctx.drawImage(tool.mask_canvas, 0, 0);
@@ -2165,7 +2165,7 @@ tools.forEach((tool) => {
 			translate_x,
 			translate_y,
 		) => {
-			if (!window.globAppstate.pointer_active && !window.globAppstate.pointer_over_canvas) {
+			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
 

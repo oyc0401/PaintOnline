@@ -1,6 +1,6 @@
 console.log('JS 실행:','OnCanvasSelection.js')
 // @ts-check
-/* global $canvas_area, $status_position, $status_size, main_canvas, window.globAppstate.main_ctx, window.globAppstate.selected_colors, tool_transparent_mode, transparency */
+/* global $canvas_area, $status_position, $status_size, main_canvas, PaintJSState.main_ctx, PaintJSState.selected_colors, tool_transparent_mode, transparency */
 import { Handles } from "./Handles.js";
 import { OnCanvasObject } from "./OnCanvasObject.js";
 import { get_tool_by_id, make_or_update_undoable, undoable, update_helper_layer } from "./functions.js";
@@ -8,7 +8,7 @@ import {  get_icon_for_tool, get_rgba_from_color, make_canvas, make_css_cursor, 
 import { replace_colors_with_swatch } from "./image-manipulation.js";
 import { TOOL_SELECT } from "./tools.js";
 import $ from 'jquery'
-
+import {PaintJSState} from '../state';
 
 
 class OnCanvasSelection extends OnCanvasObject {
@@ -23,16 +23,16 @@ class OnCanvasSelection extends OnCanvasObject {
 		super(x, y, width, height, true);
 
 		this.$el.addClass("selection");
-		let last_tool_transparent_mode = window.globAppstate.tool_transparent_mode;
-		let last_background_color = window.globAppstate.selected_colors.background;
+		let last_tool_transparent_mode = PaintJSState.tool_transparent_mode;
+		let last_background_color = PaintJSState.selected_colors.background;
 		this._on_option_changed = () => {
 			if (!this.source_canvas) {
 				return;
 			}
-			if (last_tool_transparent_mode !== window.globAppstate.tool_transparent_mode ||
-				last_background_color !== window.globAppstate.selected_colors.background) {
-				last_tool_transparent_mode = window.globAppstate.tool_transparent_mode;
-				last_background_color = window.globAppstate.selected_colors.background;
+			if (last_tool_transparent_mode !== PaintJSState.tool_transparent_mode ||
+				last_background_color !== PaintJSState.selected_colors.background) {
+				last_tool_transparent_mode = PaintJSState.tool_transparent_mode;
+				last_background_color = PaintJSState.selected_colors.background;
 				this.update_tool_transparent_mode();
 			}
 		};
@@ -72,7 +72,7 @@ class OnCanvasSelection extends OnCanvasObject {
 				this.canvas = make_canvas(this.source_canvas);
 			} else {
 				this.source_canvas = make_canvas(this.width, this.height);
-				this.source_canvas.ctx.drawImage(window.globAppstate.main_canvas, this.x, this.y, this.width, this.height, 0, 0, this.width, this.height);
+				this.source_canvas.ctx.drawImage(PaintJSState.main_canvas, this.x, this.y, this.width, this.height, 0, 0, this.width, this.height);
 				this.canvas = make_canvas(this.source_canvas);
 				this.cut_out_background();
 			}
@@ -113,8 +113,8 @@ class OnCanvasSelection extends OnCanvasObject {
 					soft: true,
 				}, () => {
 					const m = to_canvas_coords(e);
-					this.x = Math.max(Math.min(m.x - mox, window.globAppstate.main_canvas.width), -this.width);
-					this.y = Math.max(Math.min(m.y - moy, window.globAppstate.main_canvas.height), -this.height);
+					this.x = Math.max(Math.min(m.x - mox, PaintJSState.main_canvas.width), -this.width);
+					this.y = Math.max(Math.min(m.y - moy, PaintJSState.main_canvas.height), -this.height);
 					this.position();
 					if (e.shiftKey) {
 						// Smear selection
@@ -168,7 +168,7 @@ class OnCanvasSelection extends OnCanvasObject {
 	cut_out_background() {
 		const cutout = this.canvas;
 		// doc/this or canvas/cutout, either of those pairs would result in variable names of equal length which is nice :)
-		const canvasImageData = window.globAppstate.main_ctx.getImageData(this.x, this.y, this.width, this.height);
+		const canvasImageData = PaintJSState.main_ctx.getImageData(this.x, this.y, this.width, this.height);
 		const cutoutImageData = cutout.ctx.getImageData(0, 0, this.width, this.height);
 		// cutoutImageData is initialized with the shape to be cut out (whether rectangular or polygonal)
 		// and should end up as the cut out image data for the selection
@@ -180,10 +180,10 @@ class OnCanvasSelection extends OnCanvasObject {
 		// this is mainly in order to support patterns as the background color
 		// NOTE: must come before cutout canvas is modified
 		const colored_cutout = make_canvas(cutout);
-		replace_colors_with_swatch(colored_cutout.ctx, window.globAppstate.selected_colors.background, this.x, this.y);
+		replace_colors_with_swatch(colored_cutout.ctx, PaintJSState.selected_colors.background, this.x, this.y);
 		// const colored_cutout_image_data = colored_cutout.ctx.getImageData(0, 0, this.width, this.height);
 		// }
-		const backgroundRGB=get_rgba_from_color(window.globAppstate.selected_colors.background);
+		const backgroundRGB=get_rgba_from_color(PaintJSState.selected_colors.background);
 		for (let i = 0; i < cutoutImageData.data.length; i += 4) {
 			const in_cutout = cutoutImageData.data[i + 3] > 0;
 			if (in_cutout) {
@@ -191,8 +191,8 @@ class OnCanvasSelection extends OnCanvasObject {
 				cutoutImageData.data[i + 1] = canvasImageData.data[i + 1];
 				cutoutImageData.data[i + 2] = canvasImageData.data[i + 2];
 				cutoutImageData.data[i + 3] = canvasImageData.data[i + 3];
-				if(window.globAppstate.transparency){
-					if(window.globAppstate.tool_transparent_mode ){
+				if(PaintJSState.transparency){
+					if(PaintJSState.tool_transparent_mode ){
 						if(canvasImageData.data[i + 0] == backgroundRGB[0]
 							&& canvasImageData.data[i + 1] == backgroundRGB[1]
 							&& canvasImageData.data[i + 2] == backgroundRGB[2]
@@ -225,7 +225,7 @@ class OnCanvasSelection extends OnCanvasObject {
 				cutoutImageData.data[i + 3] = 0;
 			}
 		}
-		window.globAppstate.main_ctx.putImageData(canvasImageData, this.x, this.y);
+		PaintJSState.main_ctx.putImageData(canvasImageData, this.x, this.y);
 		cutout.ctx.putImageData(cutoutImageData, 0, 0);
 		this.update_tool_transparent_mode();
 		// NOTE: in case you want to use the tool_transparent_mode
@@ -238,8 +238,8 @@ class OnCanvasSelection extends OnCanvasObject {
 		// and there's no indication that you should try the other selection transparency mode,
 		// and even if you do, if you do it after creating a selection, it still won't work,
 		// because you will have already *not cut out* the selection from the canvas
-		//if (!window.globAppstate.transparency || window.globAppstate.tool_transparent_mode) {
-			//window.globAppstate.main_ctx.drawImage(colored_cutout, this.x, this.y);
+		//if (!PaintJSState.transparency || PaintJSState.tool_transparent_mode) {
+			//PaintJSState.main_ctx.drawImage(colored_cutout, this.x, this.y);
 	//	}
 
 		$(window).triggerHandler("session-update"); // autosave
@@ -248,7 +248,7 @@ class OnCanvasSelection extends OnCanvasObject {
 	update_tool_transparent_mode() {
 		const sourceImageData = this.source_canvas.ctx.getImageData(0, 0, this.width, this.height);
 		const cutoutImageData = this.canvas.ctx.createImageData(this.width, this.height);
-		const background_color_rgba = get_rgba_from_color(window.globAppstate.selected_colors.background);
+		const background_color_rgba = get_rgba_from_color(PaintJSState.selected_colors.background);
 		// NOTE: In b&w mode, mspaint treats the transparency color as white,
 		// regardless of the pattern selected, even if the selected background color is pure black.
 		// We allow any kind of image data while in our "b&w mode".
@@ -256,7 +256,7 @@ class OnCanvasSelection extends OnCanvasObject {
 		const match_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
 		for (let i = 0; i < cutoutImageData.data.length; i += 4) {
 			let in_cutout = sourceImageData.data[i + 3] > 1;
-			if (window.globAppstate.tool_transparent_mode) {
+			if (PaintJSState.tool_transparent_mode) {
 				// @FIXME: work with transparent selected background color
 				// (support treating partially transparent background colors as transparency)
 				if (
@@ -327,7 +327,7 @@ class OnCanvasSelection extends OnCanvasObject {
 	}
 	draw() {
 		try {
-			window.globAppstate.main_ctx.drawImage(this.canvas, this.x, this.y);
+			PaintJSState.main_ctx.drawImage(this.canvas, this.x, this.y);
 		} catch (_error) {
 			// ignore
 		}
