@@ -6,7 +6,7 @@
     TOOL_POLYGON,
     TOOL_RECTANGLE,
     TOOL_ROUNDED_RECTANGLE,
-  } from "../../paint/tools";
+  } from "../../paint/src/tools";
 
   import { menuState } from "../../store/menuState.svelte.js";
   import {  changeTool } from "../../store/paintFunction.js";

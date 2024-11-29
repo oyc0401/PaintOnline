@@ -27,11 +27,7 @@ import { localize } from "./localize/localize.js";
 export function initSesstion() {
    console.log("initSesstion");
 
-   // import { localize } from "./app-localization.js";
-
-   const log = (...args) => {
-      window.console?.log(...args);
-   };
+   const log = (...args) => window.console?.log(...args);
 
    let localStorageAvailable = false;
    try {
@@ -219,44 +215,6 @@ export function initSesstion() {
       }
    }
 
-   // The user ID is not persistent
-   // A person can enter a session multiple times,
-   // and is always given a new user ID
-   let user_id;
-   // @TODO: I could make the color persistent, though.
-   // You could still have multiple cursors and they would just be the same color.
-   // There could also be an option to change your color
-
-   // The data in this object is stored in the server when you enter a session
-   // It is (supposed to be) removed when you leave
-   const user = {
-      // Cursor status
-      cursor: {
-         // cursor position in canvas coordinates
-         x: 0,
-         y: 0,
-         // whether the user is elsewhere, such as in another tab
-         away: true,
-      },
-      // Currently selected tool (@TODO)
-      tool: localize("Pencil"),
-      // Color components
-      hue: ~~(Math.random() * 360),
-      saturation: ~~(Math.random() * 50) + 50,
-      lightness: ~~(Math.random() * 40) + 50,
-   };
-
-   // The main cursor color
-   user.color = `hsla(${user.hue}, ${user.saturation}%, ${user.lightness}%, 1)`;
-   // Unused
-   user.color_transparent = `hsla(${user.hue}, ${user.saturation}%, ${user.lightness}%, 0.5)`;
-   // (@TODO) The color (that may be) used in the toolbar indicating to other users it is selected by this user
-   user.color_desaturated = `hsla(${user.hue}, ${~~(user.saturation * 0.4)}%, ${user.lightness}%, 0.8)`;
-
-   // The image used for other people's cursors
-   const cursor_image = new Image();
-   cursor_image.src = "images/cursors/default.png";
-
    // Handle the starting, switching, and ending of sessions from the location.hash
 
    let current_session;
@@ -367,12 +325,6 @@ export function initSesstion() {
    log("Initializing with location hash:", location.hash);
    update_session_from_location_hash();
 
-   // function updateParticipants(participants) {
-   // 	// Do something really cool
-   // 	console.log("Updated participants:", participants);
-   // }
-
-   //export { new_local_session };
-   // Temporary globals until all dependent code is converted to ES Modules
-   window.new_local_session = new_local_session; // used by functions.js
+   window.paintSession={};
+   window.paintSession.new_local_session = new_local_session; // used by functions.js
 }

@@ -1,5 +1,5 @@
 <script>
-  import { TOOL_FREE_FORM_SELECT, TOOL_SELECT } from "../../paint/tools";
+  import { TOOL_FREE_FORM_SELECT, TOOL_SELECT } from "../../paint/src/tools";
 
   import { menuState } from "../../store/menuState.svelte.js";
   import {  changeTool } from "../../store/paintFunction.js";

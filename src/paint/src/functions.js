@@ -762,7 +762,9 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 
 		if (!into_existing_session) {
 			$(window).triggerHandler("session-update"); // autosave old session
-			new_local_session();
+			console.log('세션초기화')
+			window.paintSession.new_local_session();
+			
 		}
 
 		reset_file();

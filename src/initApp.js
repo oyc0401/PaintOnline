@@ -135,6 +135,7 @@ export function initApp() {
   globApp.$status_position = $status_position;
   globApp.$status_size = $status_size;
 
+  console.log(window.globAppstate)
   $canvas.css({
      cursor: make_css_cursor(...window.globAppstate.default_tool.cursor),
    });

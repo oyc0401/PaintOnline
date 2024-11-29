@@ -8,7 +8,10 @@
   import { initState } from "../initState.js";
   import { initApp } from "../initApp.js";
   import { initSesstion } from "../initSesstion";
+  import { PaintJS } from "../paint/main";
   onMount(async () => {
+
+    PaintJS.create();
     
     initState();
 
