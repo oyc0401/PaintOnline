@@ -12,6 +12,9 @@ export class EventHandler {
       console.log('change tool!')
       this.eventManager.emit("changeTool", value); // 이벤트 발생
     }
+
+    // 다수의 이벤트 발생...
+    
     return Reflect.set(target, prop, value);
   }
 }
