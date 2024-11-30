@@ -1,21 +1,9 @@
 import { get_tool_by_id, make_history_node } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
 import { default_palette } from "./src/color-data.js";
-import { make_canvas } from './src/helpers.js';
+import { make_canvas } from "./src/helpers.js";
 
-export function initState(state){
-  
-  // defaultState에서 반환되는 모든 프로퍼티를 클래스 인스턴스의 프로퍼티로 설정
-  const initialState = defaultState();
-  for (const key in initialState) {
-    if (Object.prototype.hasOwnProperty.call(initialState, key)) {
-        state[key] = initialState[key];
-    }
-  }
-  
-}
-
-function defaultState() {
+export function defaultState() {
   const default_magnification = 1;
 
   /** @type {Tool} */
@@ -31,7 +19,6 @@ function defaultState() {
 
   let magnification = default_magnification;
   let return_to_magnification = 4;
-
 
   /** @type {PixelCanvas} */
   const main_canvas = make_canvas();
@@ -136,7 +123,9 @@ function defaultState() {
   };
 
   /** @type {HistoryNode} */
-  let root_history_node = make_history_node({ name: "App Not Loaded Properly - Please send a bug report." }); // will be replaced
+  let root_history_node = make_history_node({
+    name: "App Not Loaded Properly - Please send a bug report.",
+  }); // will be replaced
   /** @type {HistoryNode} */
   let current_history_node = root_history_node;
   /** @type {HistoryNode | null} */
@@ -157,7 +146,7 @@ function defaultState() {
   let saved = true;
 
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
-  let pointer ={x:0, y:0};
+  let pointer = { x: 0, y: 0 };
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
   let pointer_start;
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
@@ -171,7 +160,7 @@ function defaultState() {
   let pointer_buttons;
 
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
-  let pointer_float_previous={x:0, y:0};
+  let pointer_float_previous = { x: 0, y: 0 };
 
   // let pointer_previous;
   /** @type {boolean} */
@@ -194,7 +183,7 @@ function defaultState() {
   let fill = false;
   let stroke = true;
 
- return {
+  return {
     default_magnification,
     default_tool,
     default_canvas_width,
@@ -259,5 +248,4 @@ function defaultState() {
     fill,
     stroke,
   };
-
 }

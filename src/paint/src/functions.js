@@ -24,7 +24,7 @@ import {PaintJSState} from '../state';
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-// import { new_local_session } from "./sessions.js";
+import { new_local_session } from "../session.js";
 
 
 
@@ -764,7 +764,7 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		if (!into_existing_session) {
 			$(window).triggerHandler("session-update"); // autosave old session
 			console.log('세션초기화')
-			window.paintSession.new_local_session();
+			new_local_session();
 			
 		}
 

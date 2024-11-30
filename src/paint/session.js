@@ -215,16 +215,8 @@ export function initSesstion() {
 
    // Handle the starting, switching, and ending of sessions from the location.hash
 
-   let current_session;
-   const end_current_session = () => {
-      if (current_session) {
-         log("Ending current session");
-         current_session.end();
-         current_session = null;
-      }
-   };
-   const generate_session_id = () =>
-      (Math.random() * 2 ** 32).toString(16).replace(".", "");
+   
+
    const update_session_from_location_hash = () => {
       const session_match = location.hash.match(
          /^#?(?:.*,)?(session|local):(.*)$/i,
@@ -314,15 +306,23 @@ export function initSesstion() {
       update_session_from_location_hash();
    });
 
-   const new_local_session = () => {
-      end_current_session();
-      log("Changing URL to start new session...");
-      change_url_param("local", generate_session_id());
-   };
-
    log("Initializing with location hash:", location.hash);
    update_session_from_location_hash();
-
-   window.paintSession={};
-   window.paintSession.new_local_session = new_local_session; // used by functions.js
 }
+
+let current_session;
+const end_current_session = () => {
+   if (current_session) {
+      console.log("Ending current session");
+      current_session.end();
+      current_session = null;
+   }
+};
+const generate_session_id = () =>
+   (Math.random() * 2 ** 32).toString(16).replace(".", "");
+
+export const new_local_session = () => {
+   end_current_session();
+   console.log("Changing URL to start new session...");
+   change_url_param("local", generate_session_id());
+};

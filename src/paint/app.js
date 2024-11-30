@@ -78,12 +78,15 @@ import {
 import { PaintJSState } from "./state.js";
 
 
-export function initApp() {
+
+
+
+export function initApp(canvasAreaQuery) {
 
   const globApp = {};
   window.globApp = globApp;
 
-  const $canvas_area = $(".canvas-area");
+  const $canvas_area = $(canvasAreaQuery);
 
   const $canvas = $(PaintJSState.main_canvas).appendTo($canvas_area);
 
