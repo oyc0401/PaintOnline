@@ -1,6 +1,8 @@
 import express from "express";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { handler } from './build/handler.js'; // 빌드된 SvelteKit 핸들러를 가져옵니다.
+
 
 const app = express();
 
@@ -8,11 +10,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use('/assets', express.static(path.join(__dirname, 'dist/assets')));
-app.use('/localization', express.static(path.join(__dirname, 'localization')));
-app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/styles', express.static(path.join(__dirname, 'styles')));
-app.use('/help', express.static(path.join(__dirname, 'help')));
+app.use(express.static('static'));
 
 // app.use(express.static(path.join(__dirname, 'dist')));
 // app.use(express.static(path.join(__dirname, 'localization')));
@@ -20,7 +18,7 @@ app.use('/help', express.static(path.join(__dirname, 'help')));
 // app.use(express.static(path.join(__dirname, 'assets')));
 
 // app.use(express.static('localization'));
-
+app.use(handler);
 
 // // 여러 언어별 경로 매핑
 // const languages = ['ko', 'en', 'fr', 'de'];
@@ -34,19 +32,10 @@ app.use('/help', express.static(path.join(__dirname, 'help')));
 // });
 
 
-
-// 메인 페이지
-app.get('/', (req, res) => {
-  console.log('페이지 열기')
-  res.sendFile(path.resolve(__dirname, 'dist/index.html'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Express server initialized on port " + (process.env.PORT || 3000));
-});
-
 
 
 

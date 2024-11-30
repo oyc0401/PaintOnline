@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+    <head>
+      <meta charset="utf-8" />
+      <title>JS Paint</title>
+
+
+      <link rel="apple-touch-icon" href="images/icons/apple-icon-180x180.png" />
+      <!-- Chrome will pick the largest image for some reason, instead of the most appropriate one. -->
+      <!-- <link rel="icon" type="image/png" sizes="192x192" href="images/icons/192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="images/icons/32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="images/icons/96x96.png"> -->
+      <!-- <link rel="icon" type="image/png" sizes="16x16" href="images/icons/16x16.png"> -->
+      <link rel="shortcut icon" href="favicon.ico" />
+      <link
+        rel="mask-icon"
+        href="images/icons/safari-pinned-tab.svg"
+        color="red"
+      />
+      <!-- <link rel="manifest" href="manifest.webmanifest" /> -->
+      <meta name="msapplication-TileColor" content="#008080" />
+      <meta
+        name="msapplication-TileImage"
+        content="images/icons/ms-icon-144x144.png"
+      />
+      <meta name="theme-color" content="#000080" />
+
+      <meta name="viewport" content="width=device-width" />
+
+      <meta
+        name="description"
+        content="Classic MS Paint in the browser, with extra features"
+      />
+      <meta property="og:image:width" content="279" />
+      <meta property="og:image:height" content="279" />
+      <meta
+        property="og:description"
+        content="Classic MS Paint in the browser, with extra features."
+      />
+      <meta property="og:title" content="JS Paint" />
+      <meta property="og:url" content="https://jspaint.app" />
+      <meta
+        property="og:image"
+        content="https://jspaint.app/images/icons/og-image-279x279.jpg"
+      />
+      <meta name="twitter:title" content="JS Paint" />
+      <meta
+        name="twitter:description"
+        content="Classic MS Paint in the browser, with extra features"
+      />
+      <meta
+        name="twitter:image"
+        content="https://jspaint.app/images/meta/twitter-card-plz-no-crop.png"
+      />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@isaiahodhner" />
+      <meta name="twitter:creator" content="@isaiahodhner" />
+
+    </head>
+
+    <style>
+
+      .log-box {
+        width: 100%;
+        height: 33vh;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        overflow-y: auto;
+        padding: 10px;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index:9999;
+      }
+
+      .log-message {
+        margin: 5px 0;
+        line-height: 1.4;
+      }
+
+      .error-message {
+        color: #ff4d4d;
+      }
+    </style>
+    
+    %sveltekit.head%
+  </head>
+
+  
+  <body data-sveltekit-preload-data="hover" oncontextmenu="return false">
+    <!-- <div class="log-box" id="logBox"></div>
+    <script>
+      // 로그 박스에 메시지를 추가하는 함수
+      function addLogMessage(message, isError = false) {
+        const logBox = document.getElementById("logBox");
+        const logEntry = document.createElement("div");
+        logEntry.className = "log-message" + (isError ? " error-message" : "");
+        logEntry.textContent = message;
+
+        logBox.appendChild(logEntry);
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+
+      // console.log와 console.error 재정의
+      const originalLog = console.log;
+      const originalError = console.error;
+
+      function formatLogArguments(args) {
+        return Array.from(args)
+          .map(arg => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+          .join(" ");
+      }
+
+      console.log = function (...args) {
+        originalLog.apply(console, args);
+        addLogMessage(formatLogArguments(args));
+      };
+
+      console.error = function (...args) {
+        originalError.apply(console, args);
+        addLogMessage(formatLogArguments(args), true);
+      };
+
+      // 테스트 메시지
+      console.log("이것은 일반 로그 메시지입니다.", { key: "value" }, 42);
+      console.error("이것은 에러 메시지입니다.", ["배열", "테스트"], null);
+    </script> -->
+    
+    <!-- <script type="module" src="lib/jquery-3.4.1.min.js"></script> -->
+    
+    <div style="height:100%">%sveltekit.body%</div>
+  </body>
+</html>

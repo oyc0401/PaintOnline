@@ -1,17 +1,19 @@
-modules = ["nodejs-22"]
-hidden = [".config", "package-lock.json"]
-run = "npm run dev"
-#run = ["npm",'run', "start"]
+entrypoint = "src/routes/+page.svelte"
+modules = ["svelte-kit-node-20", "nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
-deploymentTarget = "cloudrun"
+build = ["npm", "run", "build"]
+run = ["node", "build"]
+deploymentTarget = "gce"
 
 [[ports]]
 localPort = 3000
+
+[[ports]]
+localPort = 4173
 
 [[ports]]
 localPort = 5173
