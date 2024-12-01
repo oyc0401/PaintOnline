@@ -23,6 +23,7 @@
     "express": "^4.21.1",
     "globals": "^15.12.0",
     "jquery": "^3.7.1",
+    "mobx": "^6.13.5",
     "node-fetch": "^3.3.2",
     "reactive-link": "github:oyc0401/ReactiveLink",
     "svelte": "^5.2.2",
