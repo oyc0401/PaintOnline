@@ -1,7 +1,7 @@
 console.log('JS 실행:','tools.js')
 // @ts-check
 /* global selection:writable, PaintJSState.stroke_size:writable, textbox:writable */
-/* global window.globApp.$canvas, window.globApp.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, PaintJSState.main_canvas, PaintJSState.main_ctx, pencil_size, pointer, PaintJSState.pointer_active, PaintJSState.pointer_over_canvas, pointer_previous, PaintJSState.pointer_start, return_to_magnification, selected_colors, shift, PaintJSState.stroke_color, transparency */
+/* global PaintJSState.$canvas, PaintJSState.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, PaintJSState.main_canvas, PaintJSState.main_ctx, pencil_size, pointer, PaintJSState.pointer_active, PaintJSState.pointer_over_canvas, pointer_previous, PaintJSState.pointer_start, return_to_magnification, selected_colors, shift, PaintJSState.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
 import { localize , get_language} from "../../localize/localize.js";
@@ -375,8 +375,8 @@ const tools = [
 						var cropped_canvas = make_canvas(rect_width, rect_height);
 						cropped_canvas.ctx.drawImage(PaintJSState.main_canvas, -rect_x, -rect_y);
 						PaintJSState.main_ctx.copy(cropped_canvas);
-						window.globApp.canvas_handles.show();
-						window.globApp.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
+						PaintJSState.canvas_handles.show();
+						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
 				} else if (free_form_selection) {
 					// for silly multitools feature,
@@ -854,11 +854,11 @@ const tools = [
 			// even though the custom cursor image is less descriptive
 			// because there's no generic "zoom" css cursor
 			if (prospective_magnification < PaintJSState.magnification) {
-				window.globApp.$canvas.css({
+				PaintJSState.$canvas.css({
 					cursor: make_css_cursor("magnifier", [16, 16], "zoom-out"),
 				});
 			} else {
-				window.globApp.$canvas.css({
+				PaintJSState.$canvas.css({
 					cursor: make_css_cursor("magnifier", [16, 16], "zoom-in"),
 				});
 			}
@@ -868,8 +868,8 @@ const tools = [
 			} // hide if would be zooming out
 
 			// prospective viewport size in document coords
-			const w = window.globApp.$canvas_area.width() / prospective_magnification;
-			const h = window.globApp.$canvas_area.height() / prospective_magnification;
+			const w = PaintJSState.$canvas_area.width() / prospective_magnification;
+			const h = PaintJSState.$canvas_area.height() / prospective_magnification;
 
 			let rect_x1 = ~~(x - w / 2);
 			let rect_y1 = ~~(y - h / 2);
@@ -962,25 +962,25 @@ const tools = [
 			if (PaintJSState.magnification > prev_magnification) {
 			
 				// (new) viewport size in document coords
-				const w = window.globApp.$canvas_area.width() / PaintJSState.magnification;
-				const h = window.globApp.$canvas_area.height() / PaintJSState.magnification;
+				const w = PaintJSState.$canvas_area.width() / PaintJSState.magnification;
+				const h = PaintJSState.$canvas_area.height() / PaintJSState.magnification;
 				
-				window.globApp.$canvas_area.scrollLeft(
+				PaintJSState.$canvas_area.scrollLeft(
 					((x - w / 2) * PaintJSState.magnification),
 				);
 				// Nevermind, canvas, isn't aligned to the right in RTL layout!
 				// if (get_direction() === "rtl") {
 				// 	// scrollLeft coordinates can be negative for RTL
-				// 	window.globApp.$canvas_area.scrollLeft((x - w/2 - canvas.width) * magnification / prev_magnification + window.globApp.$canvas_area.innerWidth());
+				// 	PaintJSState.$canvas_area.scrollLeft((x - w/2 - canvas.width) * magnification / prev_magnification + PaintJSState.$canvas_area.innerWidth());
 				// } else {
-				// 	window.globApp.$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
+				// 	PaintJSState.$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
 				// }
-				window.globApp.$canvas_area.scrollTop(
+				PaintJSState.$canvas_area.scrollTop(
 					((y - h / 2) * PaintJSState.magnification),
 				);
 
 				//console.log("스크롤 이동",((x - w / 2) * magnification),((y - h / 2) * magnification));
-				window.globApp.$canvas_area.trigger("scroll");
+				PaintJSState.$canvas_area.trigger("scroll");
 			}
 		},
 	},
@@ -1772,7 +1772,7 @@ tools.forEach((tool) => {
 			if (PaintJSState.selection) {
 				meld_selection_into_canvas();
 			}
-			window.globApp.canvas_handles.hide();
+			PaintJSState.canvas_handles.hide();
 		};
 		tool.paint = () => {
 			rect_x = ~~Math.max(0, Math.min(drag_start_x, PaintJSState.pointer.x));
@@ -1787,11 +1787,11 @@ tools.forEach((tool) => {
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
-			window.globApp.canvas_handles.show();
+			PaintJSState.canvas_handles.show();
 			tool.selectBox(rect_x, rect_y, rect_width, rect_height);
 		};
 		tool.cancel = () => {
-			window.globApp.canvas_handles.show();
+			PaintJSState.canvas_handles.show();
 		};
 		tool.drawPreviewUnderGrid = (
 			ctx,

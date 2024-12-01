@@ -818,7 +818,7 @@ function apply_image_transformation(meta, fn) {
 			PaintJSState.main_ctx.copy(new_canvas);
 
 			// $canvas.trigger("update"); // update handles
-			window.globApp.$canvas_area.trigger("resize"); // update handles and magnified canvas size (CSS width/height)
+			PaintJSState.$canvas_area.trigger("resize"); // update handles and magnified canvas size (CSS width/height)
 		});
 	}
 }

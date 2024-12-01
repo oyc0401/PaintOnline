@@ -1,7 +1,7 @@
 import {menuState} from './menuState.svelte.js'
 import {get_tool_by_id,select_tool} from '../paint/src/functions.js';
 import {make_css_cursor} from '../paint/src/helpers.js';
-
+import {PaintJSState} from '../paint/state.js';
 export function changeTool(toolId, menuId) {
   console.log(toolId);
 
@@ -11,7 +11,7 @@ export function changeTool(toolId, menuId) {
 
   const toolObj = get_tool_by_id(toolId);
   select_tool(toolObj);
-  window.globApp.$canvas.css({
+  PaintJSState.$canvas.css({
     cursor: make_css_cursor(...toolObj.cursor),
   });
 }

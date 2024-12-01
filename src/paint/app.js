@@ -81,8 +81,6 @@ import { PaintJSState } from "./state.js";
 
 
 export function initApp(canvasAreaQuery) {
-  const globApp = {};
-  window.globApp = globApp;
 
   const $canvas_area = $(canvasAreaQuery);
 
@@ -114,14 +112,16 @@ export function initApp(canvasAreaQuery) {
   });
 
 
-  globApp.update_fill_and_stroke_colors_and_lineWidth =
+  PaintJSState.update_fill_and_stroke_colors_and_lineWidth =
     update_fill_and_stroke_colors_and_lineWidth;
-  globApp.$canvas_area = $canvas_area;
-  globApp.$canvas = $canvas;
-  globApp.canvas_bounding_client_rect =
+  PaintJSState.$canvas_area = $canvas_area;
+  PaintJSState.$canvas = $canvas;
+  PaintJSState.canvas_bounding_client_rect =
     PaintJSState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
-  globApp.canvas_handles = canvas_handles;
+  PaintJSState.canvas_handles = canvas_handles;
 
+
+  
   //console.log(PaintJSState);
   $canvas.css({
     cursor: make_css_cursor(...PaintJSState.default_tool.cursor),

@@ -290,9 +290,9 @@ const $ChooseShapeStyle = () => {
 
 // 		return cb_canvas;
 // 	}, ({ shape, size }) => {
-// 		window.globAppstate.brush_shape = shape;
-// 		window.globAppstate.brush_size = size;
-// 	}, ({ shape, size }) => window.globAppstate.brush_shape === shape && window.globAppstate.brush_size === size
+// 		PaintJSStatestate.brush_shape = shape;
+// 		PaintJSStatestate.brush_size = size;
+// 	}, ({ shape, size }) => PaintJSStatestate.brush_shape === shape && PaintJSStatestate.brush_size === size
 // ).addClass("choose-brush");
 
 // const $choose_eraser_size = $Choose(
@@ -307,9 +307,9 @@ const $ChooseShapeStyle = () => {
 // 		return ce_canvas;
 // 	},
 // 	(size) => {
-// 		window.globAppstate.eraser_size = size;
+// 		PaintJSStatestate.eraser_size = size;
 // 	},
-// 	(size) => window.globAppstate.eraser_size === size
+// 	(size) => PaintJSStatestate.eraser_size === size
 // ).addClass("choose-eraser");
 
 // const $choose_stroke_size = $Choose(
@@ -324,9 +324,9 @@ const $ChooseShapeStyle = () => {
 // 		return cs_canvas;
 // 	},
 // 	(size) => {
-// 		window.globAppstate.stroke_size = size;
+// 		PaintJSStatestate.stroke_size = size;
 // 	},
-// 	(size) => window.globAppstate.stroke_size === size
+// 	(size) => PaintJSStatestate.stroke_size === size
 // ).addClass("choose-stroke-size");
 
 // const magnifications = [1, 2, 6, 8, 10];
@@ -351,7 +351,7 @@ const $ChooseShapeStyle = () => {
 // 	(scale) => {
 // 		set_magnification(scale);
 // 	},
-// 	(scale) => scale === window.globAppstate.magnification,
+// 	(scale) => scale === PaintJSStatestate.magnification,
 // 	true,
 // ).addClass("choose-magnification")
 // 	.css({ position: "relative" }); // positioning context for .secret-option `position: "absolute"` canvas
@@ -388,9 +388,9 @@ const $ChooseShapeStyle = () => {
 // 		);
 // 	},
 // 	(size) => {
-// 		window.globAppstate.airbrush_size = size;
+// 		PaintJSStatestate.airbrush_size = size;
 // 	},
-// 	(size) => size === window.globAppstate.airbrush_size,
+// 	(size) => size === PaintJSStatestate.airbrush_size,
 // 	true,
 // ).addClass("choose-airbrush-size");
 
@@ -410,9 +410,9 @@ const $ChooseShapeStyle = () => {
 // 		);
 // 	},
 // 	(option) => {
-// 		window.globAppstate.tool_transparent_mode = option;
+// 		PaintJSStatestate.tool_transparent_mode = option;
 // 	},
-// 	(option) => option === window.globAppstate.tool_transparent_mode,
+// 	(option) => option === PaintJSStatestate.tool_transparent_mode,
 // 	true,
 // ).addClass("choose-transparent-mode");
 

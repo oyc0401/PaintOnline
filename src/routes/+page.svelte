@@ -21,19 +21,19 @@
         }
     );
 
-    reaction(
-        () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
-        ([x, y]) => {
-           console.log(`pointer UI: (${x}, ${y})`)
-        }
-    );
+    // reaction(
+    //     () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
+    //     ([x, y]) => {
+    //        console.log(`pointer UI: (${x}, ${y})`)
+    //     }
+    // );
 
-    reaction(
-        () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
-        ([x, y]) => {
-           console.log(`pointer UI: (${x}, ${y})`)
-        }
-    );
+    // reaction(
+    //     () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
+    //     ([x, y]) => {
+    //        console.log(`pointer UI: (${x}, ${y})`)
+    //     }
+    // );
 
     //PaintJSState.pointer.x}, ${
     

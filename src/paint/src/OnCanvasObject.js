@@ -13,7 +13,7 @@ import {PaintJSState} from '../state';
 // 	canvas_handles ,
 // 	$status_position,
 // 	$status_size ,
-// }= window.globApp;
+// }= PaintJSState;
 function roundDPR(dpr) {
 	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
 	let closest = values[0];
@@ -43,9 +43,9 @@ class OnCanvasObject {
 		this.initwidth = width;
 		this.initheight = height;
 		this.hideMainCanvasHandles = hideMainCanvasHandles;
-		this.$el = $(E("div")).addClass("on-canvas-object").appendTo(window.globApp.$canvas_area);
+		this.$el = $(E("div")).addClass("on-canvas-object").appendTo(PaintJSState.$canvas_area);
 		if (this.hideMainCanvasHandles) {
-			window.globApp.canvas_handles.hide();
+			PaintJSState.canvas_handles.hide();
 		}
 		$(window).on("resize theme-load", this._global_resize_handler = () => {
 			this.position();
@@ -56,8 +56,8 @@ class OnCanvasObject {
 		// const direction = get_direction();
 		// const left_for_ltr = direction === "rtl" ? "right" : "left";
 		// const offset_left = parseFloat($canvas_area.css(`padding-${left_for_ltr}`));
-		const offset_left = parseFloat(window.globApp.$canvas_area.css("padding-left"));
-		const offset_top = parseFloat(window.globApp.$canvas_area.css("padding-top"));
+		const offset_left = parseFloat(PaintJSState.$canvas_area.css("padding-left"));
+		const offset_top = parseFloat(PaintJSState.$canvas_area.css("padding-top"));
 		
 		const dpr = window.devicePixelRatio;
 		const targetDpr = roundDPR(dpr);
@@ -73,14 +73,14 @@ class OnCanvasObject {
 			height: dprMagnification * this.height,
 		});
 		if (updateStatus) {
-			//window.globApp.$status_position.text(`${this.x}, ${this.y}px`);
-			//window.globApp.$status_size.text(`${this.width} x ${this.height}px`);
+			//PaintJSState.$status_position.text(`${this.x}, ${this.y}px`);
+			//PaintJSState.$status_size.text(`${this.width} x ${this.height}px`);
 		}
 	}
 	destroy() {
 		this.$el.remove();
 		if (this.hideMainCanvasHandles) {
-			window.globApp.canvas_handles.show();
+			PaintJSState.canvas_handles.show();
 		}
 		$(window).off("resize theme-load", this._global_resize_handler);
 	}

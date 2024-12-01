@@ -80,7 +80,7 @@ class OnCanvasSelection extends OnCanvasObject {
 			this.$el.append(this.canvas);
 			this.handles = new Handles({
 				$handles_container: this.$el,
-				$object_container: window.globApp.$canvas_area,
+				$object_container: PaintJSState.$canvas_area,
 				outset: 2,
 				get_rect: () => ({ x: this.x, y: this.y, width: this.width, height: this.height }),
 				set_rect: ({ x, y, width, height }) => {
@@ -97,8 +97,8 @@ class OnCanvasSelection extends OnCanvasObject {
 						this.resize();
 					});
 				},
-				get_ghost_offset_left: () => parseFloat(window.globApp.$canvas_area.css("padding-left")) + 1,
-				get_ghost_offset_top: () => parseFloat(window.globApp.$canvas_area.css("padding-top")) + 1,
+				get_ghost_offset_left: () => parseFloat(PaintJSState.$canvas_area.css("padding-left")) + 1,
+				get_ghost_offset_top: () => parseFloat(PaintJSState.$canvas_area.css("padding-top")) + 1,
 			});
 			let mox, moy;
 			const pointermove = (e) => {
@@ -158,7 +158,7 @@ class OnCanvasSelection extends OnCanvasObject {
 				}
 			};
 			$(this.canvas).on("pointerdown", this.canvas_pointerdown);
-			window.globApp.$canvas_area.trigger("resize"); // could use "update" event instead if this is just to hide the main canvas handles
+			PaintJSState.$canvas_area.trigger("resize"); // could use "update" event instead if this is just to hide the main canvas handles
 			// $status_position.text("");
 			// $status_size.text("");
 		};
