@@ -1,4 +1,4 @@
-import { observable, reaction ,configure} from 'mobx';
+import { observable, reaction ,configure,runInAction} from 'mobx';
 
 configure({ enforceActions: "never" }); // strict-mode 비활성화
 
@@ -16,11 +16,30 @@ reaction(
 );
 
 reaction(
+    () => [state.count, state.array.slice()], // 여러 상태를 추적
+    ([newCount, newArray]) => {
+        console.log('count 또는 array가 변경되었습니다:', newCount, newArray);
+    }
+);
+
+reaction(
     () => state.array.slice(), // 감시할 상태
     (newValue) => {
         console.log('array가 변경되었습니다:', newValue);
     }
 );
+
+
+function change(newState) {
+    runInAction(() => {
+        Object.assign(state, newState);
+    });
+}
+
+const newState = { count: 7, array:[0,0,0]}
+
+// 상태 변경
+change(newState);
 
 // 상태 변경
 state.count += 1; // 출력: 카운트가 변경되었습니다: 1
