@@ -1,12 +1,15 @@
 import { observable, reaction ,configure,runInAction} from 'mobx';
 
 configure({ enforceActions: "never" }); // strict-mode 비활성화
-
+configure({ useProxies: "never" });
 const state = observable({
-    count: 0,
-    array:[4,5,6],
+     count: 5, array:[1,1,1]
 });
-
+function change(newState) {
+    runInAction(() => {
+        Object.assign(state, newState);
+    });
+}
 // `state.count`가 변화하면 실행
 reaction(
     () => state.count, // 감시할 상태
@@ -30,11 +33,7 @@ reaction(
 );
 
 
-function change(newState) {
-    runInAction(() => {
-        Object.assign(state, newState);
-    });
-}
+
 
 const newState = { count: 7, array:[0,0,0]}
 

@@ -47,13 +47,13 @@ import {
   view_bitmap,
   write_image_file,
 } from "./src/functions.js";
-import $ from 'jquery'
+import $ from "jquery";
 import {
   TAU,
   get_help_folder_icon,
   make_canvas,
   to_canvas_coords,
-  make_css_cursor
+  make_css_cursor,
 } from "./src/helpers.js";
 import { init_webgl_stuff, rotate } from "./src/image-manipulation.js";
 
@@ -80,9 +80,7 @@ import { PaintJSState } from "./state.js";
 
 
 
-
 export function initApp(canvasAreaQuery) {
-
   const globApp = {};
   window.globApp = globApp;
 
@@ -92,7 +90,6 @@ export function initApp(canvasAreaQuery) {
 
   $canvas.css("touch-action", "none");
   $canvas_area.css("touch-action", "none");
-
 
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
@@ -120,23 +117,20 @@ export function initApp(canvasAreaQuery) {
   const $status_position = $("status-text");
   const $status_size = $status_position;
 
-
-  globApp.update_fill_and_stroke_colors_and_lineWidth = update_fill_and_stroke_colors_and_lineWidth;
+  globApp.update_fill_and_stroke_colors_and_lineWidth =
+    update_fill_and_stroke_colors_and_lineWidth;
   globApp.$canvas_area = $canvas_area;
   globApp.$canvas = $canvas;
-  globApp.canvas_bounding_client_rect = PaintJSState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
+  globApp.canvas_bounding_client_rect =
+    PaintJSState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
   globApp.canvas_handles = canvas_handles;
   globApp.$status_position = $status_position;
   globApp.$status_size = $status_size;
 
-  console.log(PaintJSState)
+  //console.log(PaintJSState);
   $canvas.css({
-     cursor: make_css_cursor(...PaintJSState.default_tool.cursor),
-   });
-
-
-
-
+    cursor: make_css_cursor(...PaintJSState.default_tool.cursor),
+  });
 
   $(window).on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
@@ -521,30 +515,64 @@ export function initApp(canvasAreaQuery) {
 
   //console.log('dpr:',window.devicePixelRatio)
   // #endregion
-  const zoomLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 100];
+  const zoomLevels = [
+    0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 100,
+  ];
 
-  const nextZoom = { 
-      0.5: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 8, 8: 10, 10: 12, 
-      12: 15, 15: 20, 20: 25, 25: 30, 30: 40, 40: 50, 50: 60, 60: 75, 75: 100, 
-      100: 100 
+  const nextZoom = {
+    0.5: 1,
+    1: 2,
+    2: 3,
+    3: 4,
+    4: 5,
+    5: 6,
+    6: 8,
+    8: 10,
+    10: 12,
+    12: 15,
+    15: 20,
+    20: 25,
+    25: 30,
+    30: 40,
+    40: 50,
+    50: 60,
+    60: 75,
+    75: 100,
+    100: 100,
   };
 
-  const nextout = { 
-      100: 75, 75: 60, 60: 50, 50: 40, 40: 30, 30: 25, 25: 20, 20: 15, 15: 12, 
-      12: 10, 10: 8, 8: 6, 6: 5, 5: 4, 4: 3, 3: 2, 2: 1, 1: 0.5, 
-      0.5: 0.5 
+  const nextout = {
+    100: 75,
+    75: 60,
+    60: 50,
+    50: 40,
+    40: 30,
+    30: 25,
+    25: 20,
+    20: 15,
+    15: 12,
+    12: 10,
+    10: 8,
+    8: 6,
+    6: 5,
+    5: 4,
+    4: 3,
+    3: 2,
+    2: 1,
+    1: 0.5,
+    0.5: 0.5,
   };
-
-
 
   function getClosestZoom(currentZoom) {
-      const zoomLevels = Object.keys(nextZoom).map(Number).sort((a, b) => a - b);
-      for (let i = zoomLevels.length - 1; i >= 0; i--) {
-          if (currentZoom >= zoomLevels[i]) {
-              return zoomLevels[i];
-          }
+    const zoomLevels = Object.keys(nextZoom)
+      .map(Number)
+      .sort((a, b) => a - b);
+    for (let i = zoomLevels.length - 1; i >= 0; i--) {
+      if (currentZoom >= zoomLevels[i]) {
+        return zoomLevels[i];
       }
-      return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
+    }
+    return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
   }
 
   addEventListener(
@@ -555,9 +583,11 @@ export function initApp(canvasAreaQuery) {
         e.preventDefault();
         let new_magnification = PaintJSState.magnification;
         if (e.deltaY < 0) {
-          new_magnification = nextZoom[getClosestZoom(PaintJSState.magnification)]
+          new_magnification =
+            nextZoom[getClosestZoom(PaintJSState.magnification)];
         } else {
-          new_magnification =nextout[getClosestZoom(PaintJSState.magnification)]
+          new_magnification =
+            nextout[getClosestZoom(PaintJSState.magnification)];
         }
         set_magnification(new_magnification, to_canvas_coords(e));
         return;
@@ -672,11 +702,18 @@ export function initApp(canvasAreaQuery) {
           icon: get_help_folder_icon("p_stretch_both.png"),
         },
         () => {
-          PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
-          PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
+          PaintJSState.main_canvas.width = Math.max(
+            1,
+            PaintJSState.my_canvas_width,
+          );
+          PaintJSState.main_canvas.height = Math.max(
+            1,
+            PaintJSState.my_canvas_height,
+          );
           PaintJSState.main_ctx.disable_image_smoothing();
           if (!PaintJSState.transparency) {
-            PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
+            PaintJSState.main_ctx.fillStyle =
+              PaintJSState.selected_colors.background;
             PaintJSState.main_ctx.fillRect(
               0,
               0,
@@ -829,8 +866,12 @@ export function initApp(canvasAreaQuery) {
         );
       } else if (PaintJSState.selected_tool.shape) {
         // snap to four diagonals
-        const w = Math.abs(PaintJSState.pointer.x - PaintJSState.pointer_start.x);
-        const h = Math.abs(PaintJSState.pointer.y - PaintJSState.pointer_start.y);
+        const w = Math.abs(
+          PaintJSState.pointer.x - PaintJSState.pointer_start.x,
+        );
+        const h = Math.abs(
+          PaintJSState.pointer.y - PaintJSState.pointer_start.y,
+        );
         if (w < h) {
           if (PaintJSState.pointer.y > PaintJSState.pointer_start.y) {
             PaintJSState.pointer.y = PaintJSState.pointer_start.y + w;
@@ -854,7 +895,9 @@ export function initApp(canvasAreaQuery) {
 
   $canvas.on("pointermove", (e) => {
     PaintJSState.pointer = to_canvas_coords(e);
-    $status_position.text(`${PaintJSState.pointer.x}, ${PaintJSState.pointer.y} px`);
+    $status_position.text(
+      `${PaintJSState.pointer.x}, ${PaintJSState.pointer.y} px`,
+    );
   });
 
   $canvas.on("pointerenter", (e) => {
@@ -982,13 +1025,14 @@ export function initApp(canvasAreaQuery) {
       const difference_in_distance = distance - last_zoom_pointer_distance;
       let new_magnification = PaintJSState.magnification;
 
-
       if (Math.abs(difference_in_distance) > 60) {
         last_zoom_pointer_distance = distance;
         if (difference_in_distance > 0) {
-           new_magnification = nextZoom[getClosestZoom(PaintJSState.magnification)];
+          new_magnification =
+            nextZoom[getClosestZoom(PaintJSState.magnification)];
         } else {
-          new_magnification = nextout[getClosestZoom(PaintJSState.magnification)];
+          new_magnification =
+            nextout[getClosestZoom(PaintJSState.magnification)];
         }
       }
       if (new_magnification != PaintJSState.magnification) {
@@ -1200,9 +1244,4 @@ export function initApp(canvasAreaQuery) {
   // #endregion
 
   init_webgl_stuff();
-
-
-
-
 }
-
