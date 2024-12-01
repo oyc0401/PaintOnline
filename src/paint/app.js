@@ -113,9 +113,6 @@ export function initApp(canvasAreaQuery) {
     size_only: true,
   });
 
-  // 위치
-  const $status_position = $("status-text");
-  const $status_size = $status_position;
 
   globApp.update_fill_and_stroke_colors_and_lineWidth =
     update_fill_and_stroke_colors_and_lineWidth;
@@ -124,8 +121,6 @@ export function initApp(canvasAreaQuery) {
   globApp.canvas_bounding_client_rect =
     PaintJSState.main_canvas.getBoundingClientRect(); // cached for performance, updated later
   globApp.canvas_handles = canvas_handles;
-  globApp.$status_position = $status_position;
-  globApp.$status_size = $status_size;
 
   //console.log(PaintJSState);
   $canvas.css({
@@ -895,9 +890,6 @@ export function initApp(canvasAreaQuery) {
 
   $canvas.on("pointermove", (e) => {
     PaintJSState.pointer = to_canvas_coords(e);
-    $status_position.text(
-      `${PaintJSState.pointer.x}, ${PaintJSState.pointer.y} px`,
-    );
   });
 
   $canvas.on("pointerenter", (e) => {
@@ -912,8 +904,6 @@ export function initApp(canvasAreaQuery) {
   });
   $canvas.on("pointerleave", (e) => {
     PaintJSState.pointer_over_canvas = false;
-
-    $status_position.text("");
 
     update_helper_layer(e);
 
@@ -1053,7 +1043,6 @@ export function initApp(canvasAreaQuery) {
   // #region Primary Canvas Interaction (continued)
   $canvas.on("pointerdown", (e) => {
     //oyc0401
-    $status_size.text("");
     update_canvas_rect();
 
     // Quick Undo when there are multiple PaintJSState.pointers (i.e. for touch)

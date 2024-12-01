@@ -2,7 +2,7 @@
   "name": "webpaint",
   "productName": "Web Paint",
   "version": "1.0.0",
-  "description": "Classic MS Paint clone with extra features",
+  "description": "good Paint",
   "license": "MIT",
   "author": "oyc0401 <oyc0401@gmail.com>",
   "contributors": [
@@ -12,6 +12,7 @@
   "module": "index.js",
   "scripts": {
     "dev": "vite dev --host 0.0.0.0",
+    "test": "jest",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -41,6 +42,7 @@
     "autoprefixer": "^10.4.20",
     "cspell-cli": "^8.16.0",
     "eslint": "^9.15.0",
+    "jest": "^29.7.0",
     "postcss": "^8.4.49",
     "rtlcss": "^4.3.0",
     "tailwindcss": "^3.4.15",

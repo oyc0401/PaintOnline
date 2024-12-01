@@ -73,8 +73,8 @@ class OnCanvasObject {
 			height: dprMagnification * this.height,
 		});
 		if (updateStatus) {
-			window.globApp.$status_position.text(`${this.x}, ${this.y}px`);
-			window.globApp.$status_size.text(`${this.width} x ${this.height}px`);
+			//window.globApp.$status_position.text(`${this.x}, ${this.y}px`);
+			//window.globApp.$status_size.text(`${this.width} x ${this.height}px`);
 		}
 	}
 	destroy() {
