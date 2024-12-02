@@ -1,122 +1,46 @@
+# Paint JS Todo
 
-# JS Paint Todo
-## TODO
-undo redo 버튼 활성화
-마우스 위치 표시
+## 오늘 드는 생각
+문서화를 제대로 해놔서 일의 능률을 올려야겠음
+무슨 개발자가 기능개발하는데 하루 넘게 걸려
+하늘인편도 코드 이쁘게 짜느라 두배는 늦어진듯
+필요없는 리팩토링 할 시간에 ui나 깎던지 버그나 잡자 ㅎㅎ
+구조 짤 거면 초기에 해야지ㅎㅎ
 
-
-
-선택영역에 마우스 누르고있으면 테두리 안보이게 하기
-지우개 색깔 설정하는거 만들기
-선두꼐 설정하는거 만들기
-투명도 설정하는거 만들기
-도형 내부 채우기 토글버튼
-도형 테두리 만들기 토글버튼
-올가미 배경 투명 토글버튼
-
-
-배경투명모드 토글버튼
-
-
-
-
-
-### 기능
-시작할때 배경에 투명도있는 색 있으면 투명모드 ON and 지우개 투명색 설정
-투명모드 => 지우개 무조건 투명색!
-투명모드일 때 지우개 투명도있는색 골라도 지우개는 투명색이지만 테두리, 투명올가미는 반영됌
-투명모드일때는 캔버스 확장할 때 배경 투명색으로하기
-
-!투명모드 && 지우개투명도 => 지우개 투명도있게
-!투명모드 && 지우개투명도 => 캔버스확장, 올가미 빈부분 지우개색으로 채움
-
-일단 하단 상태바부터 완성하자
+## 국제화 i18n
+### TODO
+국제화 코드 의존성 제거시키기고, json으로 이쁘게 만들기
+```js
+export const language = {lan: 'en'}
+localize('paint')
+```
+언어 싱글톤으로 만들어놓아서 그거 수정시키자
+어짜피 언어는 ssr이니 spa안할거라 변경 없어도 됌
+### 공부할 것
+국제화 라이브러리 찾아보고 좀더 공부해보기,
+이전 주인은 국제화 어떻게 구현했을까 고민해보기
 
 
+## 마일스톤
+### 공부할 것
+좀더 작업의 능률을 올리기 위해 프로젝트 방향성을 잘 잡아야할 필요가 있음.
+막말로 솔브닥 개발자도 마일스톤 만들면서 작업하는데, 나도 해야지
+방향성을 잡아야 더 빨리 개발할 수 있고, 우선순위를 선정할 수 있음.
+진짜 하루종일 UI깎고 리팩토링할건 아니잖아? 그러니깐 기간 두배 더걸리더라
 
 
-## 계획
-일단 UHD, 4K 최적화는 나중에 하자.
+## 하단 바 UI
+마우스 위치, 확대 슬라이더 구현
+확대 슬라이더는 지금 100배줌 되는 상태에서 ui 어떻게 짤지 고민좀 해봐야 함
+
+
+
+
+## 이후 계획
+일단 4K 최적화는 나중에 하자.
 지금 2d context로 할 수 있는건 거의 다했고 더한다해도 나중에 webgl을 사용할거라 낭비임
 일단 코드최적화 해놓고 DI까지 해놓은 다음에 구조바꿀생각을 하자
-지금은 일단 완성도부터 챙겨보자
-완성도 챙기다가 더 나올 아이디어도 있으니 그거 다 알고나서  webgl 적용시킬 생각 해야함
+지금은 일단 완성도 챙기다가 더 나올 아이디어도 있으니 그거 다 알고나서 webgl 적용시킬 생각 해야함
 
 
 
-
-
-
-### 의존성 확인
-let {
-  default_magnification,
-  default_tool,
-  default_canvas_width,
-  default_canvas_height,
-  my_canvas_width,
-  my_canvas_height,
-  aliasing,
-  transparency,
-  magnification,
-  return_to_magnification,
-  main_canvas,
-  main_ctx,
-  palette,
-  polychrome_palette,
-  enable_palette_loading_from_indexed_images,
-  enable_fs_access_api,
-  brush_shape,
-  brush_size,
-  eraser_size,
-  airbrush_size,
-  pencil_size,
-  stroke_size,
-  tool_transparent_mode,
-  stroke_color,
-  fill_color,
-  pick_color_slot,
-  selected_tool,
-  selected_tools,
-  return_to_tools,
-  selected_colors,
-  selection,
-  helper_layer,
-  $thumbnail_window,
-  thumbnail_canvas,
-  show_grid,
-  show_thumbnail,
-  text_tool_font,
-  root_history_node,
-  current_history_node,
-  history_node_to_cancel_to,
-  undos,
-  redos,
-  file_name,
-  file_format,
-  system_file_handle,
-  saved,
-  pointer,
-  pointer_start,
-  pointer_previous,
-  pointer_active,
-  pointer_type,
-  pointer_buttons,
-  reverse,
-  ctrl,
-  shift,
-  button,
-  pointer_over_canvas,
-  update_helper_layer_on_pointermove_active,
-  pointers
-} = window.globAppstate;
-
-let {
-  $app,
-  update_fill_and_stroke_colors_and_lineWidth,
-  $canvas_area,
-  $canvas,
-  canvas_bounding_client_rect,
-  canvas_handles,
-  $status_position,
-  $status_size
-} = window.globApp;
