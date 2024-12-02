@@ -7,6 +7,12 @@
 			"$store/*": [
 				"../src/store/*"
 			],
+			"$paint": [
+				"../src/paint"
+			],
+			"$paint/*": [
+				"../src/paint/*"
+			],
 			"$lib": [
 				"../src/lib"
 			],

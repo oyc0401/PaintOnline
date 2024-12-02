@@ -27,8 +27,6 @@ const TAU =
 //	//           //////     |     /////            //
 //	//                //////|//////          C/r;  //  /////////////
 
-const is_pride_month = new Date().getMonth() === 5; // June (0-based, 0 is January)
-
 
 
 /**
@@ -439,7 +437,6 @@ export {
 	get_icon_for_tools,
 	get_rgba_from_color,
 	image_data_match,
-	is_pride_month,
 	load_image_simple,
 	make_canvas,
 	make_css_cursor,

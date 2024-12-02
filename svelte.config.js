@@ -12,7 +12,8 @@ const config = {
       out: 'build'
     }),
     alias: {
-      $store: path.resolve('./src/store')
+      $store: path.resolve('./src/store'),
+      $paint:path.resolve('./src/paint'),
     }
   },
   preprocess: vitePreprocess(),

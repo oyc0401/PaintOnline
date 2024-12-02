@@ -12,7 +12,7 @@ import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
-import {  E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, is_pride_month, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
+import {  E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
 import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
@@ -546,18 +546,8 @@ function make_history_node({
 }
 
 function update_title() {
-	document.title = `${PaintJSState.file_name} - ${is_pride_month ? "June Solidarity " : ""}${localize("Paint")}`;
-
-	if (is_pride_month) {
-		$("link[rel~='icon']").attr("href", "./images/icons/gay-es-paint-16x16-light-outline.png");
-	}
-
-	if (window.setRepresentedFilename) {
-		window.setRepresentedFilename(PaintJSState.system_file_handle ?? "");
-	}
-	if (window.setDocumentEdited) {
-		window.setDocumentEdited(!PaintJSState.saved);
-	}
+	// 이게 브라우저 상단 타이틀 수정하는거임 꼭 여기서 수정해야할까?
+	document.title = `${PaintJSState.file_name} - ${localize("Paint")}`;
 }
 
 /**
@@ -1428,7 +1418,6 @@ function paste(img_or_canvas) {
  * @param {boolean=} canceling
  */
 function go_to_history_node(target_history_node, canceling) {
-	const from_history_node = PaintJSState.current_history_node;
 
 	if (!target_history_node.image_data) {
 		if (!canceling) {
@@ -1453,7 +1442,7 @@ function go_to_history_node(target_history_node, canceling) {
 	PaintJSState.saved = false;
 	update_title();
 
-	PaintJSState.main_ctx.copy(target_history_node.image_data);
+	PaintJSState.main_ctx.copy(target_history_node.image_data); // 해당 노드이미지로 캔버스 바꾸기
 	if (target_history_node.selection_image_data) {
 		if (PaintJSState.selection) {
 			PaintJSState.selection.destroy();
@@ -1475,36 +1464,8 @@ function go_to_history_node(target_history_node, canceling) {
 		);
 	}
 
-	const ancestors_of_target = get_history_ancestors(target_history_node);
-
-	PaintJSState.undos = [...ancestors_of_target];
-	PaintJSState.undos.reverse();
-
-	const old_history_path =
-		PaintJSState.redos.length > 0 ?
-			[PaintJSState.redos[0], ...get_history_ancestors(PaintJSState.redos[0])] :
-			[from_history_node, ...get_history_ancestors(from_history_node)];
-
-	// window.console?.log("target_history_node:", target_history_node);
-	// window.console?.log("ancestors_of_target:", ancestors_of_target);
-	// window.console?.log("old_history_path:", old_history_path);
-	PaintJSState.redos.length = 0;
-
-	let latest_node = target_history_node;
-	while (latest_node.futures.length > 0) {
-		const futures = [...latest_node.futures];
-		futures.sort((a, b) => {
-			if (old_history_path.indexOf(a) > -1) {
-				return -1;
-			}
-			if (old_history_path.indexOf(b) > -1) {
-				return +1;
-			}
-			return 0;
-		});
-		latest_node = futures[0];
-		PaintJSState.redos.unshift(latest_node);
-	}
+	// 이자리에 뭔 쓸데없는 코드가 있었는데 왜있는지 모르겠어 오류만 일으키는 것 같아서 삭제함
+	
 	// window.console?.log("new undos:", undos);
 	// window.console?.log("new redos:", redos);
 
@@ -1589,6 +1550,7 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 	}
 }
 function undo() {
+	console.log('press undo!')
 	if (PaintJSState.undos.length < 1) { return false; }
 
 	PaintJSState.redos.push(PaintJSState.current_history_node);
@@ -1598,7 +1560,7 @@ function undo() {
 		PaintJSState.redos.push(target_history_node);
 		target_history_node = PaintJSState.undos.pop();
 	}
-
+	console.log('end undo!')
 	go_to_history_node(target_history_node);
 
 	return true;
@@ -1608,20 +1570,12 @@ function undo() {
 /** @type {OSGUI$Window} */
 let $document_history_prompt_window;
 function redo() {
+	console.log('press redo!')
 	if (PaintJSState.redos.length < 1) {
-		if ($document_history_prompt_window) {
-			$document_history_prompt_window.close();
-		}
-		if (!$document_history_window || $document_history_window.closed) {
-			$document_history_prompt_window = showMessageBox({
-				title: "Redo",
-				messageHTML: "To view all branches of the history tree, click <b>Edit > History</b>.",
-				iconID: "info",
-			}).$window;
-		}
 		return false;
 	}
 
+	// undo에 넣고
 	PaintJSState.undos.push(PaintJSState.current_history_node);
 	let target_history_node = PaintJSState.redos.pop();
 
@@ -1629,8 +1583,10 @@ function redo() {
 		PaintJSState.undos.push(target_history_node);
 		target_history_node = PaintJSState.redos.pop();
 	}
-
+	
+	console.log('end redo!')
 	go_to_history_node(target_history_node);
+
 
 	return true;
 }

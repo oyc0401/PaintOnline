@@ -3,6 +3,8 @@
   import LogoIcon from "$lib/images/logo.png";
   import UndoIcon from "$lib/images/undo.png";
   import RedoIcon from "$lib/images/redo.png";
+  import DisabledUndoIcon from "$lib/images/undo_disabled.png";
+  import DisabledRedoIcon from "$lib/images/redo_disabled.png";
   import MenuIcon from "$lib/images/menu.png";
   import SelectionIcon from "$lib/images/selection.png";
   import PenIcon from "$lib/images/pen.png";
@@ -24,6 +26,10 @@
   import { menuState } from "../store/menuState.svelte.js";
   import {changeTool as setTool} from '../store/paintFunction.js'
 
+  import { reaction , toJS} from 'mobx';
+
+  import {redo, undo} from "$paint/src/functions.js";
+  import {PaintJSState} from '$paint/state';
   let buttons = Array(7);
 
   const openMenu = (id) => {
@@ -52,7 +58,13 @@
     menuState.selectedMenuId = menuState.toolMenuId;
   }
   
-  
+  function clickRedo(){
+    redo();
+  }
+
+  function  clickUndo(){
+    undo();
+  }
 
  // 외부 클릭 시 메뉴를 닫도록 설정
   onMount(() => {
@@ -62,6 +74,21 @@
           closeMenu();
       }
     };
+
+    reaction(
+        () => PaintJSState.undos.length, // 감시할 상태
+        (newValue) => {
+           menuState.undoLength = newValue;
+          console.log('undo:',newValue)
+        }
+    );
+    reaction(
+        () => PaintJSState.redos.length, // 감시할 상태
+        (newValue) => {
+           menuState.redoLength = newValue;
+          console.log('redo:',newValue)
+        }
+    );
 
     // document.addEventListener('click', handleClickOutside);
     document.addEventListener('pointerdown', handleClickOutside);
@@ -81,13 +108,22 @@
       </div>
       <p class="pl-2.5 text-md">제목없음 그림판</p>
       <div class="flex-1"></div>
-      <p>{menuState.undo.length}</p>
-      <div class="history-button">
-         <img src={UndoIcon} alt="undo icon" />
-      </div>
-      <div class="history-button">
-         <img src={RedoIcon} alt="redo icon" />
-      </div>
+      <button class="history-button" onclick={clickUndo}>
+        {#if menuState.undoLength==0}
+           <img src={DisabledUndoIcon} alt="undo icon" />
+        {:else}
+           <img src={UndoIcon} alt="undo icon" />
+        {/if}
+        
+      </button>
+      <button class="history-button" onclick={clickRedo}>
+        {#if menuState.redoLength==0}
+          <img src={DisabledRedoIcon} alt="redo icon" />
+        {:else}
+          <img src={RedoIcon} alt="redo icon" />
+        {/if}
+   
+      </button>
    </div>
    <div class="menus">
       <button class="menu-button" class:selected-menu={menuState.selectedMenuId === 0} bind:this={buttons[0]} onclick={()=>openMenu(0)}>
