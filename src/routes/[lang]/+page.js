@@ -8,6 +8,13 @@ import {i18n} from '$src/localize/localize'
 //   ko: { greeting: '안녕하세요', description: '우리 사이트에 오신 것을 환영합니다!' },
 //   fr: { greeting: 'Bonjour', description: 'Bienvenue sur notre site!' }
 // };
+export function entries() {
+  return [
+    { lang: 'en' },
+    { lang: 'ko' },
+    { lang: 'ja' },
+  ];
+}
 
 export const prerender = true;
 
