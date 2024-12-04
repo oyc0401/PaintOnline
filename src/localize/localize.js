@@ -1,33 +1,24 @@
-const current_language = "en";
+import {localization} from './localization';
+let current_language = "ko";
+
 export function localize(english_text, ...interpolations) {
+  
   function find_localization(english_text) {
-    // if (AccessKeys.has(english_text)) {
-    // 	const without_hotkey = AccessKeys.remove(english_text);
-    // 	if (localizations[without_hotkey]) {
-    // 		const hotkey_def = AccessKeys.get(english_text);
-    // 		if (localizations[without_hotkey].toUpperCase().indexOf(hotkey_def.toUpperCase()) > -1) {
-    // 			return localizations[without_hotkey];
-    // 		} else {
-    // 			if (AccessKeys.has(localizations[without_hotkey])) {
-    // 				// window.console?.warn(`Localization has differing access key hint: '${localizations[without_hotkey]}' vs '${english_text}'`);
-    // 				// @TODO: detect differing access key more generally
-    // 				return `${AccessKeys.remove(localizations[without_hotkey])} (${hotkey_def})`;
-    // 			}
-    // 			return `${localizations[without_hotkey]} (${hotkey_def})`;
-    // 		}
-    // 	}
-    // }
-    // if (localizations[english_text]) {
-    // 	return localizations[english_text];
-    // }
+  const languageObj = localization[current_language];
+    
+    if (languageObj && languageObj[english_text]) {
+    	return languageObj[english_text];
+    }
     return english_text;
   }
+  
   function interpolate(text, interpolations) {
     for (let i = 0; i < interpolations.length; i++) {
       text = text.replace(`%${i + 1}`, interpolations[i]);
     }
     return text;
   }
+  
   return interpolate(find_localization(english_text), interpolations);
 }
 
@@ -38,7 +29,7 @@ export function get_direction(language = current_language) {
 }
 
 export function get_language() {
-  return "en";
+  return current_language
 }
 
 export const available_languages = ["ar", "cs", "da", "de", "el", "en", "es", "fi", "fr", "he", "hu", "it", "ja", "ko", "nl", "no", "pl", "pt", "pt-br", "ru", "sk", "sl", "sv", "tr", "zh", "zh-simplified"];
