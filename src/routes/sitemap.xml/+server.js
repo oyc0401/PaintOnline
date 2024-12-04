@@ -13,7 +13,7 @@ export async function GET() {
         ${languages
           .map(
             (lang) =>
-              `<xhtml:link rel="alternate" hreflang="${lang}" href="${baseUrl}/${lang}/" />`
+              `<xhtml:link rel="alternate" hreflang="${lang}" href="${baseUrl}/${lang}" />`
           )
           .join('\n')}
         <lastmod>${lastmod}</lastmod>
