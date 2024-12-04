@@ -1,6 +1,4 @@
 <script>
- import './canvas.css';
-
 </script>
 
 

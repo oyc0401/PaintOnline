@@ -1,10 +1,12 @@
 import {localization} from './localization';
-let current_language = "ko";
+
+export const i18n = {lang:'en'};
 
 export function localize(english_text, ...interpolations) {
+
   
   function find_localization(english_text) {
-  const languageObj = localization[current_language];
+  const languageObj = localization[i18n.lang];
     
     if (languageObj && languageObj[english_text]) {
     	return languageObj[english_text];
@@ -18,18 +20,21 @@ export function localize(english_text, ...interpolations) {
     }
     return text;
   }
-  
-  return interpolate(find_localization(english_text), interpolations);
+
+ 
+  const value = interpolate(find_localization(english_text), interpolations);
+   //console.log('번역:',value);
+  return value
 }
 
-export function get_direction(language = current_language) {
+export function get_direction(language = i18n.lang) {
   return language.match(/^(ar|dv|fa|ha|he|ks|ku|ms|pa|ps|sd|ug|yi)\b/i)
     ? "rtl"
     : "ltr";
 }
 
 export function get_language() {
-  return current_language
+  return i18n.lang
 }
 
 export const available_languages = ["ar", "cs", "da", "de", "el", "en", "es", "fi", "fr", "he", "hu", "it", "ja", "ko", "nl", "no", "pl", "pt", "pt-br", "ru", "sk", "sl", "sv", "tr", "zh", "zh-simplified"];

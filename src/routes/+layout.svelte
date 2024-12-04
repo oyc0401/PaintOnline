@@ -1,8 +1,7 @@
 <script>
   import "../app.css";
    import "../paint.css";
-  import './styles.css';
-  
+
 
 
   import { onMount } from 'svelte';

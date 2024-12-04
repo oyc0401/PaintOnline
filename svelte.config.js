@@ -13,7 +13,8 @@ const config = {
     }),
     alias: {
       $store: path.resolve('./src/store'),
-      $paint:path.resolve('./src/paint'),
+      $paint: path.resolve('./src/paint'),
+      $src: path.resolve('./src'),
     }
   },
   preprocess: vitePreprocess(),

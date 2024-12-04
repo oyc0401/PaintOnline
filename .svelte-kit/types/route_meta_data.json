@@ -1,5 +1,6 @@
 {
-	"/": [
-		"src/routes/+page.js"
+	"/": [],
+	"/[lang]": [
+		"src/routes/[lang]/+page.js"
 	]
 }

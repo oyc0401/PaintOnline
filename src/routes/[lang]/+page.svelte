@@ -4,17 +4,18 @@
   import Footer from "./Footer.svelte";
 
   import { onMount } from "svelte";
-  import { menuState } from "../store/menuState.svelte.js";
+  import { menuState } from "$store/menuState.svelte.js";
   import { PaintJS } from "$paint/main";
-  import {PaintJSState} from '$paint/state';
-  import { reaction , toJS} from 'mobx';
-  
+  import { PaintJSState } from "$paint/state";
+  import { reaction, toJS } from "mobx";
+  import { i18n } from "$src/localize/localize";
+  let { data } = $props();
+  console.log("lang", data.lang);
+   i18n.lang = data.lang;
   onMount(async () => {
-
+   
+    console.log(data.translation);
     PaintJS.create();
-
-    console.log('undo:',toJS(PaintJSState.undos));
-    
 
     // reaction(
     //     () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
@@ -31,7 +32,7 @@
     // );
 
     //PaintJSState.pointer.x}, ${
-    
+
     // 아래껀 실험용
     menuState.undo = PaintJSState.undos;
     window.menuState = menuState;

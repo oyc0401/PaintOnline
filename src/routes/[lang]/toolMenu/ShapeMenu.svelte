@@ -6,10 +6,10 @@
     TOOL_POLYGON,
     TOOL_RECTANGLE,
     TOOL_ROUNDED_RECTANGLE,
-  } from "../../paint/src/tools";
+  } from "$paint/src/tools";
 
-  import { menuState } from "../../store/menuState.svelte.js";
-  import {  changeTool } from "../../store/paintFunction.js";
+  import { menuState } from "$store/menuState.svelte.js";
+  import {  changeTool } from "$store/paintFunction.js";
   function setTool(toolId) {
     changeTool(toolId, 4);
   }

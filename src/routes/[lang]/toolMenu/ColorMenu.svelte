@@ -1,10 +1,10 @@
 <script>
   import "./colorMenu.css";
 
-  import { menuState } from "../../store/menuState.svelte.js";
+  import { menuState } from "$store/menuState.svelte.js";
   import PickColorIcon from "$lib/images/pick_color.png";
   import TransparantIcon from "$lib/images/transparent_icon.png";
-  import {PaintJSState} from '../../paint/state';
+  import {PaintJSState} from '$paint/state';
   const palette1 = [
     "rgb(0,0,0)", // Black
     "rgb(128,128,128)", // Dark Gray

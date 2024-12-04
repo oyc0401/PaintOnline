@@ -23,14 +23,16 @@
   
   import { onMount } from 'svelte';
   
-  import { menuState } from "../store/menuState.svelte.js";
-  import {changeTool as setTool} from '../store/paintFunction.js'
+  import { menuState } from "$store/menuState.svelte.js";
+  import {changeTool as setTool} from '$store/paintFunction.js'
 
   import { reaction , toJS} from 'mobx';
 
   import {redo, undo} from "$paint/src/functions.js";
   import {PaintJSState} from '$paint/state';
   let buttons = Array(7);
+
+  import { localize } from "$src/localize/localize";
 
   const openMenu = (id) => {
     if(!menuState.showMenu){
@@ -106,7 +108,7 @@
       <div class="main-logo">
          <img src={LogoIcon} alt="logo icon" />
       </div>
-      <p class="pl-2.5 text-md">제목없음 그림판</p>
+      <h1 class="pl-2.5 text-md">{localize("untitled")} - {localize("Paint")}</h1>
       <div class="flex-1"></div>
       <button class="history-button" onclick={clickUndo}>
         {#if menuState.undoLength==0}
