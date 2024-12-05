@@ -2,46 +2,41 @@
   import Header from "./Header.svelte";
   import Canvas from "./Canvas.svelte";
   import Footer from "./Footer.svelte";
-
   import { onMount } from "svelte";
-  import { menuState } from "$store/menuState.svelte.js";
   import { PaintJS } from "$paint/main";
-  import { PaintJSState } from "$paint/state";
-  import { reaction, toJS } from "mobx";
-  import { i18n } from "$src/localize/localize";
+  import { i18n, localize } from "$src/localize/localize";
+
   let { data } = $props();
-  console.log("lang", data.lang);
-   i18n.lang = data.lang;
+  const {lang} = data;
+  i18n.lang = lang;
+
+  const translations = {
+    title: localize('Paint Online'),
+    description: localize('easy paint tool'),
+    ogTitle: localize('easy paint tool'),
+    ogDescription: localize('this is modern easy paint tool!'),
+  };
+
+  const baseUrl = 'https://paintonline365.com';
+  
   onMount(async () => {
-   
-    console.log(data.translation);
     PaintJS.create();
-
-    // reaction(
-    //     () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
-    //     ([x, y]) => {
-    //        console.log(`pointer UI: (${x}, ${y})`)
-    //     }
-    // );
-
-    // reaction(
-    //     () => [PaintJSState.pointer.x, PaintJSState.pointer.y], // 감시할 상태
-    //     ([x, y]) => {
-    //        console.log(`pointer UI: (${x}, ${y})`)
-    //     }
-    // );
-
-    //PaintJSState.pointer.x}, ${
-
-    // 아래껀 실험용
-    menuState.undo = PaintJSState.undos;
-    window.menuState = menuState;
   });
 </script>
 
 <svelte:head>
-  <title>Home</title>
-  <meta name="description" content="Svelte demo app" />
+  <title>{translations.title}</title>
+  <meta name="description" content={translations.description} />
+  <meta property="og:title" content={translations.ogTitle} />
+  <meta property="og:description" content={translations.ogDescription} />
+  <meta property="og:url" content="https://paintonline365.com" />
+  <meta property="og:image:width" content="279" />
+  <meta property="og:image:height" content="279" />
+  <meta property="og:image" content="https://paintonline365.com/images/icons/og-image-279x279.jpg" />
+  <link rel="canonical" href={`${baseUrl}/${lang}`} />
+  <link rel="alternate" href={`${baseUrl}/en`} hreflang="en" />
+  <link rel="alternate" href={`${baseUrl}/ko`} hreflang="ko" />
+  <link rel="alternate" href={`${baseUrl}/ja`} hreflang="ja" />
 </svelte:head>
 
 <div class="h-full flex flex-col">
