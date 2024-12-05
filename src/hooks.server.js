@@ -16,7 +16,7 @@ export async function handle({ event, resolve }) {
     else if (userLanguage.startsWith('fr')) langRoute = 'fr';
 
     // 언어 경로로 리다이렉트
-    throw redirect(302, `/${langRoute}`);
+    throw redirect(301, `/${langRoute}`);
   }
 
   // 기본 요청 처리
