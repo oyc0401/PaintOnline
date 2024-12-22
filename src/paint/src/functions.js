@@ -547,7 +547,8 @@ function make_history_node({
 
 function update_title() {
 	// 이게 브라우저 상단 타이틀 수정하는거임 꼭 여기서 수정해야할까?
-	document.title = `${PaintJSState.file_name} - ${localize("Paint")}`;
+	// 동적으로 수정해도 seo에 다 잡히는 것 같음.
+	//document.title = `${PaintJSState.file_name} - ${localize("Paint")}`;
 }
 
 /**

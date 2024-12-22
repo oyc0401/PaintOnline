@@ -37,6 +37,7 @@
   <link rel="alternate" href={`${baseUrl}/en`} hreflang="en" />
   <link rel="alternate" href={`${baseUrl}/ko`} hreflang="ko" />
   <link rel="alternate" href={`${baseUrl}/ja`} hreflang="ja" />
+  <link rel="alternate" href={baseUrl} hreflang="x-default" />
 </svelte:head>
 
 <div class="h-full flex flex-col">
