@@ -1,4 +1,4 @@
-console.log('JS 실행:','storage.js')
+console.log('JS 실행:', 'storage.js');
 // @ts-check
 
 // @TODO: maybe replace this module with localforage or similar
@@ -12,44 +12,72 @@ const localStore = {
 	 * @param {((error: Error, value_or_values?: string) => void) | ((error: Error, value_or_values?: Record<string, string>) => void)} callback
 	 */
 	get(key_or_keys_or_pairs, callback) {
-		let obj;
-		try {
-			if (typeof key_or_keys_or_pairs === "string") {
-				const key = key_or_keys_or_pairs;
-				const item = localStorage.getItem(key);
-				if (item) {
-					obj = JSON.parse(item);
-				}
+		const request = indexedDB.open('MyDatabase', 1);
+
+		request.onupgradeneeded = function (event) {
+			const db = event.target.result;
+			if (!db.objectStoreNames.contains('store')) {
+				db.createObjectStore('store', { keyPath: 'key' });
+			}
+		};
+
+		request.onsuccess = function (event) {
+			const db = event.target.result;
+			const transaction = db.transaction('store', 'readonly');
+			const store = transaction.objectStore('store');
+
+			if (typeof key_or_keys_or_pairs === 'string') {
+				const getRequest = store.get(key_or_keys_or_pairs);
+				getRequest.onsuccess = function () {
+					callback(null, getRequest.result ? getRequest.result.value : null);
+				};
+				getRequest.onerror = function () {
+					callback(getRequest.error);
+				};
+			} else if (Array.isArray(key_or_keys_or_pairs)) {
+				const result = {};
+				let completed = 0;
+				key_or_keys_or_pairs.forEach((key) => {
+					const getRequest = store.get(key);
+					getRequest.onsuccess = function () {
+						if (getRequest.result) {
+							result[key] = getRequest.result.value;
+						}
+						completed++;
+						if (completed === key_or_keys_or_pairs.length) {
+							callback(null, result);
+						}
+					};
+					getRequest.onerror = function () {
+						callback(getRequest.error);
+					};
+				});
 			} else {
-				obj = {};
-				if (Array.isArray(key_or_keys_or_pairs)) {
-					const keys = key_or_keys_or_pairs;
-					for (let i = 0, len = keys.length; i < len; i++) {
-						const key = keys[i];
-						const item = localStorage.getItem(key);
-						if (item) {
-							obj[key] = JSON.parse(item);
+				const keysWithDefaults = key_or_keys_or_pairs;
+				const result = {};
+				let completed = 0;
+				for (const key in keysWithDefaults) {
+					const defaultValue = keysWithDefaults[key];
+					const getRequest = store.get(key);
+					getRequest.onsuccess = function () {
+						result[key] = getRequest.result ? getRequest.result.value : defaultValue;
+						completed++;
+						if (completed === Object.keys(keysWithDefaults).length) {
+							callback(null, result);
 						}
-					}
-				} else {
-					const keys_obj = key_or_keys_or_pairs;
-					for (const key in keys_obj) {
-						let defaultValue = keys_obj[key];
-						const item = localStorage.getItem(key);
-						if (item) {
-							obj[key] = JSON.parse(item);
-						} else {
-							obj[key] = defaultValue;
-						}
-					}
+					};
+					getRequest.onerror = function () {
+						callback(getRequest.error);
+					};
 				}
 			}
-		} catch (error) {
-			callback(error);
-			return;
-		}
-		callback(null, obj);
+		};
+
+		request.onerror = function (event) {
+			callback(event.target.error);
+		};
 	},
+
 	/**
 	 * See overrides in interface LocalStore.
 	 * @param {string | Record<string, string>} key_or_pairs
@@ -57,30 +85,54 @@ const localStore = {
 	 * @param {(error: Error) => void} [callback]
 	 */
 	set(key_or_pairs, value_or_callback, callback) {
-		let to_set = {};
-		if (typeof key_or_pairs === "string") {
-			to_set = {
-				[key_or_pairs]: value_or_callback,
-			};
-		} else if (Array.isArray(key_or_pairs)) {
-			throw new TypeError("Cannot set an array of keys (to what?)");
-		} else {
-			to_set = key_or_pairs;
-			callback = /** @type {(error: Error) => void} */ (value_or_callback);
-		}
-		for (const key in to_set) {
-			const value = to_set[key];
-			try {
-				localStorage.setItem(key, JSON.stringify(value));
-			} catch (error) {
-				error.quotaExceeded = error.code === 22 || error.name === "NS_ERROR_DOM_QUOTA_REACHED" || error.number === -2147024882;
-				callback(error);
-				return;
+		const request = indexedDB.open('MyDatabase', 1);
+
+		request.onupgradeneeded = function (event) {
+			const db = event.target.result;
+			if (!db.objectStoreNames.contains('store')) {
+				db.createObjectStore('store', { keyPath: 'key' });
 			}
-		}
-		return callback(null);
+		};
+
+		request.onsuccess = function (event) {
+			const db = event.target.result;
+			const transaction = db.transaction('store', 'readwrite');
+			const store = transaction.objectStore('store');
+
+			if (typeof key_or_pairs === 'string') {
+				const key = key_or_pairs;
+				const value = value_or_callback;
+				const putRequest = store.put({ key, value });
+				putRequest.onsuccess = function () {
+					if (callback) callback(null);
+				};
+				putRequest.onerror = function () {
+					if (callback) callback(putRequest.error);
+				};
+			} else {
+				const keyValuePairs = key_or_pairs;
+				let completed = 0;
+				const keys = Object.keys(keyValuePairs);
+				keys.forEach((key) => {
+					const value = keyValuePairs[key];
+					const putRequest = store.put({ key, value });
+					putRequest.onsuccess = function () {
+						completed++;
+						if (completed === keys.length && callback) {
+							callback(null);
+						}
+					};
+					putRequest.onerror = function () {
+						if (callback) callback(putRequest.error);
+					};
+				});
+			}
+		};
+
+		request.onerror = function (event) {
+			if (callback) callback(event.target.error);
+		};
 	},
 };
 
 export { localStore };
-
