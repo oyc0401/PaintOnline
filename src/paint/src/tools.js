@@ -2040,7 +2040,7 @@ tools.forEach((tool) => {
 		};
 
 		tool.paint = () => {
-
+			//console.warn('paint')
 			const brush = tool.get_brush();
 			const circumference_points = get_circumference_points_for_brush(
 				brush.shape,

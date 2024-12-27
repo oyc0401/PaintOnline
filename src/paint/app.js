@@ -812,6 +812,8 @@ export function initApp(canvasAreaQuery) {
     }
   }
   function canvas_pointer_move(e) {
+     console.log(`${e.pointerType} ${e.pointerId} (${e.clientX}, ${e.clientY}) ${e.touches} `,e);
+
     PaintJSState.ctrl = e.ctrlKey;
     PaintJSState.shift = e.shiftKey;
     PaintJSState.pointer = to_canvas_coords(e);

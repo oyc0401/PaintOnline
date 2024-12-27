@@ -197,13 +197,13 @@ let lastTime = 0;
 
 function update_helper_layer_immediately() {
 //	window.console?.log("Update helper layer NOW");
-	if (info_for_updating_pointer) {
-		const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
-		info_for_updating_pointer.clientX *= rescale;
-		info_for_updating_pointer.clientY *= rescale;
-		info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
-		PaintJSState.pointer = to_canvas_coords(info_for_updating_pointer);
-	}
+	// if (info_for_updating_pointer) {
+	// 	const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
+	// 	info_for_updating_pointer.clientX *= rescale;
+	// 	info_for_updating_pointer.clientY *= rescale;
+	// 	info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
+	// 	PaintJSState.pointer = to_canvas_coords(info_for_updating_pointer);
+	// }
 
 	const scale = PaintJSState.magnification * window.devicePixelRatio;
 
