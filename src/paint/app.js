@@ -743,13 +743,13 @@ export function initApp(canvasAreaQuery) {
 
   // #region Palette Updating From Theme
 
-  function update_fill_and_stroke_colors_and_lineWidth(selected_tooool) {
+  function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
     PaintJSState.main_ctx.lineWidth = PaintJSState.stroke_size;
 
     const reverse_because_fill_only = !!(
-      selected_tooool.$options &&
-      selected_tooool.$options.fill &&
-      !selected_tooool.$options.stroke
+      selected_tool.$options &&
+      selected_tool.$options.fill &&
+      !selected_tool.$options.stroke
     );
     /** @type {ColorSelectionSlot} */
     const color_k =
@@ -775,8 +775,8 @@ export function initApp(canvasAreaQuery) {
     /** @type {ColorSelectionSlot} */
     let stroke_color_k = fill_color_k;
 
-    if (selected_tooool.shape || selected_tooool.shape_colors) {
-      if (!selected_tooool.stroke_only) {
+    if (selected_tool.shape || selected_tool.shape_colors) {
+      if (!selected_tool.stroke_only) {
         if (PaintJSState.reverse !== reverse_because_fill_only) {
           fill_color_k = "foreground";
           stroke_color_k = "background";
@@ -799,18 +799,18 @@ export function initApp(canvasAreaQuery) {
   
   ////////////////////////////////////
   // #region Primary Canvas Interaction
-  function tool_go(selected_tooool, event_name) {
-    update_fill_and_stroke_colors_and_lineWidth(selected_tooool);
+  function tool_go(selected_tool, event_name) {
+    update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
-    if (selected_tooool[event_name]) {
-      selected_tooool[event_name](
+    if (selected_tool[event_name]) {
+      selected_tool[event_name](
         PaintJSState.main_ctx,
         PaintJSState.pointer.x,
         PaintJSState.pointer.y,
       );
     }
-    if (selected_tooool.paint) {
-      selected_tooool.paint(
+    if (selected_tool.paint) {
+      selected_tool.paint(
         PaintJSState.main_ctx,
         PaintJSState.pointer.x,
         PaintJSState.pointer.y,
@@ -967,55 +967,61 @@ export function initApp(canvasAreaQuery) {
       document.activeElement.blur();
     }
 
-    // 첫 번째 포인터 등록 (원본)
-    if (
-      PaintJSState.pointers.every(
-        (pointer) =>
-          !(
-            pointer.isPrimary &&
-            (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
-          )
-      )
-    ) {
-      PaintJSState.pointers.push({
-        pointerId: event.pointerId,
-        pointerType: event.pointerType,
-        // @ts-ignore
-        isPrimary:
-          (event.originalEvent && event.originalEvent.isPrimary) ||
-          event.isPrimary,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    }
-
-    if (PaintJSState.pointers.length === 1) {
-      first_pointer_time = performance.now();
-    }
-    if (PaintJSState.pointers.length === 2) {
-      last_zoom_pointer_distance = Math.hypot(
-        PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
-      );
-      pan_last_pos = average_points(PaintJSState.pointers);
-    }
+  
   });
 
   $canvas_area.get(0).addEventListener("pointerdown", (event) =>{
-    if(PaintJSState.pointers.length != 0){
+    console.log('$canvas_area.pointerdown - captured')
+
+    // 첫 번째 포인터 등록 (원본)
+      if (
+        PaintJSState.pointers.every(
+          (pointer) =>
+            !(
+              pointer.isPrimary &&
+              (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
+            )
+        )
+      ) {
+        PaintJSState.pointers.push({
+          pointerId: event.pointerId,
+          pointerType: event.pointerType,
+          // @ts-ignore
+          isPrimary:
+            (event.originalEvent && event.originalEvent.isPrimary) ||
+            event.isPrimary,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
+
+   
+
+      if (PaintJSState.pointers.length === 1) {
+        first_pointer_time = performance.now();
+      }
+      if (PaintJSState.pointers.length === 2) {
+        last_zoom_pointer_distance = Math.hypot(
+          PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
+          PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
+        );
+        pan_last_pos = average_points(PaintJSState.pointers);
+      }
+
+    // console.log(PaintJSState.pointers.length)
+    if(PaintJSState.pointers.length > 1){
        const elapsed = performance.now() - first_pointer_time;
-        if (PaintJSState.pointer_active &&  elapsed <= discard_quick_undo_period) {
+        if (elapsed <= discard_quick_undo_period) {
           //  핀지줌 허용
           // 아래코드 중복임, 리팩토링 필요
-          console.log('캔버스를 먼저 클릭하고 500ms이내에 밖을 클릭하면, 핀치줌 허용')
+          console.log('500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용')
           // 500ms 이내 => 그림 cancel + pinchAllowed = true
           cancel(false, false);
           PaintJSState.pointer_active = false; 
           // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
           // 핀치 줌은 허용
           PaintJSState.pinchAllowed = true;
-          //리턴하면 안됌
-          //return;
+          
         }
      }
 
@@ -1026,6 +1032,8 @@ export function initApp(canvasAreaQuery) {
     PaintJSState.pointers = PaintJSState.pointers.filter(
       (pointer) => pointer.pointerId !== event.pointerId
     );
+    // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
+    PaintJSState.pinchAllowed = false; 
   });
 
   $(window).on("pointermove", (event) => {
@@ -1072,10 +1080,6 @@ export function initApp(canvasAreaQuery) {
   });
   // #endregion
 
-
-  //$canvas_area.on("pointerdown", (e) => {}
-  
-
   ////////////////////////////////////
   // #region Primary Canvas Interaction (continued)
 
@@ -1085,25 +1089,28 @@ export function initApp(canvasAreaQuery) {
 
     const elapsed = performance.now() - first_pointer_time;
     
-    if(PaintJSState.pointers.length != 0 && elapsed <= discard_quick_undo_period){
-      // 아래코드 중복임, 리팩토링 필요
-      console.log('다른데 클릭하고 500ms이내에 클릭, 핀치줌 허용')
-      // 500ms 이내 => 그림 cancel + pinchAllowed = true
-      cancel(false, false);
-      PaintJSState.pointer_active = false; 
-      // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-      // 핀치 줌은 허용
-      PaintJSState.pinchAllowed = true;
-      return;
-    }
+    // if(PaintJSState.pointers.length != 0 && elapsed <= discard_quick_undo_period){
+    //   // 아래코드 중복임, 리팩토링 필요
+    //   console.log('다른데 클릭하고 500ms이내에 클릭, 핀치줌 허용')
+    //   // 500ms 이내 => 그림 cancel + pinchAllowed = true
+    //   cancel(false, false);
+    //   PaintJSState.pointer_active = false; 
+    //   // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+    //   // 핀치 줌은 허용
+    //   PaintJSState.pinchAllowed = true;
+    //   return;
+    // }
 
     // "pointer_active가 없으면" => 첫 번째 포인터로 간주
-    if (!PaintJSState.pointer_active) {
+
+    console.log('현재:',PaintJSState.pointer_active,PaintJSState.pinchAllowed)
+    if (!PaintJSState.pointer_active && !PaintJSState.pinchAllowed) {
       console.log("첫 번째 터치로 그림 시작:", e.pointerId);
       PaintJSState.pointer_active = true;
       PaintJSState.pointerId = e.pointerId;
       PaintJSState.pinchAllowed = false; // 초기값 false
     } else {
+      console.log('else분기')
       // 이미 포인터가 있음 => 두 번째 터치
       if (PaintJSState.pointerId !== e.pointerId) {
         if (elapsed <= discard_quick_undo_period) {
@@ -1194,7 +1201,7 @@ export function initApp(canvasAreaQuery) {
       $(window).on("pointermove", canvas_pointer_move);
 
       // 툴별 pointerup
-      const toolPointerUpHandler = (eUp, canceling, no_undoable) => {
+      const onWindowPointerup = (eUp, canceling, no_undoable) => {
       
         if (PaintJSState.pointerId !== eUp.pointerId) {
           return;
@@ -1207,7 +1214,6 @@ export function initApp(canvasAreaQuery) {
            // PaintJSState.pointer = to_canvas_coords(eUp);
           }
         }
-        
         if (!PaintJSState.pinchAllowed) {
           PaintJSState.selected_tools.forEach((selected_tool) => {
             selected_tool.pointerup?.(
@@ -1231,18 +1237,20 @@ export function initApp(canvasAreaQuery) {
         if (!canceling) {
           PaintJSState.history_node_to_cancel_to = null;
         }
-        $(window).off("pointerup pointercancel", toolPointerUpHandler);
+        $(window).off("pointerup pointercancel", onWindowPointerup);
 
          
       };
 
-      $(window).on("pointerup pointercancel", toolPointerUpHandler);
+      $(window).on("pointerup pointercancel", onWindowPointerup);
     };
 
     pointerdown_action();
     update_helper_layer(e);
   });
 
+
+  
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
       if ($canvas_area.is(e.target)) {

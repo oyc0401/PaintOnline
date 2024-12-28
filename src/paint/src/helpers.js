@@ -395,7 +395,7 @@ function rgb_to_hsl(r, g, b) {
  * @returns {{ x: number, y: number }} canvas coordinates
  */
 function to_canvas_coords(event) {
-	console.log(event.pointerId)
+	//console.log(event.pointerId)
 	
 	let clientX, clientY;
 	if(event.type == 'touchmove'){
