@@ -238,511 +238,516 @@ export function initApp(canvasAreaQuery) {
 
   // #endregion
 
-  // #region Keyboard Shortcuts
-  $(window).on("keydown", (e) => {
-    // typecast to HTMLElement because e.target is incorrectly given as Window, due to wrapping window
-    const target = /** @type {HTMLElement} */ (
-      /** @type {unknown} */ (e.target)
-    );
+ function manageKeyboard(){
+   // #region Keyboard Shortcuts
+   $(window).on("keydown", (e) => {
+     // typecast to HTMLElement because e.target is incorrectly given as Window, due to wrapping window
+     const target = /** @type {HTMLElement} */ (
+       /** @type {unknown} */ (e.target)
+     );
 
-    if (e.isDefaultPrevented()) {
-      return;
-    }
-    if (e.key === "Escape") {
-      // Note: Escape handled below too! (after input/textarea return condition)
-      // if (textbox && textbox.$editor.is(target)) {
-      //   deselect();
-      // }
-    }
-    if (
-      // Ctrl+Shift+Y for history window,
-      // chosen because it's related to the undo/redo shortcuts
-      // and it looks like a branching symbol.
-      (e.ctrlKey || e.metaKey) &&
-      e.shiftKey &&
-      !e.altKey &&
-      e.key.toUpperCase() === "Y"
-    ) {
-      show_document_history();
-      e.preventDefault();
-      return;
-    }
-    // @TODO: return if menus/menubar focused or focus in dialog window
-    // or maybe there's a better way to do this that works more generally
-    // maybe it should only handle the event if document.activeElement is the body or html element?
-    // (or $app could have a tabIndex and no focus style and be focused under various conditions,
-    // if that turned out to make more sense for some reason)
-    if (
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement
-    ) {
-      return;
-    }
+     if (e.isDefaultPrevented()) {
+       return;
+     }
+     if (e.key === "Escape") {
+       // Note: Escape handled below too! (after input/textarea return condition)
+       // if (textbox && textbox.$editor.is(target)) {
+       //   deselect();
+       // }
+     }
+     if (
+       // Ctrl+Shift+Y for history window,
+       // chosen because it's related to the undo/redo shortcuts
+       // and it looks like a branching symbol.
+       (e.ctrlKey || e.metaKey) &&
+       e.shiftKey &&
+       !e.altKey &&
+       e.key.toUpperCase() === "Y"
+     ) {
+       show_document_history();
+       e.preventDefault();
+       return;
+     }
+     // @TODO: return if menus/menubar focused or focus in dialog window
+     // or maybe there's a better way to do this that works more generally
+     // maybe it should only handle the event if document.activeElement is the body or html element?
+     // (or $app could have a tabIndex and no focus style and be focused under various conditions,
+     // if that turned out to make more sense for some reason)
+     if (
+       e.target instanceof HTMLInputElement ||
+       e.target instanceof HTMLTextAreaElement
+     ) {
+       return;
+     }
 
-    // @TODO: preventDefault in all cases where the event is handled
-    // also, ideally check that modifiers *aren't* pressed
-    // probably best to use a library at this point!
+     // @TODO: preventDefault in all cases where the event is handled
+     // also, ideally check that modifiers *aren't* pressed
+     // probably best to use a library at this point!
 
-    if (PaintJSState.selection) {
-      const nudge_selection = (delta_x, delta_y) => {
-        PaintJSState.selection.x += delta_x;
-        PaintJSState.selection.y += delta_y;
-        PaintJSState.selection.position();
-      };
-      switch (e.key) {
-        case "ArrowLeft":
-          nudge_selection(-1, 0);
-          e.preventDefault();
-          break;
-        case "ArrowRight":
-          nudge_selection(+1, 0);
-          e.preventDefault();
-          break;
-        case "ArrowDown":
-          nudge_selection(0, +1);
-          e.preventDefault();
-          break;
-        case "ArrowUp":
-          nudge_selection(0, -1);
-          e.preventDefault();
-          break;
-      }
-    }
+     if (PaintJSState.selection) {
+       const nudge_selection = (delta_x, delta_y) => {
+         PaintJSState.selection.x += delta_x;
+         PaintJSState.selection.y += delta_y;
+         PaintJSState.selection.position();
+       };
+       switch (e.key) {
+         case "ArrowLeft":
+           nudge_selection(-1, 0);
+           e.preventDefault();
+           break;
+         case "ArrowRight":
+           nudge_selection(+1, 0);
+           e.preventDefault();
+           break;
+         case "ArrowDown":
+           nudge_selection(0, +1);
+           e.preventDefault();
+           break;
+         case "ArrowUp":
+           nudge_selection(0, -1);
+           e.preventDefault();
+           break;
+       }
+     }
 
-    if (e.key === "Escape") {
-      // Note: Escape handled above too!
-      if (PaintJSState.selection) {
-        deselect();
-      } else {
-        cancel();
-      }
-    } else if (e.key === "Enter") {
-      if (PaintJSState.selection) {
-        deselect();
-      }
-    } else if (e.key === "F4") {
-      redo();
-    } else if (e.key === "Delete" || e.key === "Backspace") {
-      // alt+backspace: undo
-      // shift+delete: cut
-      // delete/backspace: delete selection
-      if (e.key === "Delete" && e.shiftKey) {
-        edit_cut();
-      } else if (e.key === "Backspace" && e.altKey) {
-        undo();
-      } else {
-        delete_selection();
-      }
-      e.preventDefault();
-    } else if (e.key === "Insert") {
-      // ctrl+insert: copy
-      // shift+insert: paste
-      if (e.ctrlKey) {
-        edit_copy();
-        e.preventDefault();
-      } else if (e.shiftKey) {
-        edit_paste();
-        e.preventDefault();
-      }
-    } else if (
-      e.code === "NumpadAdd" ||
-      e.code === "NumpadSubtract" ||
-      // normal + and - keys
-      e.key === "+" ||
-      e.key === "-" ||
-      e.key === "="
-    ) {
-      const plus = e.code === "NumpadAdd" || e.key === "+" || e.key === "=";
-      const minus = e.code === "NumpadSubtract" || e.key === "-";
-      const delta = Number(plus) - Number(minus); // const delta = +plus++ -minus--; // Δ = ±±±±
+     if (e.key === "Escape") {
+       // Note: Escape handled above too!
+       if (PaintJSState.selection) {
+         deselect();
+       } else {
+         cancel();
+       }
+     } else if (e.key === "Enter") {
+       if (PaintJSState.selection) {
+         deselect();
+       }
+     } else if (e.key === "F4") {
+       redo();
+     } else if (e.key === "Delete" || e.key === "Backspace") {
+       // alt+backspace: undo
+       // shift+delete: cut
+       // delete/backspace: delete selection
+       if (e.key === "Delete" && e.shiftKey) {
+         edit_cut();
+       } else if (e.key === "Backspace" && e.altKey) {
+         undo();
+       } else {
+         delete_selection();
+       }
+       e.preventDefault();
+     } else if (e.key === "Insert") {
+       // ctrl+insert: copy
+       // shift+insert: paste
+       if (e.ctrlKey) {
+         edit_copy();
+         e.preventDefault();
+       } else if (e.shiftKey) {
+         edit_paste();
+         e.preventDefault();
+       }
+     } else if (
+       e.code === "NumpadAdd" ||
+       e.code === "NumpadSubtract" ||
+       // normal + and - keys
+       e.key === "+" ||
+       e.key === "-" ||
+       e.key === "="
+     ) {
+       const plus = e.code === "NumpadAdd" || e.key === "+" || e.key === "=";
+       const minus = e.code === "NumpadSubtract" || e.key === "-";
+       const delta = Number(plus) - Number(minus); // const delta = +plus++ -minus--; // Δ = ±±±±
 
-      if (PaintJSState.selection) {
-        PaintJSState.selection.scale(2 ** delta);
-      } else {
-        if (PaintJSState.selected_tool.id === TOOL_BRUSH) {
-          PaintJSState.brush_size = Math.max(
-            1,
-            Math.min(PaintJSState.brush_size + delta, 500),
-          );
-        } else if (PaintJSState.selected_tool.id === TOOL_ERASER) {
-          PaintJSState.eraser_size = Math.max(
-            1,
-            Math.min(PaintJSState.eraser_size + delta, 500),
-          );
-        } else if (PaintJSState.selected_tool.id === TOOL_AIRBRUSH) {
-          PaintJSState.airbrush_size = Math.max(
-            1,
-            Math.min(PaintJSState.airbrush_size + delta, 500),
-          );
-        } else if (PaintJSState.selected_tool.id === TOOL_PENCIL) {
-          PaintJSState.pencil_size = Math.max(
-            1,
-            Math.min(PaintJSState.pencil_size + delta, 50),
-          );
-        } else if (
-          PaintJSState.selected_tool.id === TOOL_LINE ||
-          PaintJSState.selected_tool.id === TOOL_CURVE ||
-          PaintJSState.selected_tool.id === TOOL_RECTANGLE ||
-          PaintJSState.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
-          PaintJSState.selected_tool.id === TOOL_ELLIPSE ||
-          PaintJSState.selected_tool.id === TOOL_POLYGON
-        ) {
-          PaintJSState.stroke_size = Math.max(
-            1,
-            Math.min(PaintJSState.stroke_size + delta, 500),
-          );
-        }
+       if (PaintJSState.selection) {
+         PaintJSState.selection.scale(2 ** delta);
+       } else {
+         if (PaintJSState.selected_tool.id === TOOL_BRUSH) {
+           PaintJSState.brush_size = Math.max(
+             1,
+             Math.min(PaintJSState.brush_size + delta, 500),
+           );
+         } else if (PaintJSState.selected_tool.id === TOOL_ERASER) {
+           PaintJSState.eraser_size = Math.max(
+             1,
+             Math.min(PaintJSState.eraser_size + delta, 500),
+           );
+         } else if (PaintJSState.selected_tool.id === TOOL_AIRBRUSH) {
+           PaintJSState.airbrush_size = Math.max(
+             1,
+             Math.min(PaintJSState.airbrush_size + delta, 500),
+           );
+         } else if (PaintJSState.selected_tool.id === TOOL_PENCIL) {
+           PaintJSState.pencil_size = Math.max(
+             1,
+             Math.min(PaintJSState.pencil_size + delta, 50),
+           );
+         } else if (
+           PaintJSState.selected_tool.id === TOOL_LINE ||
+           PaintJSState.selected_tool.id === TOOL_CURVE ||
+           PaintJSState.selected_tool.id === TOOL_RECTANGLE ||
+           PaintJSState.selected_tool.id === TOOL_ROUNDED_RECTANGLE ||
+           PaintJSState.selected_tool.id === TOOL_ELLIPSE ||
+           PaintJSState.selected_tool.id === TOOL_POLYGON
+         ) {
+           PaintJSState.stroke_size = Math.max(
+             1,
+             Math.min(PaintJSState.stroke_size + delta, 500),
+           );
+         }
 
-        $(window).trigger("option-changed");
-        if (PaintJSState.button !== undefined && PaintJSState.pointer) {
-          // pointer may only be needed for tests
+         $(window).trigger("option-changed");
+         if (PaintJSState.button !== undefined && PaintJSState.pointer) {
+           // pointer may only be needed for tests
 
-          tool_go(PaintJSState.selected_tool);
-        }
-        update_helper_layer();
-      }
-      e.preventDefault();
-      return;
-    } else if (e.ctrlKey || e.metaKey) {
-      // if (textbox) {
-      //   switch (e.key.toUpperCase()) {
-      //     case "A":
-      //     case "Z":
-      //     case "Y":
-      //     case "I":
-      //     case "B":
-      //     case "U":
-      //       // Don't prevent the default. Allow text editing commands.
-      //       return;
-      //   }
-      // }
-      // Ctrl+PageDown: zoom to 400%
-      // Ctrl+PageUp: zoom to 100%
-      // In Chrome and Firefox, these switch to the next/previous tab,
-      // but it's allowed to be overridden in fullscreen in Chrome.
-      if (e.key === "PageDown") {
-        set_magnification(4);
-        e.preventDefault();
-        return;
-      } else if (e.key === "PageUp") {
-        set_magnification(1);
-        e.preventDefault();
-        return;
-      }
-      switch (e.key.toUpperCase()) {
-        case ",": // "<" without Shift
-        case "<":
-        case "[":
-        case "{":
-          rotate(-TAU / 4);
-          break;
-        case ".": // ">" without Shift
-        case ">":
-        case "]":
-        case "}":
-          rotate(+TAU / 4);
-          break;
-        case "Z":
-          if (e.shiftKey) {
-            redo();
-          } else {
-            undo();
-          }
-          break;
-        case "Y":
-          // Ctrl+Shift+Y handled above
-          redo();
-          break;
-        case "G":
-          break;
-        case "F":
-          // @ts-ignore (repeat doesn't exist on jQuery.Event, I guess, but this is fine)
-          if (!e.repeat && !e.originalEvent?.repeat) {
-            view_bitmap();
-          }
-          break;
-        case "O":
-          file_open();
-          break;
-        case "S":
-          if (e.shiftKey) {
-            file_save_as();
-          } else {
-            file_save();
-          }
-          break;
-        case "A":
-          select_all();
-          break;
-        case "I":
-          image_invert_colors();
-          break;
-        case "E":
-          image_attributes();
-          break;
+           tool_go(PaintJSState.selected_tool);
+         }
+         update_helper_layer();
+       }
+       e.preventDefault();
+       return;
+     } else if (e.ctrlKey || e.metaKey) {
+       // if (textbox) {
+       //   switch (e.key.toUpperCase()) {
+       //     case "A":
+       //     case "Z":
+       //     case "Y":
+       //     case "I":
+       //     case "B":
+       //     case "U":
+       //       // Don't prevent the default. Allow text editing commands.
+       //       return;
+       //   }
+       // }
+       // Ctrl+PageDown: zoom to 400%
+       // Ctrl+PageUp: zoom to 100%
+       // In Chrome and Firefox, these switch to the next/previous tab,
+       // but it's allowed to be overridden in fullscreen in Chrome.
+       if (e.key === "PageDown") {
+         set_magnification(4);
+         e.preventDefault();
+         return;
+       } else if (e.key === "PageUp") {
+         set_magnification(1);
+         e.preventDefault();
+         return;
+       }
+       switch (e.key.toUpperCase()) {
+         case ",": // "<" without Shift
+         case "<":
+         case "[":
+         case "{":
+           rotate(-TAU / 4);
+           break;
+         case ".": // ">" without Shift
+         case ">":
+         case "]":
+         case "}":
+           rotate(+TAU / 4);
+           break;
+         case "Z":
+           if (e.shiftKey) {
+             redo();
+           } else {
+             undo();
+           }
+           break;
+         case "Y":
+           // Ctrl+Shift+Y handled above
+           redo();
+           break;
+         case "G":
+           break;
+         case "F":
+           // @ts-ignore (repeat doesn't exist on jQuery.Event, I guess, but this is fine)
+           if (!e.repeat && !e.originalEvent?.repeat) {
+             view_bitmap();
+           }
+           break;
+         case "O":
+           file_open();
+           break;
+         case "S":
+           if (e.shiftKey) {
+             file_save_as();
+           } else {
+             file_save();
+           }
+           break;
+         case "A":
+           select_all();
+           break;
+         case "I":
+           image_invert_colors();
+           break;
+         case "E":
+           image_attributes();
+           break;
 
-        // These shortcuts are mostly reserved by browsers,
-        // but they are allowed in Electron.
-        // The shortcuts are hidden in the menus (or changed) when not in Electron,
-        // to prevent accidental closing/refreshing.
-        // I'm supporting Alt+<shortcut> here (implicitly) as a workaround (and showing this in the menus in some cases).
-        // Also, note that Chrome allows some shortcuts to be overridden in fullscreen (but showing/hiding the shortcuts would be confusing).
-        case "N":
-          if (e.shiftKey) {
-            clear();
-          } else {
-            file_new();
-          }
-          break;
-        case "R":
-          image_flip_and_rotate();
-          break;
-        case "W":
-          image_stretch_and_skew();
-          break;
+         // These shortcuts are mostly reserved by browsers,
+         // but they are allowed in Electron.
+         // The shortcuts are hidden in the menus (or changed) when not in Electron,
+         // to prevent accidental closing/refreshing.
+         // I'm supporting Alt+<shortcut> here (implicitly) as a workaround (and showing this in the menus in some cases).
+         // Also, note that Chrome allows some shortcuts to be overridden in fullscreen (but showing/hiding the shortcuts would be confusing).
+         case "N":
+           if (e.shiftKey) {
+             clear();
+           } else {
+             file_new();
+           }
+           break;
+         case "R":
+           image_flip_and_rotate();
+           break;
+         case "W":
+           image_stretch_and_skew();
+           break;
 
-        default:
-          return; // don't preventDefault
-      }
-      e.preventDefault();
-      // put nothing below! note return above
-    }
-  });
+         default:
+           return; // don't preventDefault
+       }
+       e.preventDefault();
+       // put nothing below! note return above
+     }
+   });
 
-  //console.log('dpr:',window.devicePixelRatio)
-  // #endregion
-  const zoomLevels = [
-    0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 100,
-  ];
+   //console.log('dpr:',window.devicePixelRatio)
+   // #endregion
 
-  const nextZoom = {
-    0.5: 1,
-    1: 2,
-    2: 3,
-    3: 4,
-    4: 5,
-    5: 6,
-    6: 8,
-    8: 10,
-    10: 12,
-    12: 15,
-    15: 20,
-    20: 25,
-    25: 30,
-    30: 40,
-    40: 50,
-    50: 60,
-    60: 75,
-    75: 100,
-    100: 100,
-  };
 
-  const nextout = {
-    100: 75,
-    75: 60,
-    60: 50,
-    50: 40,
-    40: 30,
-    30: 25,
-    25: 20,
-    20: 15,
-    15: 12,
-    12: 10,
-    10: 8,
-    8: 6,
-    6: 5,
-    5: 4,
-    4: 3,
-    3: 2,
-    2: 1,
-    1: 0.5,
-    0.5: 0.5,
-  };
+   const nextZoom = {
+     0.5: 1,
+     1: 2,
+     2: 3,
+     3: 4,
+     4: 5,
+     5: 6,
+     6: 8,
+     8: 10,
+     10: 12,
+     12: 15,
+     15: 20,
+     20: 25,
+     25: 30,
+     30: 40,
+     40: 50,
+     50: 60,
+     60: 75,
+     75: 100,
+     100: 100,
+   };
 
-  function getClosestZoom(currentZoom) {
-    const zoomLevels = Object.keys(nextZoom)
-      .map(Number)
-      .sort((a, b) => a - b);
-    for (let i = zoomLevels.length - 1; i >= 0; i--) {
-      if (currentZoom >= zoomLevels[i]) {
-        return zoomLevels[i];
-      }
-    }
-    return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
-  }
+   const nextout = {
+     100: 75,
+     75: 60,
+     60: 50,
+     50: 40,
+     40: 30,
+     30: 25,
+     25: 20,
+     20: 15,
+     15: 12,
+     12: 10,
+     10: 8,
+     8: 6,
+     6: 5,
+     5: 4,
+     4: 3,
+     3: 2,
+     2: 1,
+     1: 0.5,
+     0.5: 0.5,
+   };
 
-  addEventListener(
-    "wheel",
-    (e) => {
-      //console.log(e);  || e.ctrlKey
-      if (e.altKey) {
-        e.preventDefault();
-        let new_magnification = PaintJSState.magnification;
-        if (e.deltaY < 0) {
-          new_magnification =
-            nextZoom[getClosestZoom(PaintJSState.magnification)];
-        } else {
-          new_magnification =
-            nextout[getClosestZoom(PaintJSState.magnification)];
-        }
-        set_magnification(new_magnification, to_canvas_coords_magnification(e));
-        return;
-      }
-    },
-    { passive: false },
-  );
-  // #endregion
+   function getClosestZoom(currentZoom) {
+     const zoomLevels = Object.keys(nextZoom)
+       .map(Number)
+       .sort((a, b) => a - b);
+     for (let i = zoomLevels.length - 1; i >= 0; i--) {
+       if (currentZoom >= zoomLevels[i]) {
+         return zoomLevels[i];
+       }
+     }
+     return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
+   }
 
-  // #region Clipboard Handling
-  $(window).on("cut copy paste", (e) => {
-    if (e.isDefaultPrevented()) {
-      return;
-    }
-    if (
-      document.activeElement instanceof HTMLInputElement ||
-      document.activeElement instanceof HTMLTextAreaElement ||
-      !window.getSelection().isCollapsed
-    ) {
-      // Don't prevent cutting/copying/pasting within inputs or textareas, or if there's a selection
-      return;
-    }
+   addEventListener(
+     "wheel",
+     (e) => {
+       //console.log(e);  || e.ctrlKey
+       if (e.altKey) {
+         e.preventDefault();
+         let new_magnification = PaintJSState.magnification;
+         if (e.deltaY < 0) {
+           new_magnification =
+             nextZoom[getClosestZoom(PaintJSState.magnification)];
+         } else {
+           new_magnification =
+             nextout[getClosestZoom(PaintJSState.magnification)];
+         }
+         set_magnification(new_magnification, to_canvas_coords_magnification(e));
+         return;
+       }
+     },
+     { passive: false },
+   );
+   // #endregion
 
-    e.preventDefault();
-    // @ts-ignore
-    const cd = e.originalEvent.clipboardData || window.clipboardData;
-    if (!cd) {
-      return;
-    }
+   // #region Clipboard Handling
+   $(window).on("cut copy paste", (e) => {
+     if (e.isDefaultPrevented()) {
+       return;
+     }
+     if (
+       document.activeElement instanceof HTMLInputElement ||
+       document.activeElement instanceof HTMLTextAreaElement ||
+       !window.getSelection().isCollapsed
+     ) {
+       // Don't prevent cutting/copying/pasting within inputs or textareas, or if there's a selection
+       return;
+     }
 
-    if (e.type === "copy" || e.type === "cut") {
-      if (PaintJSState.selection && PaintJSState.selection.canvas) {
-        const do_sync_clipboard_copy_or_cut = () => {
-          // works only for pasting within a jspaint instance
-          const data_url = PaintJSState.selection.canvas.toDataURL();
-          cd.setData("text/x-data-uri; type=image/png", data_url);
-          cd.setData("text/uri-list", data_url);
-          cd.setData("URL", data_url);
-          if (e.type === "cut") {
-            delete_selection({
-              name: localize("Cut"),
-              icon: get_help_folder_icon("p_cut.png"),
-            });
-          }
-        };
-        if (!navigator.clipboard || !navigator.clipboard.write) {
-          return do_sync_clipboard_copy_or_cut();
-        }
-        try {
-          if (e.type === "cut") {
-            edit_cut();
-          } else {
-            edit_copy();
-          }
-        } catch (_error) {
-          do_sync_clipboard_copy_or_cut();
-        }
-      }
-    } else if (e.type === "paste") {
-      for (const item of cd.items) {
-        if (item.type.match(/^text\/(?:x-data-uri|uri-list|plain)|URL$/)) {
-          item.getAsString((text) => {
-            const uris = get_uris(text);
-            if (uris.length > 0) {
-              load_image_from_uri(uris[0]).then(
-                (info) => {
-                  paste(info.image || make_canvas(info.image_data));
-                },
-                (error) => {
-                  show_resource_load_error_message(error);
-                },
-              );
-            } else {
-              show_error_message(
-                "The information on the Clipboard can't be inserted into Paint.",
-              );
-            }
-          });
-          break;
-        } else if (item.type.match(/^image\//)) {
-          paste_image_from_file(item.getAsFile());
-          break;
-        }
-      }
-    }
-  });
-  // #endregion
+     e.preventDefault();
+     // @ts-ignore
+     const cd = e.originalEvent.clipboardData || window.clipboardData;
+     if (!cd) {
+       return;
+     }
+
+     if (e.type === "copy" || e.type === "cut") {
+       if (PaintJSState.selection && PaintJSState.selection.canvas) {
+         const do_sync_clipboard_copy_or_cut = () => {
+           // works only for pasting within a jspaint instance
+           const data_url = PaintJSState.selection.canvas.toDataURL();
+           cd.setData("text/x-data-uri; type=image/png", data_url);
+           cd.setData("text/uri-list", data_url);
+           cd.setData("URL", data_url);
+           if (e.type === "cut") {
+             delete_selection({
+               name: localize("Cut"),
+               icon: get_help_folder_icon("p_cut.png"),
+             });
+           }
+         };
+         if (!navigator.clipboard || !navigator.clipboard.write) {
+           return do_sync_clipboard_copy_or_cut();
+         }
+         try {
+           if (e.type === "cut") {
+             edit_cut();
+           } else {
+             edit_copy();
+           }
+         } catch (_error) {
+           do_sync_clipboard_copy_or_cut();
+         }
+       }
+     } else if (e.type === "paste") {
+       for (const item of cd.items) {
+         if (item.type.match(/^text\/(?:x-data-uri|uri-list|plain)|URL$/)) {
+           item.getAsString((text) => {
+             const uris = get_uris(text);
+             if (uris.length > 0) {
+               load_image_from_uri(uris[0]).then(
+                 (info) => {
+                   paste(info.image || make_canvas(info.image_data));
+                 },
+                 (error) => {
+                   show_resource_load_error_message(error);
+                 },
+               );
+             } else {
+               show_error_message(
+                 "The information on the Clipboard can't be inserted into Paint.",
+               );
+             }
+           });
+           break;
+         } else if (item.type.match(/^image\//)) {
+           paste_image_from_file(item.getAsFile());
+           break;
+         }
+       }
+     }
+   });
+   // #endregion
+ }
+  manageKeyboard();
+  
 
   reset_file();
   reset_selected_colors();
   reset_canvas_and_history(); // (with newly reset colors)
   set_magnification(PaintJSState.default_magnification);
 
-  // this is synchronous for now, but @TODO: handle possibility of loading a document before callback
-  // when switching to asynchronous storage, e.g. with localforage
-  localStore.get(
-    {
-      width: PaintJSState.default_canvas_width,
-      height: PaintJSState.default_canvas_height,
-    },
-    (err, stored_values) => {
-      if (err) {
-        return;
-      }
-      PaintJSState.my_canvas_width = Number(stored_values.width);
-      PaintJSState.my_canvas_height = Number(stored_values.height);
 
-      make_or_update_undoable(
-        {
-          match: (history_node) => history_node.name === localize("New"),
-          name: "Resize Canvas For New Document",
-          icon: get_help_folder_icon("p_stretch_both.png"),
-        },
-        () => {
-          PaintJSState.main_canvas.width = Math.max(
-            1,
-            PaintJSState.my_canvas_width,
-          );
-          PaintJSState.main_canvas.height = Math.max(
-            1,
-            PaintJSState.my_canvas_height,
-          );
-          PaintJSState.main_ctx.disable_image_smoothing();
-          if (!PaintJSState.transparency) {
-            PaintJSState.main_ctx.fillStyle =
-              PaintJSState.selected_colors.background;
-            PaintJSState.main_ctx.fillRect(
-              0,
-              0,
-              PaintJSState.main_canvas.width,
-              PaintJSState.main_canvas.height,
-            );
-          }
-          $canvas_area.trigger("resize");
-        },
-      );
-    },
-  );
+  function manageStorage(){
+    // this is synchronous for now, but @TODO: handle possibility of loading a document before callback
+    // when switching to asynchronous storage, e.g. with localforage
 
-  if (window.initial_system_file_handle) {
-    systemHooks.readBlobFromHandle(window.initial_system_file_handle).then(
-      (file) => {
-        if (file) {
-          open_from_file(file, window.initial_system_file_handle);
-        }
+    localStore.get(
+      {
+        width: PaintJSState.default_canvas_width,
+        height: PaintJSState.default_canvas_height,
       },
-      (error) => {
-        // this handler is not always called, sometimes error message is shown from readBlobFromHandle
-        show_error_message(
-          `Failed to open file ${window.initial_system_file_handle}`,
-          error,
+      (err, stored_values) => {
+        if (err) {
+          return;
+        }
+        PaintJSState.my_canvas_width = Number(stored_values.width);
+        PaintJSState.my_canvas_height = Number(stored_values.height);
+
+        make_or_update_undoable(
+          {
+            match: (history_node) => history_node.name === localize("New"),
+            name: "Resize Canvas For New Document",
+            icon: get_help_folder_icon("p_stretch_both.png"),
+          },
+          () => {
+            PaintJSState.main_canvas.width = Math.max(
+              1,
+              PaintJSState.my_canvas_width,
+            );
+            PaintJSState.main_canvas.height = Math.max(
+              1,
+              PaintJSState.my_canvas_height,
+            );
+            PaintJSState.main_ctx.disable_image_smoothing();
+            if (!PaintJSState.transparency) {
+              PaintJSState.main_ctx.fillStyle =
+                PaintJSState.selected_colors.background;
+              PaintJSState.main_ctx.fillRect(
+                0,
+                0,
+                PaintJSState.main_canvas.width,
+                PaintJSState.main_canvas.height,
+              );
+            }
+            $canvas_area.trigger("resize");
+          },
         );
       },
     );
+
+    if (window.initial_system_file_handle) {
+      systemHooks.readBlobFromHandle(window.initial_system_file_handle).then(
+        (file) => {
+          if (file) {
+            open_from_file(file, window.initial_system_file_handle);
+          }
+        },
+        (error) => {
+          // this handler is not always called, sometimes error message is shown from readBlobFromHandle
+          show_error_message(
+            `Failed to open file ${window.initial_system_file_handle}`,
+            error,
+          );
+        },
+      );
+    }
   }
+  manageStorage();
+  
   // #endregion
-
-  // #region Palette Updating From Theme
-
   function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
     PaintJSState.main_ctx.lineWidth = PaintJSState.stroke_size;
 
@@ -794,452 +799,453 @@ export function initApp(canvasAreaQuery) {
   }
 
 
+  function managePointer(){
+     // #region Palette Updating From Theme
 
-
-  
-  ////////////////////////////////////
-  // #region Primary Canvas Interaction
-  function tool_go(selected_tool, event_name) {
-    update_fill_and_stroke_colors_and_lineWidth(selected_tool);
-
-    if (selected_tool[event_name]) {
-      selected_tool[event_name](
-        PaintJSState.main_ctx,
-        PaintJSState.pointer.x,
-        PaintJSState.pointer.y,
-      );
-    }
-    if (selected_tool.paint) {
-      selected_tool.paint(
-        PaintJSState.main_ctx,
-        PaintJSState.pointer.x,
-        PaintJSState.pointer.y,
-      );
-    }
-  }
-
-  function canvas_pointer_move(e) {
-    // ---- [중요 수정 1] pointer_active가 아니면 바로 return → 그림 안 그려짐
-    if (!PaintJSState.pointer_active) {
-      return;
-    }
-
-    PaintJSState.ctrl = e.ctrlKey;
-    PaintJSState.shift = e.shiftKey;
-
-    // Quick Undo (for mouse/pen)
-    if (PaintJSState.pointers.length && e.button !== -1) {
-      const MMB = 4;
-      if (
-        e.pointerType !== PaintJSState.pointer_type ||
-        (e.buttons | MMB) !== (PaintJSState.pointer_buttons | MMB)
-      ) {
-        cancel();
-        PaintJSState.pointer_active = false;
-        return;
-      }
-    }
-
-    // SHIFT 스냅(도형 그리기) 로직 (원본 코드와 동일)
-    if (e.shiftKey) {
-      if (
-        PaintJSState.selected_tool.id === TOOL_LINE ||
-        PaintJSState.selected_tool.id === TOOL_CURVE
-      ) {
-        const dist = Math.hypot(
-          PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-          PaintJSState.pointer.x - PaintJSState.pointer_start.x
-        );
-        const eighth_turn = TAU / 8;
-        const angle_0_to_8 =
-          Math.atan2(
-            PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-            PaintJSState.pointer.x - PaintJSState.pointer_start.x
-          ) / eighth_turn;
-        const angle = Math.round(angle_0_to_8) * eighth_turn;
-        PaintJSState.pointer.x = Math.round(
-          PaintJSState.pointer_start.x + Math.cos(angle) * dist
-        );
-        PaintJSState.pointer.y = Math.round(
-          PaintJSState.pointer_start.y + Math.sin(angle) * dist
-        );
-      } else if (PaintJSState.selected_tool.shape) {
-        const w = Math.abs(PaintJSState.pointer.x - PaintJSState.pointer_start.x);
-        const h = Math.abs(PaintJSState.pointer.y - PaintJSState.pointer_start.y);
-        if (w < h) {
-          if (PaintJSState.pointer.y > PaintJSState.pointer_start.y) {
-            PaintJSState.pointer.y = PaintJSState.pointer_start.y + w;
-          } else {
-            PaintJSState.pointer.y = PaintJSState.pointer_start.y - w;
-          }
-        } else {
-          if (PaintJSState.pointer.x > PaintJSState.pointer_start.x) {
-            PaintJSState.pointer.x = PaintJSState.pointer_start.x + h;
-          } else {
-            PaintJSState.pointer.x = PaintJSState.pointer_start.x - h;
-          }
-        }
-      }
-    }
-
-    // 실제 도구 paint
-    PaintJSState.selected_tools.forEach((selected_tool) => {
-      tool_go(selected_tool);
-    });
-    PaintJSState.pointer_previous = PaintJSState.pointer;
-  }
-
-   // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
-  function setPrimaryPointPosition(){
-   
-    $canvas.on("pointermove", (e) => {
-      // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
-      if (!PaintJSState.pointer_active) {
-        return;
-      }
-
-      if (PaintJSState.pointerId === e.pointerId) {
-        PaintJSState.pointer = to_canvas_coords(e);
-      }
-    });
-  }
-  setPrimaryPointPosition();
-
-  // 마우스가 캔버스 안에 들어오면 커서위치에 헬퍼레이어에 브러쉬 미리보기 위치 잡는거
-  function setBrushPreview(){
-    $canvas.on("pointerenter", (e) => {
-      PaintJSState.pointer_over_canvas = true;
-      update_helper_layer(e);
-
-      if (!PaintJSState.update_helper_layer_on_pointermove_active) {
-        $(window).on("pointermove", update_helper_layer);
-        PaintJSState.update_helper_layer_on_pointermove_active = true;
-      }
-    });
-
-    $canvas.on("pointerleave", (e) => {
-      PaintJSState.pointer_over_canvas = false;
-      update_helper_layer(e);
-
-      if (
-        !PaintJSState.pointer_active &&
-        PaintJSState.update_helper_layer_on_pointermove_active
-      ) {
-        $(window).off("pointermove", update_helper_layer);
-        PaintJSState.update_helper_layer_on_pointermove_active = false;
-      }
-    });
-  }
-  //setBrushPreview();
-
-
-
-  ////////////////////////////////////
-  // #region Panning and Zooming
-  let last_zoom_pointer_distance;
-  let pan_last_pos;
-  let first_pointer_time;
-  const discard_quick_undo_period = 500;
-
-  // "두 번째 터치가 500ms 이내" → cancel() 후 pinchAllowed = true
-  // "두 번째 터치가 500ms 이후" → pinchAllowed = false
-  // PaintJSState.pinchAllowed = false;
-
-  function average_points(points) {
-    const average = { x: 0, y: 0 };
-    for (const pointer of points) {
-      average.x += pointer.x;
-      average.y += pointer.y;
-    }
-    average.x /= points.length;
-    average.y /= points.length;
-    return average;
-  }
-
- $canvas_area.get(0).addEventListener("pointerdown", (event) => {
-     console.log('$canvas_area.pointerdown')
-    if (
-      document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
-      document.activeElement !== document.body &&
-      document.activeElement !== document.documentElement
-    ) {
-      // Allow unfocusing dialogs etc. in order to use keyboard shortcuts
-      document.activeElement.blur();
-    }
-
-  
-  });
-
-  $canvas_area.get(0).addEventListener("pointerdown", (event) =>{
-    console.log('$canvas_area.pointerdown - captured')
-
-    // 첫 번째 포인터 등록 (원본)
-      if (
-        PaintJSState.pointers.every(
-          (pointer) =>
-            !(
-              pointer.isPrimary &&
-              (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
-            )
-        )
-      ) {
-        PaintJSState.pointers.push({
-          pointerId: event.pointerId,
-          pointerType: event.pointerType,
-          // @ts-ignore
-          isPrimary:
-            (event.originalEvent && event.originalEvent.isPrimary) ||
-            event.isPrimary,
-          x: event.clientX,
-          y: event.clientY,
-        });
-      }
-
-      if (PaintJSState.pointers.length === 1) {
-        first_pointer_time = performance.now();
-      }
-      if (PaintJSState.pointers.length === 2) {
-        last_zoom_pointer_distance = Math.hypot(
-          PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-          PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
-        );
-        pan_last_pos = average_points(PaintJSState.pointers);
-      }
-
-    // console.log(PaintJSState.pointers.length)
-    
-    if(PaintJSState.pointers.length > 1){
-       const elapsed = performance.now() - first_pointer_time;
-        if (elapsed <= discard_quick_undo_period) {
-          //  핀지줌 허용
-          // 아래코드 중복임, 리팩토링 필요
-          console.log('500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용')
-
-          $(window).trigger('pointerup');
-          // 500ms 이내 => 그림 cancel + pinchAllowed = true
-          cancel(false, true);
-          PaintJSState.pointer_active = false; 
-          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-          // 핀치 줌은 허용
-          PaintJSState.pinchAllowed = true;
-          
-        }
-     }
-
-  },true);
-
-  $(window).on("pointerup pointercancel", (event) => {
-     console.log('window.pointerup','window.pointercancel')
-    PaintJSState.pointers = PaintJSState.pointers.filter(
-      (pointer) => pointer.pointerId !== event.pointerId
-    );
-    // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
-    PaintJSState.pinchAllowed = false; 
-  });
-
-  $(window).on("pointermove", (event) => {
-   // console.log('window.pointermove')
-    // 핀치 줌 추적 (원본)
-    for (const pointer of PaintJSState.pointers) {
-      if (pointer.pointerId === event.pointerId) {
-        pointer.x = event.clientX;
-        pointer.y = event.clientY;
-      }
-    }
-    if (PaintJSState.pointers.length >= 2 && PaintJSState.pinchAllowed) {
-      const current_pos = average_points(PaintJSState.pointers);
-      const distance = Math.hypot(
-        PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
-      );
-      const diff = distance - last_zoom_pointer_distance;
-      let new_magnification = PaintJSState.magnification;
-
-      if (Math.abs(diff) > 60) {
-        last_zoom_pointer_distance = distance;
-        if (diff > 0) {
-          new_magnification =
-            nextZoom[getClosestZoom(PaintJSState.magnification)];
-        } else {
-          new_magnification =
-            nextout[getClosestZoom(PaintJSState.magnification)];
-        }
-      }
-
-      if (new_magnification !== PaintJSState.magnification) {
-        set_magnification(
-          new_magnification,
-          to_canvas_coords_magnification({ clientX: current_pos.x, clientY: current_pos.y })
-        );
-      }
-      const dx = current_pos.x - pan_last_pos.x;
-      const dy = current_pos.y - pan_last_pos.y;
-      $canvas_area.scrollLeft($canvas_area.scrollLeft() - dx);
-      $canvas_area.scrollTop($canvas_area.scrollTop() - dy);
-      pan_last_pos = current_pos;
-    }
-  });
-  // #endregion
-
-  ////////////////////////////////////
-  // #region Primary Canvas Interaction (continued)
-
-  $canvas.on("pointerdown", (e) => {
-    console.log('$canvas.pointerdown')
-    update_canvas_rect();
-
-    const elapsed = performance.now() - first_pointer_time;
-
-    // "pointer_active가 없으면" => 첫 번째 포인터로 간주  // 이였는데, 2개캡쳐되면 알아서 pointer_active를 false로 바꿈.
-    // 그래서 pinchAllowed인지도 같이 감지함 
-    //그러면 !PaintJSState.pointer_active 이거 빼도 되지 않으려나?
-    // 그러면 안돼 왜나면 다른곳을 클릭하고 캔버스를 클릭하면 정상작동해야해
-    if (!PaintJSState.pointer_active && !PaintJSState.pinchAllowed) {
-      console.log("첫 번째 터치로 그림 시작:", e.pointerId);
-      PaintJSState.pointer_active = true;
-      PaintJSState.pointerId = e.pointerId;
-      PaintJSState.pinchAllowed = false; // 초기값 false
-    } else {
-      // 이미 포인터가 있음 => 두 번째 터치
-      if (PaintJSState.pointerId !== e.pointerId && elapsed > discard_quick_undo_period) {
-        // 500ms 이후 => 무시 (그림X, 핀치X)
-        console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
-      }
-      return;
-    }
-    
-
-    // ------ 첫 번째 포인터로 그림 그리는 로직 ------
-    PaintJSState.history_node_to_cancel_to = PaintJSState.current_history_node;
-    PaintJSState.pointer_type = e.pointerType;
-    PaintJSState.pointer_buttons = e.buttons;
-
-    // pointerup 핸들러
-    const pointerUpHandler = (eUp, canceling, no_undoable) => {
-      if (PaintJSState.pointerId !== eUp.pointerId) {
-        return;
-      }
-      PaintJSState.pointer_active = false;
-      
-      update_helper_layer(eUp);
-      
-      
-      if (
-        !PaintJSState.pointer_over_canvas &&
-        PaintJSState.update_helper_layer_on_pointermove_active
-      ) {
-        $(window).off("pointermove", update_helper_layer);
-        PaintJSState.update_helper_layer_on_pointermove_active = false;
-      }
-      $(window).off("pointerup pointercancel", pointerUpHandler);
      
-     
-    };
-    $(window).on("pointerup pointercancel", pointerUpHandler);
 
-    if (e.button === 0) {
-      PaintJSState.reverse = false;
-    } else if (e.button === 2) {
-      PaintJSState.reverse = true;
-    } else {
-      return;
-    }
 
-    // 초기화
-    console.log('포인터 초기화')
-    PaintJSState.button = e.button;
-    PaintJSState.ctrl = e.ctrlKey;
-    PaintJSState.shift = e.shiftKey;
-    PaintJSState.pointer_start =
-      PaintJSState.pointer_previous =
-      PaintJSState.pointer =
-        to_canvas_coords(e);
 
-    // 실제 펜/브러시/도구 pointerdown_action
-    const pointerdown_action = () => {
-      let interval_ids = [];
-      PaintJSState.selected_tools.forEach((selected_tool) => {
-        if (selected_tool.paint || selected_tool.pointerdown) {
-          tool_go(selected_tool, "pointerdown");
-        }
-        if (selected_tool.paint_on_time_interval != null) {
-          interval_ids.push(
-            setInterval(() => {
-              tool_go(selected_tool);
-            }, selected_tool.paint_on_time_interval),
+      ////////////////////////////////////
+      // #region Primary Canvas Interaction
+      function tool_go(selected_tool, event_name) {
+        update_fill_and_stroke_colors_and_lineWidth(selected_tool);
+
+        if (selected_tool[event_name]) {
+          selected_tool[event_name](
+            PaintJSState.main_ctx,
+            PaintJSState.pointer.x,
+            PaintJSState.pointer.y,
           );
         }
-      });
-
-      $(window).on("pointermove", canvas_pointer_move);
-
-      // 툴별 pointerup
-      const onWindowPointerup = (eUp, canceling, no_undoable) => {
-      
-        if (PaintJSState.pointerId !== eUp.pointerId) {
-          return;
-        }
-        PaintJSState.button = undefined;
-        PaintJSState.reverse = false;
-
-        if (eUp.clientX !== undefined) {
-          if (PaintJSState.pointerId === eUp.pointerId) {
-           // PaintJSState.pointer = to_canvas_coords(eUp);
-          }
-        }
-        if (!PaintJSState.pinchAllowed) {
-          PaintJSState.selected_tools.forEach((selected_tool) => {
-            selected_tool.pointerup?.(
-              PaintJSState.main_ctx,
-              PaintJSState.pointer.x,
-              PaintJSState.pointer.y
-            );
-          });
-        }
-        
-        if (PaintJSState.selected_tools.length === 1) {
-          if (PaintJSState.selected_tool.deselect) {
-            select_tools(PaintJSState.return_to_tools);
-          }
-        }
-
-        $(window).off("pointermove", canvas_pointer_move);
-        for (const interval_id of interval_ids) {
-          clearInterval(interval_id);
-        }
-        if (!canceling) {
-          PaintJSState.history_node_to_cancel_to = null;
-        }
-        $(window).off("pointerup pointercancel", onWindowPointerup);
-
-         
-      };
-
-      $(window).on("pointerup pointercancel", onWindowPointerup);
-    };
-
-    pointerdown_action();
-    update_helper_layer(e);
-  });
-
-
-
-  // 외부 누르면 선택창꺼지기
-  $canvas_area.on("pointerdown", (e) => {
-    if (e.button === 0) {
-      if ($canvas_area.is(e.target) && !PaintJSState.pinchAllowed) {
-        if (PaintJSState.selection) {
-          deselect();
+        if (selected_tool.paint) {
+          selected_tool.paint(
+            PaintJSState.main_ctx,
+            PaintJSState.pointer.x,
+            PaintJSState.pointer.y,
+          );
         }
       }
-    }
-  });
-  // #endregion
+
+      function canvas_pointer_move(e) {
+        // ---- [중요 수정 1] pointer_active가 아니면 바로 return → 그림 안 그려짐
+        if (!PaintJSState.pointer_active) {
+          return;
+        }
+
+        PaintJSState.ctrl = e.ctrlKey;
+        PaintJSState.shift = e.shiftKey;
+
+        // Quick Undo (for mouse/pen)
+        if (PaintJSState.pointers.length && e.button !== -1) {
+          const MMB = 4;
+          if (
+            e.pointerType !== PaintJSState.pointer_type ||
+            (e.buttons | MMB) !== (PaintJSState.pointer_buttons | MMB)
+          ) {
+            cancel();
+            PaintJSState.pointer_active = false;
+            return;
+          }
+        }
+
+        // SHIFT 스냅(도형 그리기) 로직 (원본 코드와 동일)
+        if (e.shiftKey) {
+          if (
+            PaintJSState.selected_tool.id === TOOL_LINE ||
+            PaintJSState.selected_tool.id === TOOL_CURVE
+          ) {
+            const dist = Math.hypot(
+              PaintJSState.pointer.y - PaintJSState.pointer_start.y,
+              PaintJSState.pointer.x - PaintJSState.pointer_start.x
+            );
+            const eighth_turn = TAU / 8;
+            const angle_0_to_8 =
+              Math.atan2(
+                PaintJSState.pointer.y - PaintJSState.pointer_start.y,
+                PaintJSState.pointer.x - PaintJSState.pointer_start.x
+              ) / eighth_turn;
+            const angle = Math.round(angle_0_to_8) * eighth_turn;
+            PaintJSState.pointer.x = Math.round(
+              PaintJSState.pointer_start.x + Math.cos(angle) * dist
+            );
+            PaintJSState.pointer.y = Math.round(
+              PaintJSState.pointer_start.y + Math.sin(angle) * dist
+            );
+          } else if (PaintJSState.selected_tool.shape) {
+            const w = Math.abs(PaintJSState.pointer.x - PaintJSState.pointer_start.x);
+            const h = Math.abs(PaintJSState.pointer.y - PaintJSState.pointer_start.y);
+            if (w < h) {
+              if (PaintJSState.pointer.y > PaintJSState.pointer_start.y) {
+                PaintJSState.pointer.y = PaintJSState.pointer_start.y + w;
+              } else {
+                PaintJSState.pointer.y = PaintJSState.pointer_start.y - w;
+              }
+            } else {
+              if (PaintJSState.pointer.x > PaintJSState.pointer_start.x) {
+                PaintJSState.pointer.x = PaintJSState.pointer_start.x + h;
+              } else {
+                PaintJSState.pointer.x = PaintJSState.pointer_start.x - h;
+              }
+            }
+          }
+        }
+
+        // 실제 도구 paint
+        PaintJSState.selected_tools.forEach((selected_tool) => {
+          tool_go(selected_tool);
+        });
+        PaintJSState.pointer_previous = PaintJSState.pointer;
+      }
+
+       // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
+      function setPrimaryPointPosition(){
+
+        $canvas.on("pointermove", (e) => {
+          // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
+          if (!PaintJSState.pointer_active) {
+            return;
+          }
+
+          if (PaintJSState.pointerId === e.pointerId) {
+            PaintJSState.pointer = to_canvas_coords(e);
+          }
+        });
+      }
+      setPrimaryPointPosition();
+
+      // 마우스가 캔버스 안에 들어오면 커서위치에 헬퍼레이어에 브러쉬 미리보기 위치 잡는거
+      function setBrushPreview(){
+        $canvas.on("pointerenter", (e) => {
+          PaintJSState.pointer_over_canvas = true;
+          update_helper_layer(e);
+
+          if (!PaintJSState.update_helper_layer_on_pointermove_active) {
+            $(window).on("pointermove", update_helper_layer);
+            PaintJSState.update_helper_layer_on_pointermove_active = true;
+          }
+        });
+
+        $canvas.on("pointerleave", (e) => {
+          PaintJSState.pointer_over_canvas = false;
+          update_helper_layer(e);
+
+          if (
+            !PaintJSState.pointer_active &&
+            PaintJSState.update_helper_layer_on_pointermove_active
+          ) {
+            $(window).off("pointermove", update_helper_layer);
+            PaintJSState.update_helper_layer_on_pointermove_active = false;
+          }
+        });
+      }
+      //setBrushPreview();
 
 
 
+      ////////////////////////////////////
+      // #region Panning and Zooming
+      let last_zoom_pointer_distance;
+      let pan_last_pos;
+      let first_pointer_time;
+      const discard_quick_undo_period = 500;
+
+      // "두 번째 터치가 500ms 이내" → cancel() 후 pinchAllowed = true
+      // "두 번째 터치가 500ms 이후" → pinchAllowed = false
+      // PaintJSState.pinchAllowed = false;
+
+      function average_points(points) {
+        const average = { x: 0, y: 0 };
+        for (const pointer of points) {
+          average.x += pointer.x;
+          average.y += pointer.y;
+        }
+        average.x /= points.length;
+        average.y /= points.length;
+        return average;
+      }
+
+     $canvas_area.get(0).addEventListener("pointerdown", (event) => {
+         console.log('$canvas_area.pointerdown')
+        if (
+          document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
+          document.activeElement !== document.body &&
+          document.activeElement !== document.documentElement
+        ) {
+          // Allow unfocusing dialogs etc. in order to use keyboard shortcuts
+          document.activeElement.blur();
+        }
 
 
+      });
+
+      $canvas_area.get(0).addEventListener("pointerdown", (event) =>{
+        console.log('$canvas_area.pointerdown - captured')
+
+        // 첫 번째 포인터 등록 (원본)
+          if (
+            PaintJSState.pointers.every(
+              (pointer) =>
+                !(
+                  pointer.isPrimary &&
+                  (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
+                )
+            )
+          ) {
+            PaintJSState.pointers.push({
+              pointerId: event.pointerId,
+              pointerType: event.pointerType,
+              // @ts-ignore
+              isPrimary:
+                (event.originalEvent && event.originalEvent.isPrimary) ||
+                event.isPrimary,
+              x: event.clientX,
+              y: event.clientY,
+            });
+          }
+
+          if (PaintJSState.pointers.length === 1) {
+            first_pointer_time = performance.now();
+          }
+          if (PaintJSState.pointers.length === 2) {
+            last_zoom_pointer_distance = Math.hypot(
+              PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
+              PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
+            );
+            pan_last_pos = average_points(PaintJSState.pointers);
+          }
+
+        // console.log(PaintJSState.pointers.length)
+
+        if(PaintJSState.pointers.length > 1){
+           const elapsed = performance.now() - first_pointer_time;
+            if (elapsed <= discard_quick_undo_period) {
+              //  핀지줌 허용
+              // 아래코드 중복임, 리팩토링 필요
+              console.log('500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용')
+
+              $(window).trigger('pointerup');
+              // 500ms 이내 => 그림 cancel + pinchAllowed = true
+              cancel(false, true);
+              PaintJSState.pointer_active = false; 
+              // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+              // 핀치 줌은 허용
+              PaintJSState.pinchAllowed = true;
+
+            }
+         }
+
+      },true);
+
+      $(window).on("pointerup pointercancel", (event) => {
+         console.log('window.pointerup','window.pointercancel')
+        PaintJSState.pointers = PaintJSState.pointers.filter(
+          (pointer) => pointer.pointerId !== event.pointerId
+        );
+        // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
+        PaintJSState.pinchAllowed = false; 
+      });
+
+      $(window).on("pointermove", (event) => {
+       // console.log('window.pointermove')
+        // 핀치 줌 추적 (원본)
+        for (const pointer of PaintJSState.pointers) {
+          if (pointer.pointerId === event.pointerId) {
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+          }
+        }
+        if (PaintJSState.pointers.length >= 2 && PaintJSState.pinchAllowed) {
+          const current_pos = average_points(PaintJSState.pointers);
+          const distance = Math.hypot(
+            PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
+            PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
+          );
+          const diff = distance - last_zoom_pointer_distance;
+          let new_magnification = PaintJSState.magnification;
+
+          if (Math.abs(diff) > 60) {
+            last_zoom_pointer_distance = distance;
+            if (diff > 0) {
+              new_magnification =
+                nextZoom[getClosestZoom(PaintJSState.magnification)];
+            } else {
+              new_magnification =
+                nextout[getClosestZoom(PaintJSState.magnification)];
+            }
+          }
+
+          if (new_magnification !== PaintJSState.magnification) {
+            set_magnification(
+              new_magnification,
+              to_canvas_coords_magnification({ clientX: current_pos.x, clientY: current_pos.y })
+            );
+          }
+          const dx = current_pos.x - pan_last_pos.x;
+          const dy = current_pos.y - pan_last_pos.y;
+          $canvas_area.scrollLeft($canvas_area.scrollLeft() - dx);
+          $canvas_area.scrollTop($canvas_area.scrollTop() - dy);
+          pan_last_pos = current_pos;
+        }
+      });
+      // #endregion
+
+      ////////////////////////////////////
+      // #region Primary Canvas Interaction (continued)
+
+      $canvas.on("pointerdown", (e) => {
+        console.log('$canvas.pointerdown')
+        update_canvas_rect();
+
+        const elapsed = performance.now() - first_pointer_time;
+
+        // "pointer_active가 없으면" => 첫 번째 포인터로 간주  // 이였는데, 2개캡쳐되면 알아서 pointer_active를 false로 바꿈.
+        // 그래서 pinchAllowed인지도 같이 감지함 
+        //그러면 !PaintJSState.pointer_active 이거 빼도 되지 않으려나?
+        // 그러면 안돼 왜나면 다른곳을 클릭하고 캔버스를 클릭하면 정상작동해야해
+        if (!PaintJSState.pointer_active && !PaintJSState.pinchAllowed) {
+          console.log("첫 번째 터치로 그림 시작:", e.pointerId);
+          PaintJSState.pointer_active = true;
+          PaintJSState.pointerId = e.pointerId;
+          PaintJSState.pinchAllowed = false; // 초기값 false
+        } else {
+          // 이미 포인터가 있음 => 두 번째 터치
+          if (PaintJSState.pointerId !== e.pointerId && elapsed > discard_quick_undo_period) {
+            // 500ms 이후 => 무시 (그림X, 핀치X)
+            console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
+          }
+          return;
+        }
+
+
+        // ------ 첫 번째 포인터로 그림 그리는 로직 ------
+        PaintJSState.history_node_to_cancel_to = PaintJSState.current_history_node;
+        PaintJSState.pointer_type = e.pointerType;
+        PaintJSState.pointer_buttons = e.buttons;
+
+        // pointerup 핸들러
+        const pointerUpHandler = (eUp, canceling, no_undoable) => {
+          if (PaintJSState.pointerId !== eUp.pointerId) {
+            return;
+          }
+          PaintJSState.pointer_active = false;
+
+          update_helper_layer(eUp);
+
+
+          if (
+            !PaintJSState.pointer_over_canvas &&
+            PaintJSState.update_helper_layer_on_pointermove_active
+          ) {
+            $(window).off("pointermove", update_helper_layer);
+            PaintJSState.update_helper_layer_on_pointermove_active = false;
+          }
+          $(window).off("pointerup pointercancel", pointerUpHandler);
+
+
+        };
+        $(window).on("pointerup pointercancel", pointerUpHandler);
+
+        if (e.button === 0) {
+          PaintJSState.reverse = false;
+        } else if (e.button === 2) {
+          PaintJSState.reverse = true;
+        } else {
+          return;
+        }
+
+        // 초기화
+        console.log('포인터 초기화')
+        PaintJSState.button = e.button;
+        PaintJSState.ctrl = e.ctrlKey;
+        PaintJSState.shift = e.shiftKey;
+        PaintJSState.pointer_start =
+          PaintJSState.pointer_previous =
+          PaintJSState.pointer =
+            to_canvas_coords(e);
+
+        // 실제 펜/브러시/도구 pointerdown_action
+        const pointerdown_action = () => {
+          let interval_ids = [];
+          PaintJSState.selected_tools.forEach((selected_tool) => {
+            if (selected_tool.paint || selected_tool.pointerdown) {
+              tool_go(selected_tool, "pointerdown");
+            }
+            if (selected_tool.paint_on_time_interval != null) {
+              interval_ids.push(
+                setInterval(() => {
+                  tool_go(selected_tool);
+                }, selected_tool.paint_on_time_interval),
+              );
+            }
+          });
+
+          $(window).on("pointermove", canvas_pointer_move);
+
+          // 툴별 pointerup
+          const onWindowPointerup = (eUp, canceling, no_undoable) => {
+
+            if (PaintJSState.pointerId !== eUp.pointerId) {
+              return;
+            }
+            PaintJSState.button = undefined;
+            PaintJSState.reverse = false;
+
+            if (eUp.clientX !== undefined) {
+              if (PaintJSState.pointerId === eUp.pointerId) {
+               // PaintJSState.pointer = to_canvas_coords(eUp);
+              }
+            }
+            if (!PaintJSState.pinchAllowed) {
+              PaintJSState.selected_tools.forEach((selected_tool) => {
+                selected_tool.pointerup?.(
+                  PaintJSState.main_ctx,
+                  PaintJSState.pointer.x,
+                  PaintJSState.pointer.y
+                );
+              });
+            }
+
+            if (PaintJSState.selected_tools.length === 1) {
+              if (PaintJSState.selected_tool.deselect) {
+                select_tools(PaintJSState.return_to_tools);
+              }
+            }
+
+            $(window).off("pointermove", canvas_pointer_move);
+            for (const interval_id of interval_ids) {
+              clearInterval(interval_id);
+            }
+            if (!canceling) {
+              PaintJSState.history_node_to_cancel_to = null;
+            }
+            $(window).off("pointerup pointercancel", onWindowPointerup);
+
+
+          };
+
+          $(window).on("pointerup pointercancel", onWindowPointerup);
+        };
+
+        pointerdown_action();
+        update_helper_layer(e);
+      });
+
+
+
+      // 외부 누르면 선택창꺼지기
+      $canvas_area.on("pointerdown", (e) => {
+        if (e.button === 0) {
+          if ($canvas_area.is(e.target) && !PaintJSState.pinchAllowed) {
+            if (PaintJSState.selection) {
+              deselect();
+            }
+          }
+        }
+      });
+      // #endregion
+  }
+  managePointer()
   
 
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
@@ -1282,3 +1288,5 @@ export function initApp(canvasAreaQuery) {
 
   init_webgl_stuff();
 }
+
+
