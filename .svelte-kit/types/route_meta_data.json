@@ -1,9 +1,0 @@
-{
-	"/": [],
-	"/sitemap.xml": [
-		"src/routes/sitemap.xml/+server.js"
-	],
-	"/[lang]": [
-		"src/routes/[lang]/+page.js"
-	]
-}
