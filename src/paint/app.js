@@ -1140,8 +1140,10 @@ export function initApp(canvasAreaQuery) {
         return;
       }
       PaintJSState.pointer_active = false;
+      
       update_helper_layer(eUp);
-
+      
+      
       if (
         !PaintJSState.pointer_over_canvas &&
         PaintJSState.update_helper_layer_on_pointermove_active
@@ -1150,6 +1152,8 @@ export function initApp(canvasAreaQuery) {
         PaintJSState.update_helper_layer_on_pointermove_active = false;
       }
       $(window).off("pointerup pointercancel", pointerUpHandler);
+     
+     
     };
     $(window).on("pointerup pointercancel", pointerUpHandler);
 
@@ -1191,6 +1195,7 @@ export function initApp(canvasAreaQuery) {
 
       // 툴별 pointerup
       const toolPointerUpHandler = (eUp, canceling, no_undoable) => {
+      
         if (PaintJSState.pointerId !== eUp.pointerId) {
           return;
         }
@@ -1202,8 +1207,8 @@ export function initApp(canvasAreaQuery) {
            // PaintJSState.pointer = to_canvas_coords(eUp);
           }
         }
-
-        if (!no_undoable) {
+        
+        if (!PaintJSState.pinchAllowed) {
           PaintJSState.selected_tools.forEach((selected_tool) => {
             selected_tool.pointerup?.(
               PaintJSState.main_ctx,
@@ -1212,6 +1217,7 @@ export function initApp(canvasAreaQuery) {
             );
           });
         }
+        
         if (PaintJSState.selected_tools.length === 1) {
           if (PaintJSState.selected_tool.deselect) {
             select_tools(PaintJSState.return_to_tools);
@@ -1226,6 +1232,8 @@ export function initApp(canvasAreaQuery) {
           PaintJSState.history_node_to_cancel_to = null;
         }
         $(window).off("pointerup pointercancel", toolPointerUpHandler);
+
+         
       };
 
       $(window).on("pointerup pointercancel", toolPointerUpHandler);
