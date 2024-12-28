@@ -124,6 +124,10 @@ class OnCanvasSelection extends OnCanvasObject {
 			};
 			this.canvas_pointerdown = (e) => {
 				e.preventDefault();
+				// 핀지줌을 할때 선택이 안되게 하기
+				if(PaintJSState.pinchAllowed){
+					return;
+				}
 				const rect = this.canvas.getBoundingClientRect();
 				const cx = e.clientX - rect.left;
 				const cy = e.clientY - rect.top;

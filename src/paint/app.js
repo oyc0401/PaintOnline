@@ -995,8 +995,6 @@ export function initApp(canvasAreaQuery) {
         });
       }
 
-   
-
       if (PaintJSState.pointers.length === 1) {
         first_pointer_time = performance.now();
       }
@@ -1009,14 +1007,17 @@ export function initApp(canvasAreaQuery) {
       }
 
     // console.log(PaintJSState.pointers.length)
+    
     if(PaintJSState.pointers.length > 1){
        const elapsed = performance.now() - first_pointer_time;
         if (elapsed <= discard_quick_undo_period) {
           //  핀지줌 허용
           // 아래코드 중복임, 리팩토링 필요
           console.log('500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용')
+
+          $(window).trigger('pointerup');
           // 500ms 이내 => 그림 cancel + pinchAllowed = true
-          cancel(false, false);
+          cancel(false, true);
           PaintJSState.pointer_active = false; 
           // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
           // 핀치 줌은 허용
@@ -1088,49 +1089,21 @@ export function initApp(canvasAreaQuery) {
     update_canvas_rect();
 
     const elapsed = performance.now() - first_pointer_time;
-    
-    // if(PaintJSState.pointers.length != 0 && elapsed <= discard_quick_undo_period){
-    //   // 아래코드 중복임, 리팩토링 필요
-    //   console.log('다른데 클릭하고 500ms이내에 클릭, 핀치줌 허용')
-    //   // 500ms 이내 => 그림 cancel + pinchAllowed = true
-    //   cancel(false, false);
-    //   PaintJSState.pointer_active = false; 
-    //   // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-    //   // 핀치 줌은 허용
-    //   PaintJSState.pinchAllowed = true;
-    //   return;
-    // }
 
-    // "pointer_active가 없으면" => 첫 번째 포인터로 간주
-
-    console.log('현재:',PaintJSState.pointer_active,PaintJSState.pinchAllowed)
+    // "pointer_active가 없으면" => 첫 번째 포인터로 간주  // 이였는데, 2개캡쳐되면 알아서 pointer_active를 false로 바꿈.
+    // 그래서 pinchAllowed인지도 같이 감지함 
+    //그러면 !PaintJSState.pointer_active 이거 빼도 되지 않으려나?
+    // 그러면 안돼 왜나면 다른곳을 클릭하고 캔버스를 클릭하면 정상작동해야해
     if (!PaintJSState.pointer_active && !PaintJSState.pinchAllowed) {
       console.log("첫 번째 터치로 그림 시작:", e.pointerId);
       PaintJSState.pointer_active = true;
       PaintJSState.pointerId = e.pointerId;
       PaintJSState.pinchAllowed = false; // 초기값 false
     } else {
-      console.log('else분기')
       // 이미 포인터가 있음 => 두 번째 터치
-      if (PaintJSState.pointerId !== e.pointerId) {
-        if (elapsed <= discard_quick_undo_period) {
-          // 500ms 이내 => 그림 cancel + pinchAllowed = true
-          console.log("두 번째 터치(500ms이내), 그리기 취소 + 핀치줌 허용");
-          cancel(false, false);
-          PaintJSState.pointer_active = false; 
-          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-          // 핀치 줌은 허용
-          PaintJSState.pinchAllowed = true;
-
-        } else {
-          // 500ms 이후 => 무시 (그림X, 핀치X)
-          console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
-          PaintJSState.pinchAllowed = false;
-          // pointers에서 제거(2개 이상이 안 되어야 핀치도 안 됨)
-          PaintJSState.pointers = PaintJSState.pointers.filter(
-            (p) => p.pointerId !== e.pointerId
-          );
-        }
+      if (PaintJSState.pointerId !== e.pointerId && elapsed > discard_quick_undo_period) {
+        // 500ms 이후 => 무시 (그림X, 핀치X)
+        console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
       }
       return;
     }
@@ -1250,10 +1223,11 @@ export function initApp(canvasAreaQuery) {
   });
 
 
-  
+
+  // 외부 누르면 선택창꺼지기
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
-      if ($canvas_area.is(e.target)) {
+      if ($canvas_area.is(e.target) && !PaintJSState.pinchAllowed) {
         if (PaintJSState.selection) {
           deselect();
         }
