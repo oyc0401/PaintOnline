@@ -956,7 +956,8 @@ export function initApp(canvasAreaQuery) {
     return average;
   }
 
-  $canvas_area.on("pointerdown", (event) => {
+ $canvas_area.get(0).addEventListener("pointerdown", (event) => {
+     console.log('$canvas_area.pointerdown')
     if (
       document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
       document.activeElement !== document.body &&
@@ -1000,13 +1001,35 @@ export function initApp(canvasAreaQuery) {
     }
   });
 
+  $canvas_area.get(0).addEventListener("pointerdown", (event) =>{
+    if(PaintJSState.pointers.length != 0){
+       const elapsed = performance.now() - first_pointer_time;
+        if (PaintJSState.pointer_active &&  elapsed <= discard_quick_undo_period) {
+          //  핀지줌 허용
+          // 아래코드 중복임, 리팩토링 필요
+          console.log('캔버스를 먼저 클릭하고 500ms이내에 밖을 클릭하면, 핀치줌 허용')
+          // 500ms 이내 => 그림 cancel + pinchAllowed = true
+          cancel(false, false);
+          PaintJSState.pointer_active = false; 
+          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+          // 핀치 줌은 허용
+          PaintJSState.pinchAllowed = true;
+          //리턴하면 안됌
+          //return;
+        }
+     }
+
+  },true);
+
   $(window).on("pointerup pointercancel", (event) => {
+     console.log('window.pointerup','window.pointercancel')
     PaintJSState.pointers = PaintJSState.pointers.filter(
       (pointer) => pointer.pointerId !== event.pointerId
     );
   });
 
   $(window).on("pointermove", (event) => {
+   // console.log('window.pointermove')
     // 핀치 줌 추적 (원본)
     for (const pointer of PaintJSState.pointers) {
       if (pointer.pointerId === event.pointerId) {
@@ -1049,11 +1072,30 @@ export function initApp(canvasAreaQuery) {
   });
   // #endregion
 
+
+  //$canvas_area.on("pointerdown", (e) => {}
+  
+
   ////////////////////////////////////
   // #region Primary Canvas Interaction (continued)
 
   $canvas.on("pointerdown", (e) => {
+    console.log('$canvas.pointerdown')
     update_canvas_rect();
+
+    const elapsed = performance.now() - first_pointer_time;
+    
+    if(PaintJSState.pointers.length != 0 && elapsed <= discard_quick_undo_period){
+      // 아래코드 중복임, 리팩토링 필요
+      console.log('다른데 클릭하고 500ms이내에 클릭, 핀치줌 허용')
+      // 500ms 이내 => 그림 cancel + pinchAllowed = true
+      cancel(false, false);
+      PaintJSState.pointer_active = false; 
+      // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+      // 핀치 줌은 허용
+      PaintJSState.pinchAllowed = true;
+      return;
+    }
 
     // "pointer_active가 없으면" => 첫 번째 포인터로 간주
     if (!PaintJSState.pointer_active) {
@@ -1064,12 +1106,10 @@ export function initApp(canvasAreaQuery) {
     } else {
       // 이미 포인터가 있음 => 두 번째 터치
       if (PaintJSState.pointerId !== e.pointerId) {
-        const elapsed = performance.now() - first_pointer_time;
-
         if (elapsed <= discard_quick_undo_period) {
           // 500ms 이내 => 그림 cancel + pinchAllowed = true
           console.log("두 번째 터치(500ms이내), 그리기 취소 + 핀치줌 허용");
-          cancel(false, true);
+          cancel(false, false);
           PaintJSState.pointer_active = false; 
           // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
           // 핀치 줌은 허용
