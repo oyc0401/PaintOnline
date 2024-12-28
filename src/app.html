@@ -68,7 +68,7 @@
 
 
   <body data-sveltekit-preload-data="hover" oncontextmenu="return false">
-    <!-- <div class="log-box" id="logBox"></div>
+    <div class="log-box" id="logBox"></div>
     <script>
       // 로그 박스에 메시지를 추가하는 함수
       function addLogMessage(message, isError = false) {
@@ -87,7 +87,16 @@
 
       function formatLogArguments(args) {
         return Array.from(args)
-          .map(arg => (typeof arg === "object" ? JSON.stringify(arg) : String(arg)))
+          .map(arg => {
+            if (typeof arg === "object") {
+              try {
+                return JSON.stringify(arg);
+              } catch (error) {
+                return "_";
+              }
+            }
+            return String(arg);
+          })
           .join(" ");
       }
 
@@ -104,7 +113,7 @@
       // 테스트 메시지
       console.log("이것은 일반 로그 메시지입니다.", { key: "value" }, 42);
       console.error("이것은 에러 메시지입니다.", ["배열", "테스트"], null);
-    </script> -->
+    </script>
 
     <!-- <script type="module" src="lib/jquery-3.4.1.min.js"></script> -->
 

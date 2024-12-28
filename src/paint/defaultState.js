@@ -152,6 +152,8 @@ export function defaultState() {
   /** works in canvas coordinates @type {{x: number, y: number} | undefined} */
   let pointer_previous;
 
+  let pointerId;
+
   /** @type {boolean} */
   let pointer_active = false;
   /** @type {string | undefined} */
@@ -182,6 +184,10 @@ export function defaultState() {
 
   let fill = false;
   let stroke = true;
+
+  let pinchAllowed=false;
+
+
 
   return {
     default_magnification,
@@ -247,5 +253,7 @@ export function defaultState() {
     pointer_float_previous,
     fill,
     stroke,
+    pointerId,
+    pinchAllowed,
   };
 }

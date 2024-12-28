@@ -12,7 +12,7 @@ import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
-import {  E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, make_canvas, render_access_key, to_canvas_coords } from "./helpers.js";
+import {  E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, make_canvas, render_access_key, to_canvas_coords, to_canvas_coords_magnification } from "./helpers.js";
 import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
@@ -197,12 +197,19 @@ let lastTime = 0;
 
 function update_helper_layer_immediately() {
 //	window.console?.log("Update helper layer NOW");
+
+	// [comment] 24.12.28
+	// 아래 코드는 마우스에서 미리 그림 보여주는 위치를 잡는 코드인데, 이게 모바일버전에서 더블터치할때 오류가 생김.
+	// 그래서 마우스에 따라가는거 만들려면 코드 다시짜야할 듯
+	// PaintJSState.pointer를 같이 공유하면 안되고 따로 분리해야할 듯
+	
 	// if (info_for_updating_pointer) {
 	// 	const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
 	// 	info_for_updating_pointer.clientX *= rescale;
 	// 	info_for_updating_pointer.clientY *= rescale;
 	// 	info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
-	// 	PaintJSState.pointer = to_canvas_coords(info_for_updating_pointer);
+	// //	console.log('func');
+	// 	PaintJSState.pointer = to_canvas_coords_magnification(info_for_updating_pointer);
 	// }
 
 	const scale = PaintJSState.magnification * window.devicePixelRatio;

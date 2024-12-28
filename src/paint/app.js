@@ -53,6 +53,7 @@ import {
   get_help_folder_icon,
   make_canvas,
   to_canvas_coords,
+  to_canvas_coords_magnification,
   make_css_cursor,
 } from "./src/helpers.js";
 import { init_webgl_stuff, rotate } from "./src/image-manipulation.js";
@@ -584,7 +585,7 @@ export function initApp(canvasAreaQuery) {
           new_magnification =
             nextout[getClosestZoom(PaintJSState.magnification)];
         }
-        set_magnification(new_magnification, to_canvas_coords(e));
+        set_magnification(new_magnification, to_canvas_coords_magnification(e));
         return;
       }
     },
@@ -792,6 +793,11 @@ export function initApp(canvasAreaQuery) {
     PaintJSState.pick_color_slot = fill_color_k;
   }
 
+
+
+
+  
+  ////////////////////////////////////
   // #region Primary Canvas Interaction
   function tool_go(selected_tooool, event_name) {
     update_fill_and_stroke_colors_and_lineWidth(selected_tooool);
@@ -811,64 +817,55 @@ export function initApp(canvasAreaQuery) {
       );
     }
   }
+
   function canvas_pointer_move(e) {
-     console.log(`${e.pointerType} ${e.pointerId} (${e.clientX}, ${e.clientY}) ${e.touches} `,e);
+    // ---- [중요 수정 1] pointer_active가 아니면 바로 return → 그림 안 그려짐
+    if (!PaintJSState.pointer_active) {
+      return;
+    }
 
     PaintJSState.ctrl = e.ctrlKey;
     PaintJSState.shift = e.shiftKey;
-    PaintJSState.pointer = to_canvas_coords(e);
 
     // Quick Undo (for mouse/pen)
-    // (Note: pointermove also occurs when the set of buttons pressed changes,
-    // except when another event would fire like pointerdown)
-    if (PaintJSState.pointers.length && e.button != -1) {
-      // compare buttons other than middle mouse button by using bitwise OR to make that bit of the number the same
+    if (PaintJSState.pointers.length && e.button !== -1) {
       const MMB = 4;
       if (
-        e.pointerType != PaintJSState.pointer_type ||
-        (e.buttons | MMB) != (PaintJSState.pointer_buttons | MMB)
+        e.pointerType !== PaintJSState.pointer_type ||
+        (e.buttons | MMB) !== (PaintJSState.pointer_buttons | MMB)
       ) {
         cancel();
-        PaintJSState.pointer_active = false; // NOTE: PaintJSState.pointer_active used in cancel()
+        PaintJSState.pointer_active = false;
         return;
       }
     }
 
+    // SHIFT 스냅(도형 그리기) 로직 (원본 코드와 동일)
     if (e.shiftKey) {
-      // TODO: snap to 45 degrees for Pencil and Polygon tools
-      // TODO: manipulating the pointer object directly is a bit of a hack
       if (
         PaintJSState.selected_tool.id === TOOL_LINE ||
         PaintJSState.selected_tool.id === TOOL_CURVE
       ) {
-        // snap to eight directions
-        const dist = Math.sqrt(
-          (PaintJSState.pointer.y - PaintJSState.pointer_start.y) *
-            (PaintJSState.pointer.y - PaintJSState.pointer_start.y) +
-            (PaintJSState.pointer.x - PaintJSState.pointer_start.x) *
-              (PaintJSState.pointer.x - PaintJSState.pointer_start.x),
+        const dist = Math.hypot(
+          PaintJSState.pointer.y - PaintJSState.pointer_start.y,
+          PaintJSState.pointer.x - PaintJSState.pointer_start.x
         );
         const eighth_turn = TAU / 8;
         const angle_0_to_8 =
           Math.atan2(
             PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-            PaintJSState.pointer.x - PaintJSState.pointer_start.x,
+            PaintJSState.pointer.x - PaintJSState.pointer_start.x
           ) / eighth_turn;
         const angle = Math.round(angle_0_to_8) * eighth_turn;
         PaintJSState.pointer.x = Math.round(
-          PaintJSState.pointer_start.x + Math.cos(angle) * dist,
+          PaintJSState.pointer_start.x + Math.cos(angle) * dist
         );
         PaintJSState.pointer.y = Math.round(
-          PaintJSState.pointer_start.y + Math.sin(angle) * dist,
+          PaintJSState.pointer_start.y + Math.sin(angle) * dist
         );
       } else if (PaintJSState.selected_tool.shape) {
-        // snap to four diagonals
-        const w = Math.abs(
-          PaintJSState.pointer.x - PaintJSState.pointer_start.x,
-        );
-        const h = Math.abs(
-          PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-        );
+        const w = Math.abs(PaintJSState.pointer.x - PaintJSState.pointer_start.x);
+        const h = Math.abs(PaintJSState.pointer.y - PaintJSState.pointer_start.y);
         if (w < h) {
           if (PaintJSState.pointer.y > PaintJSState.pointer_start.y) {
             PaintJSState.pointer.y = PaintJSState.pointer_start.y + w;
@@ -884,47 +881,70 @@ export function initApp(canvasAreaQuery) {
         }
       }
     }
+
+    // 실제 도구 paint
     PaintJSState.selected_tools.forEach((selected_tool) => {
       tool_go(selected_tool);
     });
     PaintJSState.pointer_previous = PaintJSState.pointer;
   }
 
-  $canvas.on("pointermove", (e) => {
-    PaintJSState.pointer = to_canvas_coords(e);
-  });
+   // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
+  function setPrimaryPointPosition(){
+   
+    $canvas.on("pointermove", (e) => {
+      // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
+      if (!PaintJSState.pointer_active) {
+        return;
+      }
 
-  $canvas.on("pointerenter", (e) => {
-    PaintJSState.pointer_over_canvas = true;
+      if (PaintJSState.pointerId === e.pointerId) {
+        PaintJSState.pointer = to_canvas_coords(e);
+      }
+    });
+  }
+  setPrimaryPointPosition();
 
-    update_helper_layer(e);
+  // 마우스가 캔버스 안에 들어오면 커서위치에 헬퍼레이어에 브러쉬 미리보기 위치 잡는거
+  function setBrushPreview(){
+    $canvas.on("pointerenter", (e) => {
+      PaintJSState.pointer_over_canvas = true;
+      update_helper_layer(e);
 
-    if (!PaintJSState.update_helper_layer_on_pointermove_active) {
-      $(window).on("pointermove", update_helper_layer);
-      PaintJSState.update_helper_layer_on_pointermove_active = true;
-    }
-  });
-  $canvas.on("pointerleave", (e) => {
-    PaintJSState.pointer_over_canvas = false;
+      if (!PaintJSState.update_helper_layer_on_pointermove_active) {
+        $(window).on("pointermove", update_helper_layer);
+        PaintJSState.update_helper_layer_on_pointermove_active = true;
+      }
+    });
 
-    update_helper_layer(e);
+    $canvas.on("pointerleave", (e) => {
+      PaintJSState.pointer_over_canvas = false;
+      update_helper_layer(e);
 
-    if (
-      !PaintJSState.pointer_active &&
-      PaintJSState.update_helper_layer_on_pointermove_active
-    ) {
-      $(window).off("pointermove", update_helper_layer);
-      PaintJSState.update_helper_layer_on_pointermove_active = false;
-    }
-  });
-  // #endregion
+      if (
+        !PaintJSState.pointer_active &&
+        PaintJSState.update_helper_layer_on_pointermove_active
+      ) {
+        $(window).off("pointermove", update_helper_layer);
+        PaintJSState.update_helper_layer_on_pointermove_active = false;
+      }
+    });
+  }
+  //setBrushPreview();
 
+
+
+  ////////////////////////////////////
   // #region Panning and Zooming
   let last_zoom_pointer_distance;
   let pan_last_pos;
-  // let pan_start_magnification; // for panning and zooming in the same gesture (...was this ever used?)
   let first_pointer_time;
-  const discard_quick_undo_period = 500; // milliseconds in which to treat gesture as just a pan/zoom if you use two fingers, rather than treating it as a brush stroke you might care about
+  const discard_quick_undo_period = 500;
+
+  // "두 번째 터치가 500ms 이내" → cancel() 후 pinchAllowed = true
+  // "두 번째 터치가 500ms 이후" → pinchAllowed = false
+  // PaintJSState.pinchAllowed = false;
+
   function average_points(points) {
     const average = { x: 0, y: 0 };
     for (const pointer of points) {
@@ -935,6 +955,7 @@ export function initApp(canvasAreaQuery) {
     average.y /= points.length;
     return average;
   }
+
   $canvas_area.on("pointerdown", (event) => {
     if (
       document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
@@ -945,24 +966,19 @@ export function initApp(canvasAreaQuery) {
       document.activeElement.blur();
     }
 
+    // 첫 번째 포인터 등록 (원본)
     if (
       PaintJSState.pointers.every(
         (pointer) =>
-          // prevent multitouch panning in case of synthetic events from eye gaze mode
-          pointer.pointerId !== 1234567890 &&
-          // prevent multitouch panning in case of dragging across iframe boundary with a mouse/pen
-          // Note: there can be multiple active primary PaintJSState.pointers, one per pointer type
           !(
             pointer.isPrimary &&
             (pointer.pointerType === "mouse" || pointer.pointerType === "pen")
-          ),
-        // @TODO: handle case of dragging across iframe boundary with touch
+          )
       )
     ) {
       PaintJSState.pointers.push({
         pointerId: event.pointerId,
         pointerType: event.pointerType,
-        // isPrimary not available on jQuery.Event, and originalEvent not available in synthetic case
         // @ts-ignore
         isPrimary:
           (event.originalEvent && event.originalEvent.isPrimary) ||
@@ -971,55 +987,45 @@ export function initApp(canvasAreaQuery) {
         y: event.clientY,
       });
     }
+
     if (PaintJSState.pointers.length === 1) {
       first_pointer_time = performance.now();
     }
-    if (PaintJSState.pointers.length == 2) {
+    if (PaintJSState.pointers.length === 2) {
       last_zoom_pointer_distance = Math.hypot(
         PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y,
+        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
       );
       pan_last_pos = average_points(PaintJSState.pointers);
-      // pan_start_magnification = magnification;
-    }
-    // Quick Undo when there are multiple PaintJSState.pointers (i.e. for touch)
-    // See pointermove for other pointer types
-    // SEE OTHER POINTERDOWN HANDLER ALSO
-    if (PaintJSState.pointers.length >= 2) {
-      // If you press two fingers quickly, it shouldn't make a new history entry.
-      // But if you draw something and then press a second finger to clear it, it should let you redo.
-      const discard_document_state =
-        first_pointer_time &&
-        performance.now() - first_pointer_time < discard_quick_undo_period;
-      cancel(false, discard_document_state);
-      PaintJSState.pointer_active = false; // NOTE: PaintJSState.pointer_active used in cancel(); must be set after cancel()
-      return;
     }
   });
+
   $(window).on("pointerup pointercancel", (event) => {
     PaintJSState.pointers = PaintJSState.pointers.filter(
-      (pointer) => pointer.pointerId !== event.pointerId,
+      (pointer) => pointer.pointerId !== event.pointerId
     );
   });
+
   $(window).on("pointermove", (event) => {
+    // 핀치 줌 추적 (원본)
     for (const pointer of PaintJSState.pointers) {
       if (pointer.pointerId === event.pointerId) {
         pointer.x = event.clientX;
         pointer.y = event.clientY;
       }
     }
-    if (PaintJSState.pointers.length >= 2) {
+    if (PaintJSState.pointers.length >= 2 && PaintJSState.pinchAllowed) {
       const current_pos = average_points(PaintJSState.pointers);
       const distance = Math.hypot(
         PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y,
+        PaintJSState.pointers[0].y - PaintJSState.pointers[1].y
       );
-      const difference_in_distance = distance - last_zoom_pointer_distance;
+      const diff = distance - last_zoom_pointer_distance;
       let new_magnification = PaintJSState.magnification;
 
-      if (Math.abs(difference_in_distance) > 60) {
+      if (Math.abs(diff) > 60) {
         last_zoom_pointer_distance = distance;
-        if (difference_in_distance > 0) {
+        if (diff > 0) {
           new_magnification =
             nextZoom[getClosestZoom(PaintJSState.magnification)];
         } else {
@@ -1027,55 +1033,74 @@ export function initApp(canvasAreaQuery) {
             nextout[getClosestZoom(PaintJSState.magnification)];
         }
       }
-      if (new_magnification != PaintJSState.magnification) {
+
+      if (new_magnification !== PaintJSState.magnification) {
         set_magnification(
           new_magnification,
-          to_canvas_coords({ clientX: current_pos.x, clientY: current_pos.y }),
+          to_canvas_coords_magnification({ clientX: current_pos.x, clientY: current_pos.y })
         );
       }
-      const difference_in_x = current_pos.x - pan_last_pos.x;
-      const difference_in_y = current_pos.y - pan_last_pos.y;
-      $canvas_area.scrollLeft($canvas_area.scrollLeft() - difference_in_x);
-      $canvas_area.scrollTop($canvas_area.scrollTop() - difference_in_y);
+      const dx = current_pos.x - pan_last_pos.x;
+      const dy = current_pos.y - pan_last_pos.y;
+      $canvas_area.scrollLeft($canvas_area.scrollLeft() - dx);
+      $canvas_area.scrollTop($canvas_area.scrollTop() - dy);
       pan_last_pos = current_pos;
     }
   });
   // #endregion
 
+  ////////////////////////////////////
   // #region Primary Canvas Interaction (continued)
+
   $canvas.on("pointerdown", (e) => {
-    //oyc0401
     update_canvas_rect();
 
-    // Quick Undo when there are multiple PaintJSState.pointers (i.e. for touch)
-    // see pointermove for other pointer types
-    // SEE OTHER POINTERDOWN HANDLER ALSO
-    // NOTE: this relies on event handler order for pointerdown
-    // pointer is not added to PaintJSState.pointers yet
-    if (PaintJSState.pointers.length >= 1) {
-      // If you press two fingers quickly, it shouldn't make a new history entry.
-      // But if you draw something and then press a second finger to clear it, it should let you redo.
-      const discard_document_state =
-        first_pointer_time &&
-        performance.now() - first_pointer_time < discard_quick_undo_period;
-      cancel(false, discard_document_state);
-      PaintJSState.pointer_active = false; // NOTE: PaintJSState.pointer_active used in cancel(); must be set after cancel()
+    // "pointer_active가 없으면" => 첫 번째 포인터로 간주
+    if (!PaintJSState.pointer_active) {
+      console.log("첫 번째 터치로 그림 시작:", e.pointerId);
+      PaintJSState.pointer_active = true;
+      PaintJSState.pointerId = e.pointerId;
+      PaintJSState.pinchAllowed = false; // 초기값 false
+    } else {
+      // 이미 포인터가 있음 => 두 번째 터치
+      if (PaintJSState.pointerId !== e.pointerId) {
+        const elapsed = performance.now() - first_pointer_time;
 
-      // in eye gaze mode, allow drawing with mouse after canceling gaze gesture with mouse
-      PaintJSState.pointers = PaintJSState.pointers.filter(
-        (pointer) => pointer.pointerId !== 1234567890,
-      );
+        if (elapsed <= discard_quick_undo_period) {
+          // 500ms 이내 => 그림 cancel + pinchAllowed = true
+          console.log("두 번째 터치(500ms이내), 그리기 취소 + 핀치줌 허용");
+          cancel(false, true);
+          PaintJSState.pointer_active = false; 
+          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+          // 핀치 줌은 허용
+          PaintJSState.pinchAllowed = true;
+
+        } else {
+          // 500ms 이후 => 무시 (그림X, 핀치X)
+          console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
+          PaintJSState.pinchAllowed = false;
+          // pointers에서 제거(2개 이상이 안 되어야 핀치도 안 됨)
+          PaintJSState.pointers = PaintJSState.pointers.filter(
+            (p) => p.pointerId !== e.pointerId
+          );
+        }
+      }
       return;
     }
+    
 
+    // ------ 첫 번째 포인터로 그림 그리는 로직 ------
     PaintJSState.history_node_to_cancel_to = PaintJSState.current_history_node;
-
-    PaintJSState.pointer_active = !!(e.buttons & (1 | 2)); // as far as tools are concerned
     PaintJSState.pointer_type = e.pointerType;
     PaintJSState.pointer_buttons = e.buttons;
-    $(window).one("pointerup", (e) => {
+
+    // pointerup 핸들러
+    const pointerUpHandler = (eUp, canceling, no_undoable) => {
+      if (PaintJSState.pointerId !== eUp.pointerId) {
+        return;
+      }
       PaintJSState.pointer_active = false;
-      update_helper_layer(e);
+      update_helper_layer(eUp);
 
       if (
         !PaintJSState.pointer_over_canvas &&
@@ -1084,7 +1109,9 @@ export function initApp(canvasAreaQuery) {
         $(window).off("pointermove", update_helper_layer);
         PaintJSState.update_helper_layer_on_pointermove_active = false;
       }
-    });
+      $(window).off("pointerup pointercancel", pointerUpHandler);
+    };
+    $(window).on("pointerup pointercancel", pointerUpHandler);
 
     if (e.button === 0) {
       PaintJSState.reverse = false;
@@ -1094,6 +1121,8 @@ export function initApp(canvasAreaQuery) {
       return;
     }
 
+    // 초기화
+    console.log('포인터 초기화')
     PaintJSState.button = e.button;
     PaintJSState.ctrl = e.ctrlKey;
     PaintJSState.shift = e.shiftKey;
@@ -1102,6 +1131,7 @@ export function initApp(canvasAreaQuery) {
       PaintJSState.pointer =
         to_canvas_coords(e);
 
+    // 실제 펜/브러시/도구 pointerdown_action
     const pointerdown_action = () => {
       let interval_ids = [];
       PaintJSState.selected_tools.forEach((selected_tool) => {
@@ -1119,48 +1149,51 @@ export function initApp(canvasAreaQuery) {
 
       $(window).on("pointermove", canvas_pointer_move);
 
-      $(window).one("pointerup", (e, canceling, no_undoable) => {
+      // 툴별 pointerup
+      const toolPointerUpHandler = (eUp, canceling, no_undoable) => {
+        if (PaintJSState.pointerId !== eUp.pointerId) {
+          return;
+        }
         PaintJSState.button = undefined;
         PaintJSState.reverse = false;
 
-        if (e.clientX !== undefined) {
-          // may be synthetic event without coordinates
-          PaintJSState.pointer = to_canvas_coords(e);
-          //console.log('PaintJSState.pointer:',PaintJSState.pointer)
+        if (eUp.clientX !== undefined) {
+          if (PaintJSState.pointerId === eUp.pointerId) {
+           // PaintJSState.pointer = to_canvas_coords(eUp);
+          }
         }
-        // don't create undoables if you're two-finger-panning
-        // @TODO: do any tools use pointerup for cleanup?
+
         if (!no_undoable) {
           PaintJSState.selected_tools.forEach((selected_tool) => {
             selected_tool.pointerup?.(
               PaintJSState.main_ctx,
               PaintJSState.pointer.x,
-              PaintJSState.pointer.y,
+              PaintJSState.pointer.y
             );
           });
         }
-
         if (PaintJSState.selected_tools.length === 1) {
           if (PaintJSState.selected_tool.deselect) {
             select_tools(PaintJSState.return_to_tools);
           }
         }
+
         $(window).off("pointermove", canvas_pointer_move);
         for (const interval_id of interval_ids) {
           clearInterval(interval_id);
         }
-
         if (!canceling) {
           PaintJSState.history_node_to_cancel_to = null;
         }
-      });
+        $(window).off("pointerup pointercancel", toolPointerUpHandler);
+      };
+
+      $(window).on("pointerup pointercancel", toolPointerUpHandler);
     };
 
     pointerdown_action();
-
     update_helper_layer(e);
   });
-  // #endregion
 
   $canvas_area.on("pointerdown", (e) => {
     if (e.button === 0) {
@@ -1171,30 +1204,13 @@ export function initApp(canvasAreaQuery) {
       }
     }
   });
+  // #endregion
 
-  // function prevent_selection($el) {
-  //   $el.on("mousedown selectstart contextmenu", (e) => {
-  //     if (e.isDefaultPrevented()) {
-  //       return;
-  //     }
-  //     if (
-  //       e.target instanceof HTMLSelectElement ||
-  //       e.target instanceof HTMLTextAreaElement ||
-  //       (e.target instanceof HTMLLabelElement && e.type !== "contextmenu") ||
-  //       (e.target instanceof HTMLInputElement && e.target.type !== "color")
-  //     ) {
-  //       return;
-  //     }
-  //     if (e.button === 1) {
-  //       return; // allow middle-click scrolling
-  //     }
-  //     e.preventDefault();
-  //     // we're just trying to prevent selection
-  //     // but part of the default for mousedown is *deselection*
-  //     // so we have to do that ourselves explicitly
-  //     window.getSelection().removeAllRanges();
-  //   });
-  // }
+
+
+
+
+  
 
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
   $(window).on("blur", () => {

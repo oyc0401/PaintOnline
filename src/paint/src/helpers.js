@@ -395,7 +395,29 @@ function rgb_to_hsl(r, g, b) {
  * @returns {{ x: number, y: number }} canvas coordinates
  */
 function to_canvas_coords(event) {
+	console.log(event.pointerId)
 	
+	let clientX, clientY;
+	if(event.type == 'touchmove'){
+		clientX = event.touches[0].clientX;
+		clientY = event.touches[0].clientY;
+	}else{
+		clientX = event.clientX;
+		clientY = event.clientY;
+	}
+	if (clientX === undefined || clientY === undefined) {
+		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
+	}
+	const rect = PaintJSState.canvas_bounding_client_rect;
+	return {
+		x: ~~((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
+		y: ~~((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
+	};
+}
+
+function to_canvas_coords_magnification(event) {
+//	console.log('mag:',event.pointerId)
+
 	let clientX, clientY;
 	if(event.type == 'touchmove'){
 		clientX = event.touches[0].clientX;
@@ -444,6 +466,7 @@ export {
 	memoize_synchronous_function,
 	render_access_key,
 	rgb_to_hsl,
-	to_canvas_coords
+	to_canvas_coords,
+	to_canvas_coords_magnification
 };
 
