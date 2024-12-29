@@ -409,6 +409,8 @@ function to_canvas_coords(event) {
 		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
 	}
 	const rect = PaintJSState.canvas_bounding_client_rect;
+
+	// 연필이면 정수로 ~~
 	return {
 		x: ((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
 		y: ((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
@@ -430,6 +432,8 @@ function to_canvas_coords_magnification(event) {
 		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
 	}
 	const rect = PaintJSState.canvas_bounding_client_rect;
+
+	// 연필이면 정수로 ~~
 	return {
 		x: ((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
 		y: ((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),

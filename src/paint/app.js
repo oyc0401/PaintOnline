@@ -799,7 +799,7 @@ export function initApp(canvasAreaQuery) {
     ////////////////////////////////////
     // #region Primary Canvas Interaction
     function tool_go(selected_tool, event_name) {
-      console.log('tool_go!')
+      console.warn('tool_go!')
       update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
       if (selected_tool[event_name]) {
