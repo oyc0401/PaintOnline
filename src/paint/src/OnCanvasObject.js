@@ -59,10 +59,10 @@ class OnCanvasObject {
 		const offset_left = parseFloat(PaintJSState.$canvas_area.css("padding-left"));
 		const offset_top = parseFloat(PaintJSState.$canvas_area.css("padding-top"));
 		
-		const dpr = window.devicePixelRatio;
-		const targetDpr = roundDPR(dpr);
-		const div = targetDpr / dpr;
-		const dprMagnification=PaintJSState.magnification * div;
+	//	const dpr = window.devicePixelRatio;
+	//	const targetDpr = roundDPR(dpr);
+	//const div = targetDpr / dpr;
+		const dprMagnification=PaintJSState.magnification;
 
 		this.$el.css({
 			position: "absolute",

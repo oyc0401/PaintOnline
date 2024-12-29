@@ -24,18 +24,18 @@ import {PaintJSState} from '../state';
  * @property {() => void} show
  * @property {HTMLElement[]} handles
  */
-function roundDPR(dpr) {
-	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
-	let closest = values[0];
+// function roundDPR(dpr) {
+// 	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
+// 	let closest = values[0];
 
-	for (let i = 1; i < values.length; i++) {
-		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
-			closest = values[i];
-		}
-	}
+// 	for (let i = 1; i < values.length; i++) {
+// 		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
+// 			closest = values[i];
+// 		}
+// 	}
 
-	return closest;
-}
+// 	return closest;
+// }
 
 
 
@@ -162,10 +162,10 @@ function Handles(options) {
 				new_rect.y = Math.min(new_rect.y, rect.y + rect.height);
 			}
 			
-			const dpr = window.devicePixelRatio;
-			const targetDpr = roundDPR(dpr);
-			const div = targetDpr / dpr;
-			const dprMagnification=PaintJSState.magnification * div;
+		//	const dpr = window.devicePixelRatio;
+		//	const targetDpr = roundDPR(dpr);
+		//	const div = targetDpr / dpr;
+			const dprMagnification=PaintJSState.magnification //* div;
 			
 			$resize_ghost.css({
 				position: "absolute",
@@ -208,14 +208,14 @@ function Handles(options) {
 		
 
 		const update_handle = () => {
-			const dpr = window.devicePixelRatio;
-			const targetDpr = roundDPR(dpr);
-			const div = targetDpr / dpr;
+		//	const dpr = window.devicePixelRatio;
+			//const targetDpr = roundDPR(dpr);
+		//	const div = targetDpr / dpr;
 			
 			//console.log('update_handle')
 			const rect = options.get_rect();
-			rect.width *= div;
-			rect.height *= div
+			//rect.width *= div;
+			//rect.height *= div
 			const hs = $h.width();
 			// const x = rect.x + get_handles_offset_left();
 			// const y = rect.y + get_handles_offset_top();

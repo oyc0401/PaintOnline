@@ -12,7 +12,7 @@ import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
-import {  E, TAU, debounce, from_canvas_coords, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, make_canvas, render_access_key, to_canvas_coords, to_canvas_coords_magnification } from "./helpers.js";
+import {  E, TAU, debounce, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, make_canvas, render_access_key, to_canvas_coords, to_canvas_coords_magnification } from "./helpers.js";
 import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
@@ -145,15 +145,15 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 }
 
 function update_magnified_canvas_size() {
-	const dpr = window.devicePixelRatio;
-	const targetDpr = roundDPR(dpr);
-	const div = targetDpr / dpr;
-	const dprScale=PaintJSState.magnification * div;
+	//const dpr = window.devicePixelRatio;
+	//const targetDpr = roundDPR(dpr);
+	//const div = targetDpr / dpr;
+	//const dprScale=PaintJSState.magnification * div;
 	//console.log('업데이트!')
 	
 
-	PaintJSState.$canvas.css("width", PaintJSState.main_canvas.width * dprScale);
-	PaintJSState.$canvas.css("height", PaintJSState.main_canvas.height * dprScale);
+	PaintJSState.$canvas.css("width", PaintJSState.main_canvas.width *PaintJSState.magnification);
+	PaintJSState.$canvas.css("height", PaintJSState.main_canvas.height *PaintJSState.magnification);
 	
 	update_canvas_rect();
 }
@@ -203,16 +203,16 @@ function update_helper_layer_immediately() {
 	// 그래서 마우스에 따라가는거 만들려면 코드 다시짜야할 듯
 	// PaintJSState.pointer를 같이 공유하면 안되고 따로 분리해야할 듯
 	
-	// if (info_for_updating_pointer) {
-	// 	const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
-	// 	info_for_updating_pointer.clientX *= rescale;
-	// 	info_for_updating_pointer.clientY *= rescale;
-	// 	info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
-	// //	console.log('func');
-	// 	PaintJSState.pointer = to_canvas_coords_magnification(info_for_updating_pointer);
-	// }
+	if (info_for_updating_pointer) {
+		const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
+		info_for_updating_pointer.clientX *= rescale;
+		info_for_updating_pointer.clientY *= rescale;
+		info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
+	//	console.log('func');
+		PaintJSState.pointer = to_canvas_coords_magnification(info_for_updating_pointer);
+	}
 
-	const scale = PaintJSState.magnification * window.devicePixelRatio;
+	const scale = PaintJSState.magnification ;
 
 	if (!PaintJSState.helper_layer) {
 		//console.log('make helper-layer')
@@ -302,7 +302,7 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	//console.log('render',is_helper_layer);
 	PaintJSState.update_fill_and_stroke_colors_and_lineWidth(PaintJSState.selected_tool);
 
-	const grid_visible = PaintJSState.show_grid && PaintJSState.magnification >= 4 && (window.devicePixelRatio * PaintJSState.magnification) >= 4 && is_helper_layer;
+	const grid_visible = PaintJSState.show_grid && PaintJSState.magnification >= 4 && ( PaintJSState.magnification) >= 4 && is_helper_layer;
 
 	const hctx = hcanvas.ctx;
 
@@ -401,6 +401,8 @@ function update_disable_aa() {
 	}
 }
 
+//window.PaintJSState=PaintJSState
+
 function roundDPR(dpr) {
 	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
 	let closest = values[0];
@@ -419,36 +421,52 @@ function roundDPR(dpr) {
  * @param {{x: number, y: number}} [anchor_point] - uses canvas coordinates; default is the top-left of the PaintJSState.$canvas_area viewport
  */
 function set_magnification(new_scale, anchor_point) {
-	// How this works is, you imagine "what if it was zoomed, where would the anchor point be?"
-	// Then to make it end up where it started, you simply shift the viewport by the difference.
-	// And actually you don't have to "imagine" zooming, you can just do the zoom.
-
-	//console.log('돋보기', new_scale);
-	//window.$zoomText.text(new_scale==0.125?'12.50%':`${new_scale*100}%`);
-
+	// anchor_point를 지정하지 않았다면, 스크롤의 좌상단을 기준으로
+	// '현재 배율 기준'의 캔버스 좌표로 환산
+	// (기존 코드에서 "anchor_point = null → scrollLeft/magnification" 로직을 그대로 가져옴)
+	const rect = PaintJSState.canvas_bounding_client_rect;
+	
 	anchor_point = anchor_point ?? {
 		x: PaintJSState.$canvas_area.scrollLeft() / PaintJSState.magnification,
-		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification,
+		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification
 	};
-	const anchor_on_page = from_canvas_coords(anchor_point);
 
+	// 확대/축소 전(old) 앵커의 픽셀 좌표 (스크롤 기준)
+	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
+	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
+
+	console.log('anchor_old',anchor_old_x_px, anchor_old_y_px)
+
+	// 배율 적용
 	PaintJSState.magnification = new_scale;
 	if (new_scale !== 1) {
 		PaintJSState.return_to_magnification = new_scale;
 	}
-	update_magnified_canvas_size(); // also updates canvas_bounding_client_rect used by from_canvas_coords()
 
-	const anchor_after_zoom = from_canvas_coords(anchor_point);
-	// Note: scrollBy() not scrollTo()
+	// 캔버스 크기나 기타 요소를 새 배율에 맞게 갱신
+	update_magnified_canvas_size();
+
+	// 확대/축소 후(new) 앵커의 픽셀 좌표 (스크롤 기준)
+	const anchor_new_x_px = anchor_point.x * PaintJSState.magnification;
+	const anchor_new_y_px = anchor_point.y * PaintJSState.magnification;
+	console.log('anchor_new',anchor_new_x_px, anchor_new_y_px)
+	// (new - old) 만큼 스크롤을 이동해서
+	// 화면상에서 앵커가 동일 위치에 머무르도록 보정
+	const diff_x = anchor_new_x_px - anchor_old_x_px;
+	const diff_y = anchor_new_y_px - anchor_old_y_px;
+
+	console.log(diff_x, diff_y)
+
 	PaintJSState.$canvas_area[0].scrollBy({
-		left: anchor_after_zoom.clientX - anchor_on_page.clientX,
-		top: anchor_after_zoom.clientY - anchor_on_page.clientY,
-		behavior: "instant",
+		left: diff_x,
+		top: diff_y,
+		// behavior: "instant" 또는 "smooth" 등 필요 시 설정
 	});
 
-	$(window).triggerHandler("resize"); // updates handles & grid
-	$(window).trigger("option-changed"); // updates options area
-	$(window).trigger("magnification-changed"); // updates custom zoom window
+	// 이후 UI 갱신 이벤트들
+	$(window).triggerHandler("resize");
+	$(window).trigger("option-changed");
+	$(window).trigger("magnification-changed");
 }
 
 

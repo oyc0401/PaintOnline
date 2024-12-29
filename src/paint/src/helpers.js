@@ -410,8 +410,8 @@ function to_canvas_coords(event) {
 	}
 	const rect = PaintJSState.canvas_bounding_client_rect;
 	return {
-		x: ~~((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
-		y: ~~((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
+		x: ((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
+		y: ((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
 	};
 }
 
@@ -431,28 +431,16 @@ function to_canvas_coords_magnification(event) {
 	}
 	const rect = PaintJSState.canvas_bounding_client_rect;
 	return {
-		x: ~~((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
-		y: ~~((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
+		x: ((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
+		y: ((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
 	};
 }
-/**
- * @param {{ x: number, y: number }} canvas_point
- * @returns {{ clientX: number, clientY: number }} client coordinates
- */
-function from_canvas_coords({ x, y }) {
-	const rect = PaintJSState.canvas_bounding_client_rect;
-	return {
-		clientX: ~~(x / PaintJSState.main_canvas.width * rect.width + rect.left),
-		clientY: ~~(y / PaintJSState.main_canvas.height * rect.height + rect.top),
-	};
-}
-// #endregion
+
 
 export {
 	E,
 	TAU,
 	debounce,
-	from_canvas_coords,
 	get_file_extension,
 	get_format_from_extension,
 	get_help_folder_icon,
