@@ -234,62 +234,6 @@ export function initApp(canvasAreaQuery) {
 
   // #endregion
 
-  const nextZoom = {
-    0.5: 1,
-    1: 2,
-    2: 3,
-    3: 4,
-    4: 5,
-    5: 6,
-    6: 8,
-    8: 10,
-    10: 12,
-    12: 15,
-    15: 20,
-    20: 25,
-    25: 30,
-    30: 40,
-    40: 50,
-    50: 60,
-    60: 75,
-    75: 100,
-    100: 100,
-  };
-
-  const nextout = {
-    100: 75,
-    75: 60,
-    60: 50,
-    50: 40,
-    40: 30,
-    30: 25,
-    25: 20,
-    20: 15,
-    15: 12,
-    12: 10,
-    10: 8,
-    8: 6,
-    6: 5,
-    5: 4,
-    4: 3,
-    3: 2,
-    2: 1,
-    1: 0.5,
-    0.5: 0.5,
-  };
-
-  function getClosestZoom(currentZoom) {
-    const zoomLevels = Object.keys(nextZoom)
-      .map(Number)
-      .sort((a, b) => a - b);
-    for (let i = zoomLevels.length - 1; i >= 0; i--) {
-      if (currentZoom >= zoomLevels[i]) {
-        return zoomLevels[i];
-      }
-    }
-    return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
-  }
-
   function manageKeyboard() {
     // #region Keyboard Shortcuts
     $(window).on("keydown", (e) => {
@@ -576,10 +520,8 @@ export function initApp(canvasAreaQuery) {
           let new_magnification = PaintJSState.magnification;
           if (e.deltaY < 0) {
             new_magnification *= 1.2;
-            // nextZoom[getClosestZoom(PaintJSState.magnification)];
           } else {
             new_magnification /= 1.2;
-            // nextout[getClosestZoom(PaintJSState.magnification)];
           }
           //console.log("current", e.clientX, e.clientY);
           const clamped_magnification = Math.min(
@@ -950,7 +892,7 @@ export function initApp(canvasAreaQuery) {
         }
       });
     }
-    //setBrushPreview();
+    setBrushPreview();
 
     ////////////////////////////////////
     // #region Panning and Zooming
@@ -1157,8 +1099,25 @@ export function initApp(canvasAreaQuery) {
   init_webgl_stuff();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 let last_zoom_pointer_distance;
 let pan_last_pos;
+
 
 function touchEventSetting(){
  
