@@ -78,6 +78,9 @@ import {
 
 import { PaintJSState } from "./state.js";
 
+const MIN_MAGNIFICATION = 0.1;
+const MAX_MAGNIFICATION = 50;
+
 export function initApp(canvasAreaQuery) {
   const $canvas_area = $(canvasAreaQuery);
 
@@ -568,7 +571,7 @@ export function initApp(canvasAreaQuery) {
       "wheel",
       (e) => {
         //console.log(e);  || e.ctrlKey
-        if (e.altKey) {
+        if (e.altKey || e.ctrlKey) {
           e.preventDefault();
           let new_magnification = PaintJSState.magnification;
           if (e.deltaY < 0) {
@@ -578,9 +581,13 @@ export function initApp(canvasAreaQuery) {
             new_magnification /= 1.2;
             // nextout[getClosestZoom(PaintJSState.magnification)];
           }
-          console.log("current", e.clientX, e.clientY);
+          //console.log("current", e.clientX, e.clientY);
+          const clamped_magnification = Math.min(
+            MAX_MAGNIFICATION,
+            Math.max(MIN_MAGNIFICATION, new_magnification)
+          );
           set_magnification(
-            new_magnification,
+            clamped_magnification,
             to_canvas_coords_magnification(e),
             // {x:e.clientX,y:e.clientY}
           );
@@ -1215,6 +1222,7 @@ function touchEventSetting(){
     }
   });
 
+  
   $(window).on("touchmove", (event) => {
     if (PaintJSState.pinchAllowed) {
       const current_pos = average_touches(event.touches);
@@ -1222,13 +1230,10 @@ function touchEventSetting(){
         event.touches[0].clientX - event.touches[1].clientX,
         event.touches[0].clientY - event.touches[1].clientY,
       );
-      //console.log('거리:',distance)
 
       // (A) 배율 계산
       const scaleFactor = distance / last_zoom_pointer_distance;
       let new_magnification = PaintJSState.magnification * scaleFactor;
-     // console.log("scaleFactor", scaleFactor);
-      //console.log("current", current_pos.x, current_pos.y);
 
       last_zoom_pointer_distance = distance;
 
@@ -1236,8 +1241,13 @@ function touchEventSetting(){
         new_magnification !== PaintJSState.magnification &&
         !(0.98 < scaleFactor && scaleFactor < 1.02)
       ) {
+        const clamped_magnification = Math.min(
+          MAX_MAGNIFICATION,
+          Math.max(MIN_MAGNIFICATION, new_magnification)
+        );
+        
         set_magnification(
-          new_magnification,
+          clamped_magnification,
           to_canvas_coords_magnification({
             clientX: current_pos.x,
             clientY: current_pos.y,

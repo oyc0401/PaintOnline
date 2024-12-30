@@ -389,16 +389,17 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	});
 } 
 function update_disable_aa() {
-	const dots_per_canvas_px = window.devicePixelRatio * PaintJSState.magnification;
-	if (dots_per_canvas_px >= 1) {
+	//const dots_per_canvas_px = window.devicePixelRatio * PaintJSState.magnification;
+	//if (dots_per_canvas_px >= 1) {
 		PaintJSState.$canvas_area
 				.addClass("pixeled-canvas")
-				.removeClass("smooth-canvas");
-	} else {
-		PaintJSState.$canvas_area
-				.addClass("smooth-canvas")
-				.removeClass("pixeled-canvas");
-	}
+				//.removeClass("smooth-canvas");
+	//} 
+	// else {
+	// 	PaintJSState.$canvas_area
+	// 			.addClass("smooth-canvas")
+	// 			.removeClass("pixeled-canvas");
+	// }
 }
 
 //window.PaintJSState=PaintJSState
@@ -423,21 +424,14 @@ function roundDPR(dpr) {
 function set_magnification(new_scale, anchor_point) {
 	// anchor_point를 지정하지 않았다면, 스크롤의 좌상단을 기준으로
 	// '현재 배율 기준'의 캔버스 좌표로 환산
-	// (기존 코드에서 "anchor_point = null → scrollLeft/magnification" 로직을 그대로 가져옴)
-	const rect = PaintJSState.canvas_bounding_client_rect;
-	
 	anchor_point = anchor_point ?? {
 		x: PaintJSState.$canvas_area.scrollLeft() / PaintJSState.magnification,
 		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification
 	};
-	//console.log('anchor_point:',anchor_point);
-	//console.log('scrollLeft:', PaintJSState.$canvas_area.scrollLeft())
-
+	
 	// 확대/축소 전(old) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
-	//console.log('before:',anchor_old_x_px,anchor_old_y_px);
-//	console.log('anchor_old',anchor_old_x_px, anchor_old_y_px)
 
 	// 배율 적용
 	PaintJSState.magnification = new_scale;
@@ -451,19 +445,15 @@ function set_magnification(new_scale, anchor_point) {
 	// 확대/축소 후(new) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_new_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_new_y_px = anchor_point.y * PaintJSState.magnification;
-	//console.log('after:',anchor_new_x_px,anchor_new_y_px);
-	//console.log('anchor_new',anchor_new_x_px, anchor_new_y_px)
+	
 	// (new - old) 만큼 스크롤을 이동해서
 	// 화면상에서 앵커가 동일 위치에 머무르도록 보정
 	const diff_x = anchor_new_x_px - anchor_old_x_px;
 	const diff_y = anchor_new_y_px - anchor_old_y_px;
 
-	//console.log(diff_x, diff_y)
-
 	PaintJSState.$canvas_area[0].scrollBy({
 		left: diff_x,
-		top: diff_y,
-		// behavior: "instant" 또는 "smooth" 등 필요 시 설정
+		top: diff_y
 	});
 
 	// 이후 UI 갱신 이벤트들
@@ -2403,6 +2393,7 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
 				// maybe even keep Attributes dialog open if that's what's triggering the resize
 				return;
 			}
+			console.log('size:',new_width,new_height )
 
 			PaintJSState.$canvas_area.trigger("resize");
 		});
@@ -2430,122 +2421,10 @@ function image_attributes() {
 	if (image_attributes.$window) {
 		image_attributes.$window.close();
 	}
-	const $w = image_attributes.$window = $DialogWindow(localize("Attributes"));
-	$w.addClass("attributes-window");
-
-	const $main = $w.$main;
 
 	// Information
 
-	const table = {
-		[localize("File last saved:")]: localize("Not Available"), // @TODO: make available?
-		[localize("Size on disk:")]: localize("Not Available"), // @TODO: make available?
-		[localize("Resolution:")]: "72 x 72 dots per inch", // if localizing this, remove "direction" setting below
-	};
-	const $table = $(E("table")).appendTo($main);
-	for (const k in table) {
-		const $tr = $(E("tr")).appendTo($table);
-		$(E("td")).appendTo($tr).text(k);
-		const $value = $(E("td")).appendTo($tr).text(table[k]);
-		if (table[k].indexOf("72") !== -1) {
-			$value.css("direction", "ltr");
-		}
-	}
 
-	// Dimensions
-
-	const unit_sizes_in_px = { px: 1, in: 72, cm: 28.3465 };
-	let current_unit = image_attributes.unit = image_attributes.unit || "px";
-	let width_in_px = PaintJSState.main_canvas.width;
-	let height_in_px = PaintJSState.main_canvas.height;
-
-	const $width_label = $(E("label")).appendTo($main).html(render_access_key(localize("&Width:")));
-	const $height_label = $(E("label")).appendTo($main).html(render_access_key(localize("&Height:")));
-	const $width = $(E("input")).attr({ type: "number", min: 1, "aria-keyshortcuts": "Alt+W W W" }).addClass("no-spinner inset-deep").appendTo($width_label);
-	const $height = $(E("input")).attr({ type: "number", min: 1, "aria-keyshortcuts": "Alt+H H H" }).addClass("no-spinner inset-deep").appendTo($height_label);
-
-	$main.find("input")
-		.css({ width: "40px" })
-		.on("change keyup keydown keypress pointerdown pointermove paste drop", () => {
-			width_in_px = Number($width.val()) * unit_sizes_in_px[current_unit];
-			height_in_px = Number($height.val()) * unit_sizes_in_px[current_unit];
-		});
-
-	// Fieldsets
-
-	const $units = $(E("fieldset")).appendTo($main).append(`
-		<legend>${localize("Units")}</legend>
-		<div class="fieldset-body">
-			<div class="radio-field"><input type="radio" name="units" id="unit-in" value="in" aria-keyshortcuts="Alt+I I"><label for="unit-in">${render_access_key(localize("&Inches"))}</label></div>
-			<div class="radio-field"><input type="radio" name="units" id="unit-cm" value="cm" aria-keyshortcuts="Alt+M M"><label for="unit-cm">${render_access_key(localize("C&m"))}</label></div>
-			<div class="radio-field"><input type="radio" name="units" id="unit-px" value="px" aria-keyshortcuts="Alt+P P"><label for="unit-px">${render_access_key(localize("&Pixels"))}</label></div>
-		</div>
-	`);
-	$units.find(`[value=${current_unit}]`).attr({ checked: true });
-	$units.on("change", () => {
-		const new_unit = String($units.find(":checked").val());
-		$width.val(width_in_px / unit_sizes_in_px[new_unit]);
-		$height.val(height_in_px / unit_sizes_in_px[new_unit]);
-		current_unit = new_unit;
-	}).triggerHandler("change");
-
-	const $colors = $(E("fieldset")).appendTo($main).append(`
-		<legend>${localize("Colors")}</legend>
-		<div class="fieldset-body">
-			<div class="radio-field"><input type="radio" name="colors" id="attribute-monochrome" value="monochrome" aria-keyshortcuts="Alt+B B"><label for="attribute-monochrome">${render_access_key(localize("&Black and white"))}</label></div>
-			<div class="radio-field"><input type="radio" name="colors" id="attribute-polychrome" value="polychrome" aria-keyshortcuts="Alt+L L"><label for="attribute-polychrome">${render_access_key(localize("Co&lors"))}</label></div>
-		</div>
-	`);
-	$colors.find(`[value=${monochrome ? "monochrome" : "polychrome"}]`).attr({ checked: true });
-
-	const $transparency = $(E("fieldset")).appendTo($main).append(`
-		<legend>${localize("Transparency")}</legend>
-		<div class="fieldset-body">
-			<div class="radio-field"><input type="radio" name="transparency" id="attribute-transparent" value="transparent"><label for="attribute-transparent">${localize("Transparent")}</label></div>
-			<div class="radio-field"><input type="radio" name="transparency" id="attribute-opaque" value="opaque"><label for="attribute-opaque">${localize("Opaque")}</label></div>
-		</div>
-	`);
-	$transparency.find(`[value=${PaintJSState.transparency ? "transparent" : "opaque"}]`).attr({ checked: true });
-
-	// Buttons on the right
-
-	$w.$Button(localize("OK"), () => {
-		const transparency_option = $transparency.find(":checked").val();
-		const colors_option = $colors.find(":checked").val();
-		const unit = String($units.find(":checked").val());
-
-		
-		image_attributes.unit = unit;
-		PaintJSState.transparency = (transparency_option == "transparent");
-	
-		// added oyc0401
-		if(transparency_option == "transparent"){
-			PaintJSState.selected_colors.background = 'transparent'
-		}
-
-		const unit_to_px = unit_sizes_in_px[unit];
-		const width = Number($width.val()) * unit_to_px;
-		const height = Number($height.val()) * unit_to_px;
-		resize_canvas_and_save_dimensions(~~width, ~~height);
-
-		if (!PaintJSState.transparency && has_any_transparency(PaintJSState.main_ctx)) {
-			make_opaque();
-		}
-
-		image_attributes.$window.close();
-	}, { type: "submit" });
-
-	$w.$Button(localize("Cancel"), () => {
-		image_attributes.$window.close();
-	});
-
-	// Parsing HTML with jQuery; $Button takes text (not HTML) or Node/DocumentFragment
-	$w.$Button($.parseHTML(render_access_key(localize("&Default")))[0], () => {
-		width_in_px = PaintJSState.default_canvas_width;
-		height_in_px = PaintJSState.default_canvas_height;
-		$width.val(width_in_px / unit_sizes_in_px[current_unit]);
-		$height.val(height_in_px / unit_sizes_in_px[current_unit]);
-	}).attr("aria-keyshortcuts", "Alt+D D");
 
 	handle_keyshortcuts($w);
 
