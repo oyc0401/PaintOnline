@@ -1,6 +1,4 @@
 <script>
-  import "./colorMenu.css";
-
   import { menuState } from "$store/menuState.svelte.js";
   import PickColorIcon from "$lib/images/pick_color.png";
   import TransparantIcon from "$lib/images/transparent_icon.png";
@@ -11,7 +9,7 @@
   import "./menu.css";
   import "../toolsMenu.css";
 
-  const MENU_NUMBER = 3;
+  const MENU_NUMBER = 6;
   
   const palette1 = [
     "rgb(0,0,0)", // Black
@@ -199,6 +197,13 @@
 
 
 <style>
+
+  .menuDropdown{
+    width:100%;
+    background:white;
+
+  }
+  
   .menu {
     width: 100%;
     padding: 12px;

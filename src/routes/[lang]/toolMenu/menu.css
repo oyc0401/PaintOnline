@@ -1,5 +1,9 @@
-.menu-bottom{
+.menu-top{
+  top: 48px;
+  left:4px;
+}
 
+.menu-bottom{
   bottom: 48px;
   left:4px;
 }

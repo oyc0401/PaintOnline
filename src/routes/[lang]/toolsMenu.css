@@ -1,3 +1,4 @@
+/* 상하단 긴 메뉴영역 */
 .menus{
   display:flex;
   align-items:center;
@@ -6,6 +7,7 @@
   height:44px;
 }
 
+/* 메뉴버튼 영역 44x44 */
 .menu-button{
   width:44px;
   height:44px;
@@ -14,16 +16,32 @@
   align-items: center;
 }
 
-.menu-button img{
-  height: auto;
+/* 선택된 메뉴버튼 영역 44x44 */
+.selected-menu{
+   background: #FCFCFD;
 }
 
+
+/* 메뉴를 클릭하면 나오는 드롭다운 영역 */
 .menu-area {
    position: absolute;
    z-index: 10;
    width:100%;
  }
 
-.selected-menu{
-   background: #FCFCFD;
+
+/* 메뉴에 사용되는 이미지 */
+.menus img{
+  height: auto;
+
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
 }

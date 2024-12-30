@@ -5,6 +5,7 @@
   import { i18n, localize } from "$src/localize/localize";
   import ToolsAbove from "./ToolsAbove.svelte";
   import ToolsBelow from "./ToolsBelow.svelte";
+  import ToolsMenuHelper from "./ToolsMenuHelper.svelte";
 
   let { data } = $props();
   const { lang } = data;
@@ -44,6 +45,7 @@
 </svelte:head>
 
 <div class="h-full flex flex-col">
+  <ToolsMenuHelper></ToolsMenuHelper>
   <ToolsAbove></ToolsAbove>
 
   <Canvas></Canvas>

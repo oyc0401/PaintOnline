@@ -1,57 +1,56 @@
 <script>
   import {
-    TOOL_ERASER,
     TOOL_FILL,
     TOOL_MAGNIFIER,
     TOOL_PENCIL,
     TOOL_PICK_COLOR,
   } from "$paint/src/tools";
+  import ToolsIcon from "$lib/images/tools.png";
 
   import { menuState } from "$store/menuState.svelte.js";
-   import {  changeTool } from "$store/paintFunction.js";
-  function setTool(toolId) {
-    changeTool(toolId, 2);
-    console.log(toolId);
-  }
+  import { changeTool, openMenu } from "$store/paintFunction.js";
+  import "./menu.css";
+  import "../toolsMenu.css";
+  const MENU_NUMBER = 2;
 </script>
 
-<div class="menuDropdown">
+<div>
   <button
-    class:selected-tool={menuState.selectedTool === TOOL_PENCIL}
-    onclick={() => setTool(TOOL_PENCIL)}
+    class="menu-button"
+    class:selected-menu={menuState.selectedMenuId === MENU_NUMBER}
+    onclick={() => openMenu(MENU_NUMBER)}
   >
-    <p>연필</p>
+    <img src={ToolsIcon} alt="tools" />
   </button>
-  <button
-    class:selected-tool={menuState.selectedTool === TOOL_ERASER}
-    onclick={() => setTool(TOOL_ERASER)}
-  >
-    <p>지우개</p>
-  </button>
-  <button
-    class:selected-tool={menuState.selectedTool === TOOL_FILL}
-    onclick={() => setTool(TOOL_FILL)}
-  >
-    <p>칠하기</p>
-  </button>
-  <button
-    class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER}
-    onclick={() => setTool(TOOL_MAGNIFIER)}
-  >
-    <p>돋보기</p>
-  </button>
-  <button
-    class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR}
-    onclick={() => setTool(TOOL_PICK_COLOR)}
-  >
-    <p>pick color</p>
-  </button>
+
+  {#if menuState.showMenu && menuState.selectedMenuId == MENU_NUMBER}
+    <div class="menu-area menu-top">
+      <div class="menuDropdown">
+        <button
+          class:selected-tool={menuState.selectedTool === TOOL_PENCIL}
+          onclick={() => changeTool(TOOL_PENCIL, MENU_NUMBER)}
+        >
+          <p>연필</p>
+        </button>
+        <button
+          class:selected-tool={menuState.selectedTool === TOOL_FILL}
+          onclick={() => changeTool(TOOL_FILL, MENU_NUMBER)}
+        >
+          <p>칠하기</p>
+        </button>
+        <button
+          class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER}
+          onclick={() => changeTool(TOOL_MAGNIFIER, MENU_NUMBER)}
+        >
+          <p>돋보기</p>
+        </button>
+        <button
+          class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR}
+          onclick={() => changeTool(TOOL_PICK_COLOR, MENU_NUMBER)}
+        >
+          <p>pick color</p>
+        </button>
+      </div>
+    </div>
+  {/if}
 </div>
-
-<style>
-
-  .selected-tool {
-    background: gray;
-    font-weight: 700;
-  }
-</style>
