@@ -1,0 +1,29 @@
+.menus{
+  display:flex;
+  align-items:center;
+  width:100%;
+  background:#FCFCFC;
+  height:44px;
+}
+
+.menu-button{
+  width:44px;
+  height:44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-button img{
+  height: auto;
+}
+
+.menu-area {
+   position: absolute;
+   z-index: 10;
+   width:100%;
+ }
+
+.selected-menu{
+   background: #FCFCFD;
+}

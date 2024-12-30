@@ -1,0 +1,10 @@
+.menu-bottom{
+
+  bottom: 48px;
+  left:4px;
+}
+
+.selected-tool {
+  background: gray;
+  font-weight: 700;
+}

@@ -17,3 +17,20 @@ export function changeTool(toolId, menuId) {
 }
 
 
+
+export const openMenu = (id) => {
+  if (!menuState.showMenu) {
+    menuState.showMenu = true;
+  } else if (id == menuState.selectedMenuId) {
+    closeMenu();
+  }
+  menuState.selectedMenuId = id;
+  if (menuState.selectedTools[id]) {
+    changeTool(menuState.selectedTools[id], id);
+  }
+};
+
+export function closeMenu() {
+  menuState.showMenu = false;
+  menuState.selectedMenuId = menuState.toolMenuId;
+}
