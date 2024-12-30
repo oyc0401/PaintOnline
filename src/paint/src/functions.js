@@ -430,11 +430,13 @@ function set_magnification(new_scale, anchor_point) {
 		x: PaintJSState.$canvas_area.scrollLeft() / PaintJSState.magnification,
 		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification
 	};
+	//console.log('anchor_point:',anchor_point);
+	//console.log('scrollLeft:', PaintJSState.$canvas_area.scrollLeft())
 
 	// 확대/축소 전(old) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
-
+	//console.log('before:',anchor_old_x_px,anchor_old_y_px);
 //	console.log('anchor_old',anchor_old_x_px, anchor_old_y_px)
 
 	// 배율 적용
@@ -449,6 +451,7 @@ function set_magnification(new_scale, anchor_point) {
 	// 확대/축소 후(new) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_new_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_new_y_px = anchor_point.y * PaintJSState.magnification;
+	//console.log('after:',anchor_new_x_px,anchor_new_y_px);
 	//console.log('anchor_new',anchor_new_x_px, anchor_new_y_px)
 	// (new - old) 만큼 스크롤을 이동해서
 	// 화면상에서 앵커가 동일 위치에 머무르도록 보정

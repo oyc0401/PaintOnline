@@ -187,7 +187,9 @@ export function defaultState() {
 
   let pinchAllowed=false;
 
-
+let touchCount=0;
+  let first_pointer_time;
+  const discard_quick_undo_period=500;
 
   return {
     default_magnification,
@@ -255,5 +257,8 @@ export function defaultState() {
     stroke,
     pointerId,
     pinchAllowed,
+    touchCount,
+    first_pointer_time,
+    discard_quick_undo_period,
   };
 }

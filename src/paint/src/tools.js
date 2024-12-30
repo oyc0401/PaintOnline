@@ -2047,7 +2047,7 @@ tools.forEach((tool) => {
 				brush.size,
 			);
 			tool.mask_canvas.ctx.fillStyle = PaintJSState.stroke_color;
-
+			//console.log('draw',PaintJSState.pointer.x,PaintJSState.pointer.y)
 			const iterate_line =
 				brush.size > 1 ? bresenham_dense_line : bresenham_line;
 			////////////
@@ -2067,12 +2067,14 @@ tools.forEach((tool) => {
 			// 1. 임시 캔버스에 흰색으로 도형 그리기
 			tempCtx.fillStyle = 'white';
 			tempCtx.globalCompositeOperation = 'source-over';
+			
 			iterate_line(
 				PaintJSState.pointer_previous.x - startX,
 					PaintJSState.pointer_previous.y - startY,
 					PaintJSState.pointer.x - startX,
 					PaintJSState.pointer.y - startY,
 				(x, y) => {
+					
 					stamp_brush_canvas(
 						tempCtx,
 						x + brush.size,

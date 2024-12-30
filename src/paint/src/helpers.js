@@ -412,8 +412,8 @@ function to_canvas_coords(event) {
 
 	// 연필이면 정수로 ~~
 	return {
-		x: ((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
-		y: ((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
+		x: ~~((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
+		y: ~~((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
 	};
 }
 

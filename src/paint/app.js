@@ -578,9 +578,11 @@ export function initApp(canvasAreaQuery) {
             new_magnification /= 1.2;
             // nextout[getClosestZoom(PaintJSState.magnification)];
           }
+          console.log("current", e.clientX, e.clientY);
           set_magnification(
             new_magnification,
             to_canvas_coords_magnification(e),
+            // {x:e.clientX,y:e.clientY}
           );
           return;
         }
@@ -742,6 +744,13 @@ export function initApp(canvasAreaQuery) {
   }
   manageStorage();
 
+  $canvas_area.on("scroll", function () {
+    // 사용자가 직접 스크롤할 때는 실제 scrollLeft/scrollTop 값을 가져와
+    // PaintJSState.scroll_x, scroll_y에 저장해둔다 (소수점은 없는 값이겠지만, 최대한 동기화)
+    PaintJSState.scroll_x = this.scrollLeft;
+    PaintJSState.scroll_y = this.scrollTop;
+  });
+
   // #endregion
   function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
     PaintJSState.main_ctx.lineWidth = PaintJSState.stroke_size;
@@ -799,7 +808,7 @@ export function initApp(canvasAreaQuery) {
     ////////////////////////////////////
     // #region Primary Canvas Interaction
     function tool_go(selected_tool, event_name) {
-      console.warn('tool_go!')
+      console.warn("tool_go!");
       update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
       if (selected_tool[event_name]) {
@@ -828,7 +837,7 @@ export function initApp(canvasAreaQuery) {
       PaintJSState.shift = e.shiftKey;
 
       // Quick Undo (for mouse/pen)
-      if (PaintJSState.pointers.length && e.button !== -1) {
+      if (PaintJSState.touchCount && e.button !== -1) {
         const MMB = 4;
         if (
           e.pointerType !== PaintJSState.pointer_type ||
@@ -891,7 +900,6 @@ export function initApp(canvasAreaQuery) {
         tool_go(selected_tool);
       });
 
-     
       PaintJSState.pointer_previous = PaintJSState.pointer;
     }
 
@@ -939,28 +947,9 @@ export function initApp(canvasAreaQuery) {
 
     ////////////////////////////////////
     // #region Panning and Zooming
-    let last_zoom_pointer_distance;
-    let pan_last_pos;
-    let first_pointer_time;
-    const discard_quick_undo_period = 500;
 
-    // "두 번째 터치가 500ms 이내" → cancel() 후 pinchAllowed = true
-    // "두 번째 터치가 500ms 이후" → pinchAllowed = false
-    // PaintJSState.pinchAllowed = false;
-
-    function average_points(points) {
-      const average = { x: 0, y: 0 };
-      for (const pointer of points) {
-        average.x += pointer.x;
-        average.y += pointer.y;
-      }
-      average.x /= points.length;
-      average.y /= points.length;
-      return average;
-    }
 
     $canvas_area.get(0).addEventListener("pointerdown", (event) => {
-      console.log("$canvas_area.pointerdown");
       if (
         document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
         document.activeElement !== document.body &&
@@ -971,120 +960,10 @@ export function initApp(canvasAreaQuery) {
       }
     });
 
-    $canvas_area.get(0).addEventListener(
-      "pointerdown",
-      (event) => {
-        console.log("$canvas_area.pointerdown - captured");
-
-        // 첫 번째 포인터 등록 (원본)
-        if (
-          PaintJSState.pointers.every(
-            (pointer) =>
-              !(
-                pointer.isPrimary &&
-                (pointer.pointerType === "mouse" ||
-                  pointer.pointerType === "pen")
-              ),
-          )
-        ) {
-          PaintJSState.pointers.push({
-            pointerId: event.pointerId,
-            pointerType: event.pointerType,
-            // @ts-ignore
-            isPrimary:
-              (event.originalEvent && event.originalEvent.isPrimary) ||
-              event.isPrimary,
-            x: event.clientX,
-            y: event.clientY,
-          });
-        }
-
-        if (PaintJSState.pointers.length === 1) {
-          first_pointer_time = performance.now();
-        }
-        if (PaintJSState.pointers.length === 2) {
-          last_zoom_pointer_distance = Math.hypot(
-            PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-            PaintJSState.pointers[0].y - PaintJSState.pointers[1].y,
-          );
-          pan_last_pos = average_points(PaintJSState.pointers);
-        }
-
-        // console.log(PaintJSState.pointers.length)
-
-        if (PaintJSState.pointers.length > 1) {
-          const elapsed = performance.now() - first_pointer_time;
-          if (elapsed <= discard_quick_undo_period) {
-            //  핀지줌 허용
-            // 아래코드 중복임, 리팩토링 필요
-            console.log("500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용");
-
-            $(window).trigger("pointerup");
-            // 500ms 이내 => 그림 cancel + pinchAllowed = true
-            cancel(false, true);
-            PaintJSState.pointer_active = false;
-            // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-            // 핀치 줌은 허용
-            PaintJSState.pinchAllowed = true;
-          }
-        }
-      },
-      true,
-    );
-
-    $(window).on("pointerup pointercancel", (event) => {
-      console.log("window.pointerup", "window.pointercancel");
-      PaintJSState.pointers = PaintJSState.pointers.filter(
-        (pointer) => pointer.pointerId !== event.pointerId,
-      );
-      // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
-      PaintJSState.pinchAllowed = false;
-    });
-
-    $(window).on("pointermove", (event) => {
-      // console.log('window.pointermove')
-      // 핀치 줌 추적 (원본)
-      for (const pointer of PaintJSState.pointers) {
-        if (pointer.pointerId === event.pointerId) {
-          pointer.x = event.clientX;
-          pointer.y = event.clientY;
-        }
-      }
-      if (PaintJSState.pointers.length >= 2 && PaintJSState.pinchAllowed) {
-        const current_pos = average_points(PaintJSState.pointers);
-        const distance = Math.hypot(
-          PaintJSState.pointers[0].x - PaintJSState.pointers[1].x,
-          PaintJSState.pointers[0].y - PaintJSState.pointers[1].y,
-        );
-
-        // (A) 배율 계산
-        const scaleFactor = distance / last_zoom_pointer_distance;
-        let new_magnification = PaintJSState.magnification * scaleFactor;
-
-        last_zoom_pointer_distance = distance;
-
-        if (new_magnification !== PaintJSState.magnification) {
-          set_magnification(
-            new_magnification,
-            to_canvas_coords_magnification({
-              clientX: current_pos.x,
-              clientY: current_pos.y,
-            }),
-          );
-        }
-        const dx = current_pos.x - pan_last_pos.x;
-        const dy = current_pos.y - pan_last_pos.y;
-
-        $canvas_area[0].scrollBy({
-          left: -dx,
-          top: -dy,
-        });
-
-        pan_last_pos = current_pos;
-      }
-    });
+    touchEventSetting();
     // #endregion
 
+    
     ////////////////////////////////////
     // #region Primary Canvas Interaction (continued)
 
@@ -1092,7 +971,7 @@ export function initApp(canvasAreaQuery) {
       console.log("$canvas.pointerdown");
       update_canvas_rect();
 
-      const elapsed = performance.now() - first_pointer_time;
+      const elapsed = performance.now() - PaintJSState.first_pointer_time;
 
       // "pointer_active가 없으면" => 첫 번째 포인터로 간주  // 이였는데, 2개캡쳐되면 알아서 pointer_active를 false로 바꿈.
       // 그래서 pinchAllowed인지도 같이 감지함
@@ -1107,7 +986,7 @@ export function initApp(canvasAreaQuery) {
         // 이미 포인터가 있음 => 두 번째 터치
         if (
           PaintJSState.pointerId !== e.pointerId &&
-          elapsed > discard_quick_undo_period
+          elapsed > PaintJSState.discard_quick_undo_period
         ) {
           // 500ms 이후 => 무시 (그림X, 핀치X)
           console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
@@ -1161,7 +1040,7 @@ export function initApp(canvasAreaQuery) {
 
       // 실제 펜/브러시/도구 pointerdown_action
       const pointerdown_action = () => {
-       // let interval_ids = [];
+        // let interval_ids = [];
         PaintJSState.selected_tools.forEach((selected_tool) => {
           if (selected_tool.paint || selected_tool.pointerdown) {
             tool_go(selected_tool, "pointerdown");
@@ -1269,4 +1148,111 @@ export function initApp(canvasAreaQuery) {
   // #endregion
 
   init_webgl_stuff();
+}
+
+let last_zoom_pointer_distance;
+let pan_last_pos;
+
+function touchEventSetting(){
+ 
+
+
+  function average_touches(points) {
+    const average = { x: 0, y: 0 };
+    for (const pointer of points) {
+      average.x += pointer.clientX;
+      average.y += pointer.clientY;
+    }
+    average.x /= points.length;
+    average.y /= points.length;
+    return average;
+  }
+  
+  PaintJSState.$canvas_area.get(0).addEventListener(
+    "touchstart",
+    (event) => {
+      console.log("$canvas_area.touchstart - captured");
+
+      if (event.touches.length === 1) {
+        PaintJSState.first_pointer_time = performance.now();
+      }
+      if (event.touches.length === 2) {
+        last_zoom_pointer_distance = Math.hypot(
+          event.touches[0].clientX - event.touches[1].clientX,
+          event.touches[0].clientY - event.touches[1].clientY,
+        );
+
+        pan_last_pos = average_touches(event.touches);
+      }
+
+
+      if (event.touches.length == 2) {
+        const elapsed = performance.now() - PaintJSState.first_pointer_time;
+        if (elapsed <= PaintJSState.discard_quick_undo_period) {
+          //  핀지줌 허용
+          // 아래코드 중복임, 리팩토링 필요
+          console.log("500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용");
+
+          $(window).trigger("touchend");
+          // 500ms 이내 => 그림 cancel + pinchAllowed = true
+          cancel(false, true);
+          PaintJSState.pointer_active = false;
+          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+          // 핀치 줌은 허용
+          PaintJSState.pinchAllowed = true;
+        }
+      }
+    },
+    true,
+  );
+
+  $(window).on("touchend", (event) => {
+    console.log("touchend");
+    
+    // // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
+    if(event.touches === undefined || event.touches.length < 2){
+      PaintJSState.pinchAllowed = false;
+    }
+  });
+
+  $(window).on("touchmove", (event) => {
+    if (PaintJSState.pinchAllowed) {
+      const current_pos = average_touches(event.touches);
+      const distance = Math.hypot(
+        event.touches[0].clientX - event.touches[1].clientX,
+        event.touches[0].clientY - event.touches[1].clientY,
+      );
+      //console.log('거리:',distance)
+
+      // (A) 배율 계산
+      const scaleFactor = distance / last_zoom_pointer_distance;
+      let new_magnification = PaintJSState.magnification * scaleFactor;
+     // console.log("scaleFactor", scaleFactor);
+      //console.log("current", current_pos.x, current_pos.y);
+
+      last_zoom_pointer_distance = distance;
+
+      if (
+        new_magnification !== PaintJSState.magnification &&
+        !(0.98 < scaleFactor && scaleFactor < 1.02)
+      ) {
+        set_magnification(
+          new_magnification,
+          to_canvas_coords_magnification({
+            clientX: current_pos.x,
+            clientY: current_pos.y,
+          }),
+        );
+      }
+      const dx = current_pos.x - pan_last_pos.x;
+      const dy = current_pos.y - pan_last_pos.y;
+
+      PaintJSState.$canvas_area[0].scrollBy({
+        left: -dx,
+        top: -dy,
+      });
+
+      pan_last_pos = current_pos;
+    }
+  });
 }
