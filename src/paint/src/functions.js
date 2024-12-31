@@ -454,22 +454,14 @@ function set_magnification(new_scale, anchor_point) {
 	const diff_x = anchor_new_x_px - anchor_old_x_px;
 	const diff_y = anchor_new_y_px - anchor_old_y_px;
 
-	//console.log('new - old:',diff_x,diff_y)
-
-	//console.log('before',PaintJSState.$canvas_area.scrollLeft());
-	//const bf=PaintJSState.$canvas_area.scrollLeft();
-	
+	// 스크롤을 할때 브라우저는 1만큼 이동하라고 시켰으면 실제론 1*dpr를 계산하고. 이를 내림한 값을 브라우저에 저장한다.
+	// 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고. 
+	// scrollLeft()는 2/2.6 = 0.7692가 된다. 실제와 약 23%나 차이나는 것이다.
 	PaintJSState.$canvas_area[0].scrollBy({
-		left: Math.round(diff_x),
-		top: Math.round(diff_y) // 스크롤은 내림으로 계산된다. 그래서 미리 반올림을 해준다.
+		left: Math.round(diff_x * devicePixelRatio) / devicePixelRatio,
+		top: Math.round(diff_y * devicePixelRatio) / devicePixelRatio, 
 	});
-//	console.log('after',PaintJSState.$canvas_area.scrollLeft());
 
-	//console.log('after - before:',PaintJSState.$canvas_area.scrollLeft() - bf)
-
-	//console.log('예측 스크롤:',bf +diff_x)
-	//console.log('실제 스크롤:',PaintJSState.$canvas_area.scrollLeft())
-	
 	// 이후 UI 갱신 이벤트들
 	$(window).triggerHandler("resize");
 	$(window).trigger("option-changed");

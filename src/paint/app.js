@@ -1198,31 +1198,31 @@ function touchEventSetting(){
 
       last_zoom_pointer_distance = distance;
 
-      if (
-        new_magnification !== PaintJSState.magnification &&
-        !(0.98 < scaleFactor && scaleFactor < 1.02)
-      ) {
-        const clamped_magnification = Math.min(
-          MAX_MAGNIFICATION,
-          Math.max(MIN_MAGNIFICATION, new_magnification)
-        );
-        
-        set_magnification(
-          clamped_magnification,
-          to_canvas_coords_magnification({
-            clientX: current_pos.x,
-            clientY: current_pos.y,
-          }),
-        );
-      }
-      const dx = current_pos.x - pan_last_pos.x;
-      const dy = current_pos.y - pan_last_pos.y;
+      const clamped_magnification = Math.min(
+        MAX_MAGNIFICATION,
+        Math.max(MIN_MAGNIFICATION, new_magnification)
+      );
+      set_magnification(
+        clamped_magnification,
+        to_canvas_coords_magnification({
+          clientX: current_pos.x,
+          clientY: current_pos.y,
+        }),
+      );
+      
+      const dx = pan_last_pos.x - current_pos.x;
+      const dy = pan_last_pos.y - current_pos.y ;
 
+      // 스크롤을 할때 브라우저는 1만큼 이동하라고 시켰으면 실제론 1*dpr를 계산하고. 이를 내림한 값을 브라우저에 저장한다.
+      // 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고. 
+      // scrollLeft()는 2/2.6 = 0.7692가 된다. 실제와 약 23%나 차이나는 것이다.
+      // 이것이 프레임당 지속되면 누적이되어 크게 차이난다. 평균 (-0.5,-0.5) 만큼의 차이가 나므로 1초에 30픽셀만큼 오차가 생긴다.
+      // 반올림 하면 오차를 반으로 줄일 수 있지만 완벽히 오차를 제거한 것은 아니다.
       PaintJSState.$canvas_area[0].scrollBy({
-        left: -dx,
-        top: -dy,
+        left: Math.round(dx*scaleFactor*devicePixelRatio)/devicePixelRatio,
+        top: Math.round(dy*scaleFactor*devicePixelRatio)/devicePixelRatio,
       });
-
+ 
       pan_last_pos = current_pos;
     }
   });
