@@ -433,7 +433,7 @@ function set_magnification(new_scale, anchor_point) {
 	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
 
-	console.log('new_scale',new_scale)
+	//console.log('new_scale',new_scale)
 	
 	// 배율 적용
 	PaintJSState.magnification = new_scale;

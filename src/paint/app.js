@@ -759,7 +759,7 @@ export function initApp(canvasAreaQuery) {
     ////////////////////////////////////
     // #region Primary Canvas Interaction
     function tool_go(selected_tool, event_name) {
-      console.warn("tool_go!");
+    //  console.warn("tool_go!");
       update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
       if (selected_tool[event_name]) {
@@ -862,8 +862,11 @@ export function initApp(canvasAreaQuery) {
           return;
         }
 
-        if (PaintJSState.pointerId === e.pointerId) {
+         if (PaintJSState.pointerId === e.pointerId) {
+           console.log(e.pointerId)
+
           PaintJSState.pointer = to_canvas_coords(e);
+         // PaintJSState.pointerId === e.pointerId;
         }
       });
     }
@@ -934,14 +937,7 @@ export function initApp(canvasAreaQuery) {
         PaintJSState.pointerId = e.pointerId;
         PaintJSState.pinchAllowed = false; // 초기값 false
       } else {
-        // 이미 포인터가 있음 => 두 번째 터치
-        if (
-          PaintJSState.pointerId !== e.pointerId &&
-          elapsed > PaintJSState.discard_quick_undo_period
-        ) {
-          // 500ms 이후 => 무시 (그림X, 핀치X)
-          console.log("두 번째 터치(500ms이후), 무시 + 핀치줌 불가");
-        }
+         console.log("두 번째 터치 무시");
         return;
       }
 
@@ -953,11 +949,7 @@ export function initApp(canvasAreaQuery) {
 
       // pointerup 핸들러
       const pointerUpHandler = (eUp, canceling, no_undoable) => {
-        if (PaintJSState.pointerId !== eUp.pointerId) {
-          return;
-        }
         PaintJSState.pointer_active = false;
-
         update_helper_layer(eUp);
 
         if (
@@ -969,8 +961,10 @@ export function initApp(canvasAreaQuery) {
         }
         $(window).off("pointerup pointercancel", pointerUpHandler);
       };
+      
       $(window).on("pointerup pointercancel", pointerUpHandler);
-
+       // </ pointerup 핸들러>
+      
       if (e.button === 0) {
         PaintJSState.reverse = false;
       } else if (e.button === 2) {
@@ -980,7 +974,7 @@ export function initApp(canvasAreaQuery) {
       }
 
       // 초기화
-      console.log("포인터 초기화");
+      //console.log("포인터 초기화");
       PaintJSState.button = e.button;
       PaintJSState.ctrl = e.ctrlKey;
       PaintJSState.shift = e.shiftKey;
@@ -1001,10 +995,7 @@ export function initApp(canvasAreaQuery) {
         $(window).on("pointermove", canvas_pointer_move);
 
         // 툴별 pointerup
-        const onWindowPointerup = (eUp, canceling, no_undoable) => {
-          if (PaintJSState.pointerId !== eUp.pointerId) {
-            return;
-          }
+        const toolPointUp = (eUp, canceling, no_undoable) => {
           PaintJSState.button = undefined;
           PaintJSState.reverse = false;
 
@@ -1013,7 +1004,8 @@ export function initApp(canvasAreaQuery) {
               // PaintJSState.pointer = to_canvas_coords(eUp);
             }
           }
-          if (!PaintJSState.pinchAllowed) {
+          //console.log('toolPointUp', eUp.pointerId,PaintJSState.pinchAllowed);
+          
             PaintJSState.selected_tools.forEach((selected_tool) => {
               selected_tool.pointerup?.(
                 PaintJSState.main_ctx,
@@ -1021,7 +1013,7 @@ export function initApp(canvasAreaQuery) {
                 PaintJSState.pointer.y,
               );
             });
-          }
+          
 
           if (PaintJSState.selected_tools.length === 1) {
             if (PaintJSState.selected_tool.deselect) {
@@ -1036,10 +1028,10 @@ export function initApp(canvasAreaQuery) {
           if (!canceling) {
             PaintJSState.history_node_to_cancel_to = null;
           }
-          $(window).off("pointerup pointercancel", onWindowPointerup);
+          $(window).off("pointerup pointercancel", toolPointUp);
         };
 
-        $(window).on("pointerup pointercancel", onWindowPointerup);
+        $(window).on("pointerup pointercancel", toolPointUp);
       };
 
       pointerdown_action();
@@ -1155,20 +1147,31 @@ function touchEventSetting(){
 
 
       if (event.touches.length == 2) {
+       
         const elapsed = performance.now() - PaintJSState.first_pointer_time;
-        if (elapsed <= PaintJSState.discard_quick_undo_period) {
-          //  핀지줌 허용
-          // 아래코드 중복임, 리팩토링 필요
-          console.log("500ms이내에 두개의 클릭이 감지되면, 핀치줌 허용");
 
+        // 일정시간 이내에 그리면 지우기
+        if (elapsed <= PaintJSState.discard_quick_undo_period) {
           $(window).trigger("touchend");
+          
+         
+          
           // 500ms 이내 => 그림 cancel + pinchAllowed = true
           cancel(false, true);
-          PaintJSState.pointer_active = false;
-          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-          // 핀치 줌은 허용
-          PaintJSState.pinchAllowed = true;
         }
+         $(window).trigger("pointerup");
+        console.log("두손가락이면 핀치줌 허용");
+        // 그림그리기 완료
+        // pinchAllowed가 false일때만 그리기 완료됌..
+     
+
+        
+        PaintJSState.pointer_active = false;
+        // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+        // 핀치 줌은 허용
+        PaintJSState.pinchAllowed = true;
+
+        
       }
     },
     true,
