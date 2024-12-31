@@ -78,8 +78,8 @@ import {
 
 import { PaintJSState } from "./state.js";
 
-const MIN_MAGNIFICATION = 0.1;
-const MAX_MAGNIFICATION = 50;
+const MIN_MAGNIFICATION = 0.12;
+const MAX_MAGNIFICATION = 78;
 
 export function initApp(canvasAreaQuery) {
   const $canvas_area = $(canvasAreaQuery);
@@ -519,11 +519,13 @@ export function initApp(canvasAreaQuery) {
           e.preventDefault();
           let new_magnification = PaintJSState.magnification;
           if (e.deltaY < 0) {
-            new_magnification *= 1.2;
+            new_magnification *= 1.125;
           } else {
-            new_magnification /= 1.2;
+            new_magnification /= 1.125;
           }
-          //console.log("current", e.clientX, e.clientY);
+          //console.log("clientX, Y", e.clientX, e.clientY);
+          //console.log("canvas_coordclientX,Y",  to_canvas_coords_magnification(e));
+
           const clamped_magnification = Math.min(
             MAX_MAGNIFICATION,
             Math.max(MIN_MAGNIFICATION, new_magnification)

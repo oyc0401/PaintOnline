@@ -433,6 +433,8 @@ function set_magnification(new_scale, anchor_point) {
 	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
 
+	console.log('new_scale',new_scale)
+	
 	// 배율 적용
 	PaintJSState.magnification = new_scale;
 	if (new_scale !== 1) {
@@ -445,17 +447,29 @@ function set_magnification(new_scale, anchor_point) {
 	// 확대/축소 후(new) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_new_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_new_y_px = anchor_point.y * PaintJSState.magnification;
+	//console.log('new',anchor_new_x_px,anchor_new_y_px)
 	
 	// (new - old) 만큼 스크롤을 이동해서
 	// 화면상에서 앵커가 동일 위치에 머무르도록 보정
 	const diff_x = anchor_new_x_px - anchor_old_x_px;
 	const diff_y = anchor_new_y_px - anchor_old_y_px;
 
-	PaintJSState.$canvas_area[0].scrollBy({
-		left: diff_x,
-		top: diff_y
-	});
+	//console.log('new - old:',diff_x,diff_y)
 
+	//console.log('before',PaintJSState.$canvas_area.scrollLeft());
+	//const bf=PaintJSState.$canvas_area.scrollLeft();
+	
+	PaintJSState.$canvas_area[0].scrollBy({
+		left: Math.round(diff_x),
+		top: Math.round(diff_y) // 스크롤은 내림으로 계산된다. 그래서 미리 반올림을 해준다.
+	});
+//	console.log('after',PaintJSState.$canvas_area.scrollLeft());
+
+	//console.log('after - before:',PaintJSState.$canvas_area.scrollLeft() - bf)
+
+	//console.log('예측 스크롤:',bf +diff_x)
+	//console.log('실제 스크롤:',PaintJSState.$canvas_area.scrollLeft())
+	
 	// 이후 UI 갱신 이벤트들
 	$(window).triggerHandler("resize");
 	$(window).trigger("option-changed");
