@@ -1,7 +1,7 @@
 export const menuState = $state({
   showDropdown: false,
-  dropdownId: 2, // 열려있는 드롭다운
-  toolMenuId: 2, // 선택된 도구를 포함하는 메뉴 id, 연필에서 색깔 바꾸면 다시 연필로 돌아가야하니깐
+  dropdownId: 3, // 열려있는 드롭다운
+  toolMenuId: 3, // 선택된 도구를 포함하는 메뉴 id, 연필에서 색깔 바꾸면 다시 연필로 돌아가야하니깐
   selectedTool: "TOOL_PENCIL",
   toolHistory: {
     1: "TOOL_SELECT",

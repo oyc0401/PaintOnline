@@ -1,7 +1,7 @@
 <script>
   import MenuIcon from "$lib/images/menu.png";
   import { menuState } from "$store/menuState.svelte.js";
-  import { clickMenu } from "$store/paintFunction.js";
+  import { quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
   const MENU_NUMBER = 0;
@@ -10,7 +10,7 @@
 <div>
   <button class="menu-button"
     class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
-    onclick={()=>clickMenu(MENU_NUMBER)}>
+    onclick={()=>quickClickMenu(MENU_NUMBER)}>
      <img src={MenuIcon} alt="menu" />
   </button>
 

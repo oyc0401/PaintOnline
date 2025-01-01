@@ -1,14 +1,12 @@
 <script>
-  import {
-    TOOL_FILL,
-    TOOL_MAGNIFIER,
-    TOOL_PENCIL,
-    TOOL_PICK_COLOR,
-  } from "$paint/src/tools";
-  import ToolsIcon from "$lib/images/tools.png";
+  import { TOOL_FILL, TOOL_MAGNIFIER, TOOL_PICK_COLOR } from "$paint/src/tools";
+  import ToolsIcon from "$lib/images/tools.svelte";
+  import PickColorIcon from "$lib/images/pick_color.svelte";
+  import FillColorIcon from "$lib/images/fill_color.svelte";
+  import ZoomIcon from "$lib/images/zoom.svelte";
 
   import { menuState } from "$store/menuState.svelte.js";
-  import { changeTool, clickMenu } from "$store/paintFunction.js";
+  import { changeToolAndCloseDropdown, quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
   const MENU_NUMBER = 2;
@@ -18,39 +16,45 @@
   <button
     class="menu-button"
     class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
-    onclick={() => clickMenu(MENU_NUMBER)}
+    onclick={() => quickClickMenu(MENU_NUMBER)}
   >
-    <img src={ToolsIcon} alt="tools" />
+    {#if menuState.toolHistory[MENU_NUMBER] == TOOL_FILL}
+      <FillColorIcon />
+    {:else if menuState.toolHistory[MENU_NUMBER] == TOOL_MAGNIFIER}
+      <ZoomIcon />
+    {:else if menuState.toolHistory[MENU_NUMBER] == TOOL_PICK_COLOR}
+      <PickColorIcon />
+    {:else}
+      <ToolsIcon />
+    {/if}
   </button>
 
   {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
     <div class="dropdown-area menu-top">
-     
-        <button
-          class:selected-tool={menuState.selectedTool === TOOL_PENCIL}
-          onclick={() => changeTool(TOOL_PENCIL, MENU_NUMBER)}
-        >
-          <p>연필</p>
-        </button>
-        <button
-          class:selected-tool={menuState.selectedTool === TOOL_FILL}
-          onclick={() => changeTool(TOOL_FILL, MENU_NUMBER)}
-        >
-          <p>칠하기</p>
-        </button>
-        <button
-          class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER}
-          onclick={() => changeTool(TOOL_MAGNIFIER, MENU_NUMBER)}
-        >
-          <p>돋보기</p>
-        </button>
-        <button
-          class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR}
-          onclick={() => changeTool(TOOL_PICK_COLOR, MENU_NUMBER)}
-        >
-          <p>pick color</p>
-        </button>
-  
+      <button
+        class="dropdown-button"
+        class:selected-tool={menuState.selectedTool === TOOL_FILL}
+        onclick={() => changeToolAndCloseDropdown(TOOL_FILL, MENU_NUMBER)}
+      >
+        <FillColorIcon />
+        <p>칠하기</p>
+      </button>
+      <button
+        class="dropdown-button"
+        class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER}
+        onclick={() => changeToolAndCloseDropdown(TOOL_MAGNIFIER, MENU_NUMBER)}
+      >
+        <ZoomIcon />
+        <p>돋보기</p>
+      </button>
+      <button
+        class="dropdown-button"
+        class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR}
+        onclick={() => changeToolAndCloseDropdown(TOOL_PICK_COLOR, MENU_NUMBER)}
+      >
+        <PickColorIcon />
+        <p>색상 선택</p>
+      </button>
     </div>
   {/if}
 </div>

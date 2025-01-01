@@ -5,7 +5,7 @@
   import {PaintJSState} from '$paint/state';
   import ColorIcon from "$lib/images/color.png";
   
-  import { changeTool, clickMenu } from "$store/paintFunction.js";
+  import { changeTool, quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
 
@@ -87,7 +87,7 @@
 <div>
   <button class="menu-button" 
     class:selected-menu={menuState.toolMenuId === MENU_NUMBER} 
-    onclick={()=>clickMenu(MENU_NUMBER)}>
+    onclick={()=>quickClickMenu(MENU_NUMBER)}>
      <img src={ColorIcon} alt="color" />
    </button>
 
