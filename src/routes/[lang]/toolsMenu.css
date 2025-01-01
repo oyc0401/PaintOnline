@@ -17,9 +17,6 @@
 }
 
 /* 선택된 메뉴버튼 영역 44x44 */
-.selected-menu{
-   background: red;
-}
 .selected-menu path {
    fill:#3587FF;
 }

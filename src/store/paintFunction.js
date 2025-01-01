@@ -40,9 +40,12 @@ export const clickMenu = (id) => {
 // 0, 2, 6
 export const quickClickMenu = (id) => {
   // 메뉴와 색깔은 누르면 바로 드롭다운이 열림
-  menuState.dropdownId = id;
-
-  toggleDropdown();
+  if (menuState.dropdownId == id) {
+    toggleDropdown();
+  }else{
+    menuState.dropdownId = id;
+    openDropdown();
+  }
 
   // 메뉴를 누르면 이전에 선택했던 도구가 선택되어야 함
   if (menuState.toolHistory[id]) {

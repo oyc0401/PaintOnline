@@ -30,7 +30,7 @@
   </button>
 
   {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
-    <div class="dropdown-area menu-top">
+    <div class="dropdown-area small-dropdown menu-top">
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_FILL}

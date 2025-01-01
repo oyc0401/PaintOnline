@@ -1,6 +1,8 @@
 <script>
-  import { TOOL_PENCIL,TOOL_AIRBRUSH, TOOL_BRUSH } from "$paint/src/tools";
-  import BrushIcon from "$lib/images/brush.png";
+  import { TOOL_PENCIL, TOOL_AIRBRUSH, TOOL_BRUSH } from "$paint/src/tools";
+  import BrushIcon from "$lib/images/brush.svelte";
+  import PenIcon from "$lib/images/pen.svelte";
+  import SprayIcon from "$lib/images/spray.svelte";
   import { menuState } from "$store/menuState.svelte.js";
   import { changeTool, clickMenu } from "$store/paintFunction.js";
   import "./menu.css";
@@ -15,27 +17,39 @@
     class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
     onclick={() => clickMenu(MENU_NUMBER)}
   >
-    <img src={BrushIcon} alt="brush" />
+    {#if menuState.toolHistory[MENU_NUMBER] == TOOL_PENCIL}
+      <PenIcon />
+    {:else if menuState.toolHistory[MENU_NUMBER] == TOOL_BRUSH}
+      <BrushIcon />
+    {:else if menuState.toolHistory[MENU_NUMBER] == TOOL_AIRBRUSH}
+      <SprayIcon />
+    {/if}
   </button>
 
   {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
-    <div class="dropdown-area menu-bottom">
+    <div class="dropdown-area small-dropdown menu-bottom">
       <button
+        class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_PENCIL}
         onclick={() => changeTool(TOOL_PENCIL, MENU_NUMBER)}
       >
-        <p>연필</p>
+        <PenIcon />
+        <p>펜</p>
       </button>
       <button
+        class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_BRUSH}
         onclick={() => changeTool(TOOL_BRUSH, MENU_NUMBER)}
       >
+        <BrushIcon />
         <p>브러쉬</p>
       </button>
       <button
+        class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_AIRBRUSH}
         onclick={() => changeTool(TOOL_AIRBRUSH, MENU_NUMBER)}
       >
+        <SprayIcon />
         <p>에어 브러쉬</p>
       </button>
     </div>

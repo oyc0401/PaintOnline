@@ -1,13 +1,20 @@
 .dropdown-area {
    position: absolute;
    z-index: 10;
-   width:168px;
+
 
   background: #FCFCFC;
   padding-top:4px;
   padding-bottom:4px;
 
  }
+
+.small-dropdown{
+   width:168px;
+}
+.large-dropdown{
+  width:100%;
+}
 
 .menu-top{
   top: 48px;

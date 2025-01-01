@@ -1,9 +1,8 @@
 <script>
   import { menuState } from "$store/menuState.svelte.js";
-  import PickColorIcon from "$lib/images/pick_color.png";
   import TransparantIcon from "$lib/images/transparent_icon.png";
   import {PaintJSState} from '$paint/state';
-  import ColorIcon from "$lib/images/color.png";
+  import ColorIcon from "$lib/images/color.svelte";
   
   import { changeTool, quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
@@ -88,13 +87,13 @@
   <button class="menu-button" 
     class:selected-menu={menuState.toolMenuId === MENU_NUMBER} 
     onclick={()=>quickClickMenu(MENU_NUMBER)}>
-     <img src={ColorIcon} alt="color" />
+     <ColorIcon color={menuState.foregroundColor} />
    </button>
 
   {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
-    <div class="dropdown-area menu-bottom">
+    <div class="dropdown-area large-dropdown menu-bottom">
 
-      <div class="menu">
+      <div class="color-menu">
         <div class="flex">
           <button
             class="color-button"
@@ -129,7 +128,7 @@
               <p>투명한 배경</p>
             </div>
             <div class="icon-button">
-              <img src={PickColorIcon} class="m-2 w-4 h-4" alt="pick_color" />
+              <img src={TransparantIcon} class="m-2 w-4 h-4" alt="pick_color" />
               <p>색상 선택</p>
             </div>
           </div>
@@ -197,14 +196,7 @@
 
 
 <style>
-
-  .menuDropdown{
-    width:100%;
-    background:white;
-
-  }
-  
-  .menu {
+  .color-menu {
     width: 100%;
     padding: 12px;
     background: #fcfcfd;
