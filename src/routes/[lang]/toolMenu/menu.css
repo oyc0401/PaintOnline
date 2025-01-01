@@ -1,3 +1,14 @@
+.dropdown-area {
+   position: absolute;
+   z-index: 10;
+   width:168px;
+
+  background: #FCFCFC;
+  padding-top:4px;
+  padding-bottom:4px;
+
+ }
+
 .menu-top{
   top: 48px;
   left:4px;
@@ -9,6 +20,22 @@
 }
 
 .selected-tool {
-  background: gray;
-  font-weight: 700;
+  color:#3587FF;
+}
+
+.selected-tool path {
+   fill:#3587FF;
+}
+
+.dropdown-button{
+  display:flex;
+  flex-direction:row;
+  height:44px;
+  width:100%;
+  padding-left:12px;
+  align-items:center;
+  gap: 16px;
+}
+.dropdown-button > p{
+  font-size:12px;
 }

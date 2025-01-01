@@ -18,17 +18,11 @@
 
 /* 선택된 메뉴버튼 영역 44x44 */
 .selected-menu{
-   background: #FCFCFD;
+   background: red;
 }
-
-
-/* 메뉴를 클릭하면 나오는 드롭다운 영역 */
-.menu-area {
-   position: absolute;
-   z-index: 10;
-   width:100%;
- }
-
+.selected-menu path {
+   fill:#3587FF;
+}
 
 /* 메뉴에 사용되는 이미지 */
 .menus img{

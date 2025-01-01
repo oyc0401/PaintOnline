@@ -5,7 +5,7 @@
   import {PaintJSState} from '$paint/state';
   import ColorIcon from "$lib/images/color.png";
   
-  import { changeTool, openMenu } from "$store/paintFunction.js";
+  import { changeTool, clickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
 
@@ -86,13 +86,13 @@
 
 <div>
   <button class="menu-button" 
-    class:selected-menu={menuState.selectedMenuId === MENU_NUMBER} 
-    onclick={()=>openMenu(MENU_NUMBER)}>
+    class:selected-menu={menuState.toolMenuId === MENU_NUMBER} 
+    onclick={()=>clickMenu(MENU_NUMBER)}>
      <img src={ColorIcon} alt="color" />
    </button>
 
-  {#if menuState.showMenu && menuState.selectedMenuId == MENU_NUMBER}
-    <div class="menu-area menu-bottom">
+  {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
+    <div class="dropdown-area menu-bottom">
 
       <div class="menu">
         <div class="flex">

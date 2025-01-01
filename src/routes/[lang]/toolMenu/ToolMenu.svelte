@@ -8,7 +8,7 @@
   import ToolsIcon from "$lib/images/tools.png";
 
   import { menuState } from "$store/menuState.svelte.js";
-  import { changeTool, openMenu } from "$store/paintFunction.js";
+  import { changeTool, clickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
   const MENU_NUMBER = 2;
@@ -17,15 +17,15 @@
 <div>
   <button
     class="menu-button"
-    class:selected-menu={menuState.selectedMenuId === MENU_NUMBER}
-    onclick={() => openMenu(MENU_NUMBER)}
+    class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
+    onclick={() => clickMenu(MENU_NUMBER)}
   >
     <img src={ToolsIcon} alt="tools" />
   </button>
 
-  {#if menuState.showMenu && menuState.selectedMenuId == MENU_NUMBER}
-    <div class="menu-area menu-top">
-      <div class="menuDropdown">
+  {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
+    <div class="dropdown-area menu-top">
+     
         <button
           class:selected-tool={menuState.selectedTool === TOOL_PENCIL}
           onclick={() => changeTool(TOOL_PENCIL, MENU_NUMBER)}
@@ -50,7 +50,7 @@
         >
           <p>pick color</p>
         </button>
-      </div>
+  
     </div>
   {/if}
 </div>

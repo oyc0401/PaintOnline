@@ -7,22 +7,17 @@
 
   import { PaintJSState } from "$paint/state";
 
-  function closeMenu() {
-    menuState.showMenu = false;
-    menuState.selectedMenuId = menuState.toolMenuId;
-  }
-
-
+  import { closeDropdown } from "$store/paintFunction.js";
 
   // 외부 클릭 시 메뉴를 닫도록 설정
   onMount(() => {
     const handleClickOutside = (event) => {
       if (
-        menuState.showMenu &&
-        !event.target.closest(".menu-area") &&
+        menuState.showDropdown &&
+        !event.target.closest(".dropdown-area") &&
         !event.target.closest("button")
       ) {
-        closeMenu();
+        closeDropdown();
       }
     };
 
@@ -51,6 +46,4 @@
   });
 </script>
 
-<div>
-  
-</div>
+<div></div>
