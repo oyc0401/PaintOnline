@@ -1,33 +1,56 @@
-console.log('JS 실행:','functions.js')
+console.log("JS 실행:", "functions.js");
 
-
-
-import UPNG from '../lib/UPNG.js'
+import UPNG from "../lib/UPNG.js";
 //import AnyPalette from '../lib/anypalette-0.6.0.js';
 
 import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
-import { OnCanvasMaskLayer } from './OnCanvasMaskLayer.js';
+import { OnCanvasMaskLayer } from "./OnCanvasMaskLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
-import {  E, TAU, debounce, get_help_folder_icon, get_icon_for_tool, get_rgba_from_color, make_canvas, render_access_key, to_canvas_coords, to_canvas_coords_magnification } from "./helpers.js";
-import { apply_image_transformation, draw_grid, draw_selection_box, flip_horizontal, flip_vertical, invert_rgb, rotate, stretch_and_skew, threshold_black_and_white } from "./image-manipulation.js";
+import {
+	E,
+	TAU,
+	debounce,
+	get_help_folder_icon,
+	get_icon_for_tool,
+	get_rgba_from_color,
+	make_canvas,
+	render_access_key,
+	to_canvas_coords,
+	to_canvas_coords_magnification,
+} from "./helpers.js";
+import {
+	apply_image_transformation,
+	draw_grid,
+	draw_selection_box,
+	flip_horizontal,
+	flip_vertical,
+	invert_rgb,
+	rotate,
+	stretch_and_skew,
+	threshold_black_and_white,
+} from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import { localStore } from "./storage.js";
-import { TOOL_CURVE, TOOL_FREE_FORM_SELECT, TOOL_POLYGON, TOOL_SELECT, TOOL_TEXT, tools } from "./tools.js";
-import $ from 'jquery'
-import {PaintJSState} from '../state';
+import {
+	TOOL_CURVE,
+	TOOL_FREE_FORM_SELECT,
+	TOOL_POLYGON,
+	TOOL_SELECT,
+	TOOL_TEXT,
+	tools,
+} from "./tools.js";
+import $ from "jquery";
+import { PaintJSState } from "../state";
 // `sessions.js` must be loaded after `app.js`
 // This would cause it to be loaded earlier, and error trying to access `undos`
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
 import { new_local_session } from "../session.js";
-
-
-
 
 // expresses order in the URL as well as type
 const param_types = {
@@ -36,33 +59,32 @@ const param_types = {
 	"vertical-color-box-mode": "bool",
 	"speech-recognition-mode": "bool",
 	// sessions
-	"local": "string",
-	"session": "string",
-	"load": "string",
+	local: "string",
+	session: "string",
+	load: "string",
 };
 
-const exclusive_params = [
-	"local",
-	"session",
-	"load",
-];
+const exclusive_params = ["local", "session", "load"];
 
 function get_all_url_params() {
 	/** @type {Record<string, string | boolean>} */
 	const params = {};
-	location.hash.replace(/^#/, "").split(/,/).forEach((param_decl) => {
-		// colon is used in param value for URLs so split(":") isn't good enough
-		const colon_index = param_decl.indexOf(":");
-		if (colon_index === -1) {
-			// boolean value, implicitly true because it's in the URL
-			const param_name = param_decl;
-			params[param_name] = true;
-		} else {
-			const param_name = param_decl.slice(0, colon_index);
-			const param_value = param_decl.slice(colon_index + 1);
-			params[param_name] = decodeURIComponent(param_value);
-		}
-	});
+	location.hash
+		.replace(/^#/, "")
+		.split(/,/)
+		.forEach((param_decl) => {
+			// colon is used in param value for URLs so split(":") isn't good enough
+			const colon_index = param_decl.indexOf(":");
+			if (colon_index === -1) {
+				// boolean value, implicitly true because it's in the URL
+				const param_name = param_decl;
+				params[param_name] = true;
+			} else {
+				const param_name = param_decl.slice(0, colon_index);
+				const param_value = param_decl.slice(colon_index + 1);
+				params[param_name] = decodeURIComponent(param_value);
+			}
+		});
 	for (const [param_name, param_type] of Object.entries(param_types)) {
 		if (param_type === "bool" && !params[param_name]) {
 			params[param_name] = false;
@@ -81,7 +103,11 @@ function get_url_param(param_name) {
  * @param {object} [options]
  * @param {boolean} [options.replace_history_state=false]
  */
-function change_url_param(param_name, value, { replace_history_state = false } = {}) {
+function change_url_param(
+	param_name,
+	value,
+	{ replace_history_state = false } = {},
+) {
 	change_some_url_params({ [param_name]: value }, { replace_history_state });
 }
 
@@ -90,7 +116,10 @@ function change_url_param(param_name, value, { replace_history_state = false } =
  * @param {object} [options]
  * @param {boolean} [options.replace_history_state=false]
  */
-function change_some_url_params(updates, { replace_history_state = false } = {}) {
+function change_some_url_params(
+	updates,
+	{ replace_history_state = false } = {},
+) {
 	for (const exclusive_param of exclusive_params) {
 		if (updates[exclusive_param]) {
 			exclusive_params.forEach((param) => {
@@ -100,7 +129,9 @@ function change_some_url_params(updates, { replace_history_state = false } = {})
 			});
 		}
 	}
-	set_all_url_params(Object.assign({}, get_all_url_params(), updates), { replace_history_state });
+	set_all_url_params(Object.assign({}, get_all_url_params(), updates), {
+		replace_history_state,
+	});
 }
 
 /**
@@ -109,7 +140,6 @@ function change_some_url_params(updates, { replace_history_state = false } = {})
  * @param {boolean} [options.replace_history_state=false]
  */
 function set_all_url_params(params, { replace_history_state = false } = {}) {
-
 	let new_hash = "";
 	for (const [param_name, param_type] of Object.entries(param_types)) {
 		if (params[param_name]) {
@@ -123,7 +153,7 @@ function set_all_url_params(params, { replace_history_state = false } = {}) {
 		}
 	}
 	let query_string = location.search;
-	
+
 	if (!query_string.includes("frame_id")) {
 		// Omit query string for theoretical backwards compatibility with old URLs.
 		// TODO: what were these URLs? do they really still work? are they still relevant? probably not...
@@ -150,16 +180,22 @@ function update_magnified_canvas_size() {
 	//const div = targetDpr / dpr;
 	//const dprScale=PaintJSState.magnification * div;
 	//console.log('업데이트!')
-	
 
-	PaintJSState.$canvas.css("width", PaintJSState.main_canvas.width *PaintJSState.magnification);
-	PaintJSState.$canvas.css("height", PaintJSState.main_canvas.height *PaintJSState.magnification);
-	
+	PaintJSState.$canvas.css(
+		"width",
+		PaintJSState.main_canvas.width * PaintJSState.magnification,
+	);
+	PaintJSState.$canvas.css(
+		"height",
+		PaintJSState.main_canvas.height * PaintJSState.magnification,
+	);
+
 	update_canvas_rect();
 }
 
 function update_canvas_rect() {
-	PaintJSState.canvas_bounding_client_rect = PaintJSState.main_canvas.getBoundingClientRect();
+	PaintJSState.canvas_bounding_client_rect =
+		PaintJSState.main_canvas.getBoundingClientRect();
 
 	update_helper_layer();
 }
@@ -178,7 +214,11 @@ function update_helper_layer(e) {
 	// e may be a synthetic event without clientX/Y, so ignore that (using isFinite)
 	// e may also be a timestamp from requestAnimationFrame callback; ignore that
 	if (e && isFinite(e.clientX)) {
-		info_for_updating_pointer = { clientX: e.clientX, clientY: e.clientY, devicePixelRatio };
+		info_for_updating_pointer = {
+			clientX: e.clientX,
+			clientY: e.clientY,
+			devicePixelRatio,
+		};
 	}
 	if (helper_layer_update_queued) {
 		//window.console?.log("update_helper_layer - nah, already queued");
@@ -196,67 +236,91 @@ function update_helper_layer(e) {
 let lastTime = 0;
 
 function update_helper_layer_immediately() {
-//	window.console?.log("Update helper layer NOW");
+	//	window.console?.log("Update helper layer NOW");
 
 	// [comment] 24.12.28
 	// 아래 코드는 마우스에서 미리 그림 보여주는 위치를 잡는 코드인데, 이게 모바일버전에서 더블터치할때 오류가 생김.
 	// 그래서 마우스에 따라가는거 만들려면 코드 다시짜야할 듯
 	// PaintJSState.pointer를 같이 공유하면 안되고 따로 분리해야할 듯
-	
+
 	if (info_for_updating_pointer) {
-		const rescale = info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
+		const rescale =
+			info_for_updating_pointer.devicePixelRatio / devicePixelRatio;
 		info_for_updating_pointer.clientX *= rescale;
 		info_for_updating_pointer.clientY *= rescale;
 		info_for_updating_pointer.devicePixelRatio = devicePixelRatio;
-	//	console.log('func');
-		PaintJSState.pointer = to_canvas_coords_magnification(info_for_updating_pointer);
+		//	console.log('func');
+		PaintJSState.pointer = to_canvas_coords_magnification(
+			info_for_updating_pointer,
+		);
 	}
 
-	const scale = PaintJSState.magnification ;
+	const scale = PaintJSState.magnification;
 
 	if (!PaintJSState.helper_layer) {
 		//console.log('make helper-layer')
-		PaintJSState.helper_layer = new OnCanvasHelperLayer(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height, false, scale);
+		PaintJSState.helper_layer = new OnCanvasHelperLayer(
+			0,
+			0,
+			PaintJSState.main_canvas.width,
+			PaintJSState.main_canvas.height,
+			false,
+			scale,
+		);
 	}
 
 	if (!PaintJSState.mask_layer) {
 		//console.log('make mask_layer')
-		PaintJSState.mask_layer = new OnCanvasMaskLayer(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height, false, scale);
+		PaintJSState.mask_layer = new OnCanvasMaskLayer(
+			0,
+			0,
+			PaintJSState.main_canvas.width,
+			PaintJSState.main_canvas.height,
+			false,
+			scale,
+		);
 	}
 
 	// PaintJSState.helper_layer.canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	// PaintJSState.helper_layer.canvas.height = Math.max(1, PaintJSState.my_canvas_height);
-	if(PaintJSState.helper_layer.canvas.width != PaintJSState.main_canvas.width
-		 || PaintJSState.helper_layer.canvas.height != PaintJSState.main_canvas.height) {
+	if (
+		PaintJSState.helper_layer.canvas.width != PaintJSState.main_canvas.width ||
+		PaintJSState.helper_layer.canvas.height != PaintJSState.main_canvas.height
+	) {
 		//console.log('같지않음')
 
-		PaintJSState.helper_layer.canvas.width = PaintJSState.main_canvas.width
-		PaintJSState.helper_layer.canvas.height = PaintJSState.main_canvas.height
+		PaintJSState.helper_layer.canvas.width = PaintJSState.main_canvas.width;
+		PaintJSState.helper_layer.canvas.height = PaintJSState.main_canvas.height;
 		PaintJSState.helper_layer.canvas.ctx.disable_image_smoothing();
-		PaintJSState.helper_layer.width =  PaintJSState.main_canvas.width
+		PaintJSState.helper_layer.width = PaintJSState.main_canvas.width;
 		PaintJSState.helper_layer.height = PaintJSState.main_canvas.height;
 		PaintJSState.helper_layer.x = 0;
 		PaintJSState.helper_layer.y = 0;
 		PaintJSState.helper_layer.position();
 	}
 
-	if(PaintJSState.mask_layer.canvas.width != PaintJSState.main_canvas.width
-		 || PaintJSState.mask_layer.canvas.height != PaintJSState.main_canvas.height) {
+	if (
+		PaintJSState.mask_layer.canvas.width != PaintJSState.main_canvas.width ||
+		PaintJSState.mask_layer.canvas.height != PaintJSState.main_canvas.height
+	) {
 		//console.log('같지않음2')
 
-		PaintJSState.mask_layer.canvas.width = PaintJSState.main_canvas.width
-		PaintJSState.mask_layer.canvas.height = PaintJSState.main_canvas.height
+		PaintJSState.mask_layer.canvas.width = PaintJSState.main_canvas.width;
+		PaintJSState.mask_layer.canvas.height = PaintJSState.main_canvas.height;
 		PaintJSState.mask_layer.canvas.ctx.disable_image_smoothing();
-		PaintJSState.mask_layer.width =  PaintJSState.main_canvas.width
+		PaintJSState.mask_layer.width = PaintJSState.main_canvas.width;
 		PaintJSState.mask_layer.height = PaintJSState.main_canvas.height;
 		PaintJSState.mask_layer.x = 0;
 		PaintJSState.mask_layer.y = 0;
 		PaintJSState.mask_layer.position();
 	}
-	
+
 	render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
 
-	if (PaintJSState.thumbnail_canvas && PaintJSState.$thumbnail_window.is(":visible")) {
+	if (
+		PaintJSState.thumbnail_canvas &&
+		PaintJSState.$thumbnail_window.is(":visible")
+	) {
 		// The thumbnail can be bigger or smaller than the viewport, depending on the magnification and thumbnail window size.
 		// So can the document.
 		// Ideally it should show the very corner if scrolled all the way to the corner,
@@ -271,23 +335,55 @@ function update_helper_layer_immediately() {
 
 		// These padding terms are negligible in comparison to the margin reserved for canvas handles,
 		// which I'm not accounting for (except for clamping below).
-		const padding_left = parseFloat(PaintJSState.$canvas_area.css("padding-left"));
-		const padding_top = parseFloat(PaintJSState.$canvas_area.css("padding-top"));
-		const scroll_width = PaintJSState.main_canvas.clientWidth + padding_left - PaintJSState.$canvas_area[0].clientWidth;
-		const scroll_height = PaintJSState.main_canvas.clientHeight + padding_top - PaintJSState.$canvas_area[0].clientHeight;
+		const padding_left = parseFloat(
+			PaintJSState.$canvas_area.css("padding-left"),
+		);
+		const padding_top = parseFloat(
+			PaintJSState.$canvas_area.css("padding-top"),
+		);
+		const scroll_width =
+			PaintJSState.main_canvas.clientWidth +
+			padding_left -
+			PaintJSState.$canvas_area[0].clientWidth;
+		const scroll_height =
+			PaintJSState.main_canvas.clientHeight +
+			padding_top -
+			PaintJSState.$canvas_area[0].clientHeight;
 		// Don't divide by less than one, or the thumbnail with disappear off to the top/left (or completely for NaN).
-		let scroll_x_fraction = PaintJSState.$canvas_area[0].scrollLeft / Math.max(1, scroll_width);
-		let scroll_y_fraction = PaintJSState.$canvas_area[0].scrollTop / Math.max(1, scroll_height);
+		let scroll_x_fraction =
+			PaintJSState.$canvas_area[0].scrollLeft / Math.max(1, scroll_width);
+		let scroll_y_fraction =
+			PaintJSState.$canvas_area[0].scrollTop / Math.max(1, scroll_height);
 		// If the canvas is larger than the document view, but not by much, and you scroll to the bottom or right,
 		// the margin for the canvas handles can lead to the thumbnail being cut off or even showing
 		// just blank space without this clamping (due to the not quite accurate scrollable area calculation).
 		scroll_x_fraction = Math.min(scroll_x_fraction, 1);
 		scroll_y_fraction = Math.min(scroll_y_fraction, 1);
 
-		let viewport_x = Math.floor(Math.max(scroll_x_fraction * (PaintJSState.main_canvas.width - PaintJSState.thumbnail_canvas.width), 0));
-		let viewport_y = Math.floor(Math.max(scroll_y_fraction * (PaintJSState.main_canvas.height - PaintJSState.thumbnail_canvas.height), 0));
+		let viewport_x = Math.floor(
+			Math.max(
+				scroll_x_fraction *
+					(PaintJSState.main_canvas.width -
+						PaintJSState.thumbnail_canvas.width),
+				0,
+			),
+		);
+		let viewport_y = Math.floor(
+			Math.max(
+				scroll_y_fraction *
+					(PaintJSState.main_canvas.height -
+						PaintJSState.thumbnail_canvas.height),
+				0,
+			),
+		);
 
-		render_canvas_view(PaintJSState.thumbnail_canvas, 1, viewport_x, viewport_y, false); // devicePixelRatio?
+		render_canvas_view(
+			PaintJSState.thumbnail_canvas,
+			1,
+			viewport_x,
+			viewport_y,
+			false,
+		); // devicePixelRatio?
 	}
 }
 
@@ -298,11 +394,23 @@ function update_helper_layer_immediately() {
  * @param {number} viewport_y
  * @param {boolean} is_helper_layer
  */
-function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_layer) {
+function render_canvas_view(
+	hcanvas,
+	scale,
+	viewport_x,
+	viewport_y,
+	is_helper_layer,
+) {
 	//console.log('render',is_helper_layer);
-	PaintJSState.update_fill_and_stroke_colors_and_lineWidth(PaintJSState.selected_tool);
+	PaintJSState.update_fill_and_stroke_colors_and_lineWidth(
+		PaintJSState.selected_tool,
+	);
 
-	const grid_visible = PaintJSState.show_grid && PaintJSState.magnification >= 4 && ( PaintJSState.magnification) >= 4 && is_helper_layer;
+	const grid_visible =
+		PaintJSState.show_grid &&
+		PaintJSState.magnification >= 4 &&
+		PaintJSState.magnification >= 4 &&
+		is_helper_layer;
 
 	const hctx = hcanvas.ctx;
 
@@ -311,7 +419,17 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	if (!is_helper_layer) {
 		// Draw the actual document canvas (for the thumbnail)
 		// (For the main canvas view, the helper layer is separate from (and overlaid on top of) the document canvas)
-		hctx.drawImage(PaintJSState.main_canvas, viewport_x, viewport_y, hcanvas.width, hcanvas.height, 0, 0, hcanvas.width, hcanvas.height);
+		hctx.drawImage(
+			PaintJSState.main_canvas,
+			viewport_x,
+			viewport_y,
+			hcanvas.width,
+			hcanvas.height,
+			0,
+			0,
+			hcanvas.width,
+			hcanvas.height,
+		);
 	}
 
 	var tools_to_preview = [...PaintJSState.selected_tools];
@@ -324,9 +442,8 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 		// which is, as of writing, part of the "tool preview"; it's ugly,
 		// but at least they don't have ALSO a brush like preview, right?
 		// so we can just allow those thru
-		tools_to_preview = tools_to_preview.filter((tool) =>
-			tool.id === TOOL_CURVE ||
-			tool.id === TOOL_POLYGON
+		tools_to_preview = tools_to_preview.filter(
+			(tool) => tool.id === TOOL_CURVE || tool.id === TOOL_POLYGON,
 		);
 	}
 
@@ -348,13 +465,27 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	// so only render one if there's one or more
 	var select_box_index = tools_to_preview.findIndex((tool) => tool.selectBox);
 	if (select_box_index >= 0) {
-		tools_to_preview = tools_to_preview.filter((tool, index) => !tool.selectBox || index == select_box_index);
+		tools_to_preview = tools_to_preview.filter(
+			(tool, index) => !tool.selectBox || index == select_box_index,
+		);
 	}
 
 	tools_to_preview.forEach((tool) => {
-		if (tool.drawPreviewUnderGrid && PaintJSState.pointer && PaintJSState.pointers.length < 2) {
+		if (
+			tool.drawPreviewUnderGrid &&
+			PaintJSState.pointer &&
+			PaintJSState.pointers.length < 2
+		) {
 			hctx.save();
-			tool.drawPreviewUnderGrid(hctx, PaintJSState.pointer.x, PaintJSState.pointer.y, grid_visible, scale, -viewport_x, -viewport_y);
+			tool.drawPreviewUnderGrid(
+				hctx,
+				PaintJSState.pointer.x,
+				PaintJSState.pointer.y,
+				grid_visible,
+				scale,
+				-viewport_x,
+				-viewport_y,
+			);
 			hctx.restore();
 		}
 	});
@@ -365,14 +496,27 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 		hctx.scale(scale, scale);
 		hctx.translate(-viewport_x, -viewport_y);
 
-		hctx.drawImage(PaintJSState.selection.canvas, PaintJSState.selection.x, PaintJSState.selection.y);
+		hctx.drawImage(
+			PaintJSState.selection.canvas,
+			PaintJSState.selection.x,
+			PaintJSState.selection.y,
+		);
 
 		hctx.restore();
 
 		if (!is_helper_layer && !PaintJSState.selection.dragging) {
 			// Draw the selection outline (for the thumbnail)
 			// (The main canvas view has the OnCanvasSelection object which has its own outline)
-			draw_selection_box(hctx, PaintJSState.selection.x, PaintJSState.selection.y, PaintJSState.selection.width, PaintJSState.selection.height, scale, -viewport_x, -viewport_y);
+			draw_selection_box(
+				hctx,
+				PaintJSState.selection.x,
+				PaintJSState.selection.y,
+				PaintJSState.selection.width,
+				PaintJSState.selection.height,
+				scale,
+				-viewport_x,
+				-viewport_y,
+			);
 		}
 	}
 
@@ -381,20 +525,31 @@ function render_canvas_view(hcanvas, scale, viewport_x, viewport_y, is_helper_la
 	}
 
 	tools_to_preview.forEach((tool) => {
-		if (tool.drawPreviewAboveGrid && PaintJSState.pointer && PaintJSState.pointers.length < 2) {
+		if (
+			tool.drawPreviewAboveGrid &&
+			PaintJSState.pointer &&
+			PaintJSState.pointers.length < 2
+		) {
 			hctx.save();
-			tool.drawPreviewAboveGrid(hctx, PaintJSState.pointer.x, PaintJSState.pointer.y, grid_visible, scale, -viewport_x, -viewport_y);
+			tool.drawPreviewAboveGrid(
+				hctx,
+				PaintJSState.pointer.x,
+				PaintJSState.pointer.y,
+				grid_visible,
+				scale,
+				-viewport_x,
+				-viewport_y,
+			);
 			hctx.restore();
 		}
 	});
-} 
+}
 function update_disable_aa() {
 	//const dots_per_canvas_px = window.devicePixelRatio * PaintJSState.magnification;
 	//if (dots_per_canvas_px >= 1) {
-		PaintJSState.$canvas_area
-				.addClass("pixeled-canvas")
-				//.removeClass("smooth-canvas");
-	//} 
+	PaintJSState.$canvas_area.addClass("pixeled-canvas");
+	//.removeClass("smooth-canvas");
+	//}
 	// else {
 	// 	PaintJSState.$canvas_area
 	// 			.addClass("smooth-canvas")
@@ -426,15 +581,15 @@ function set_magnification(new_scale, anchor_point) {
 	// '현재 배율 기준'의 캔버스 좌표로 환산
 	anchor_point = anchor_point ?? {
 		x: PaintJSState.$canvas_area.scrollLeft() / PaintJSState.magnification,
-		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification
+		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification,
 	};
-	
+
 	// 확대/축소 전(old) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
 
 	//console.log('new_scale',new_scale)
-	
+
 	// 배율 적용
 	PaintJSState.magnification = new_scale;
 	if (new_scale !== 1) {
@@ -448,18 +603,20 @@ function set_magnification(new_scale, anchor_point) {
 	const anchor_new_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_new_y_px = anchor_point.y * PaintJSState.magnification;
 	//console.log('new',anchor_new_x_px,anchor_new_y_px)
-	
+
 	// (new - old) 만큼 스크롤을 이동해서
 	// 화면상에서 앵커가 동일 위치에 머무르도록 보정
 	const diff_x = anchor_new_x_px - anchor_old_x_px;
 	const diff_y = anchor_new_y_px - anchor_old_y_px;
 
+	const dpr = devicePixelRatio;
+
 	// 스크롤을 할때 브라우저는 1만큼 이동하라고 시켰으면 실제론 1*dpr를 계산하고. 이를 내림한 값을 브라우저에 저장한다.
-	// 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고. 
+	// 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고.
 	// scrollLeft()는 2/2.6 = 0.7692가 된다. 실제와 약 23%나 차이나는 것이다.
 	PaintJSState.$canvas_area[0].scrollBy({
-		left: Math.round(diff_x * devicePixelRatio) / devicePixelRatio,
-		top: Math.round(diff_y * devicePixelRatio) / devicePixelRatio, 
+		left: Math.round(diff_x * dpr) / dpr,
+		top: Math.round(diff_y * dpr) / dpr,
 	});
 
 	// 이후 UI 갱신 이벤트들
@@ -467,7 +624,6 @@ function set_magnification(new_scale, anchor_point) {
 	$(window).trigger("option-changed");
 	$(window).trigger("magnification-changed");
 }
-
 
 function reset_selected_colors() {
 	PaintJSState.selected_colors = {
@@ -489,27 +645,38 @@ function reset_file() {
 function reset_canvas_and_history() {
 	PaintJSState.undos.length = 0;
 	PaintJSState.redos.length = 0;
-	PaintJSState.current_history_node = PaintJSState.root_history_node = make_history_node({
-		name: localize("New"),
-		icon: get_help_folder_icon("p_blank.png"),
-	});
+	PaintJSState.current_history_node = PaintJSState.root_history_node =
+		make_history_node({
+			name: localize("New"),
+			icon: get_help_folder_icon("p_blank.png"),
+		});
 	PaintJSState.history_node_to_cancel_to = null;
 
-	console.log('캔버스 리셋!')
+	console.log("캔버스 리셋!");
 	PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
 	PaintJSState.main_ctx.disable_image_smoothing();
 	PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
-	PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+	PaintJSState.main_ctx.fillRect(
+		0,
+		0,
+		PaintJSState.main_canvas.width,
+		PaintJSState.main_canvas.height,
+	);
 
 	///
 	// PaintJSState.mask_layer.canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	// PaintJSState.mask_layer.canvas.height = Math.max(1, PaintJSState.my_canvas_height);
 	// ///
 
-	
-	PaintJSState.current_history_node.image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-	
+	PaintJSState.current_history_node.image_data =
+		PaintJSState.main_ctx.getImageData(
+			0,
+			0,
+			PaintJSState.main_canvas.width,
+			PaintJSState.main_canvas.height,
+		);
+
 	PaintJSState.$canvas_area.trigger("resize");
 	$(window).triggerHandler("history-update"); // update history view
 }
@@ -594,7 +761,9 @@ function get_uris(text) {
 		try {
 			const url = new URL(lines[i]);
 			uris.push(url.href);
-		} catch (_error) { /* ignore */ }
+		} catch (_error) {
+			/* ignore */
+		}
 	}
 	return uris;
 }
@@ -606,7 +775,6 @@ function get_uris(text) {
  * @throws {Error & { code?: string }}
  */
 async function load_image_from_uri(uri) {
-
 	// Cases to consider:
 	// - data URI
 	// - blob URI
@@ -643,7 +811,9 @@ async function load_image_from_uri(uri) {
 
 	const is_blob_uri = uri.match(/^blob:/i);
 	const is_download = !uri.match(/^(blob|data|file):/i);
-	const is_localhost = uri.match(/^(http|https):\/\/((127\.0\.0\.1|localhost)|.*(\.(local|localdomain|domain|lan|home|host|corp|invalid)))\b/i);
+	const is_localhost = uri.match(
+		/^(http|https):\/\/((127\.0\.0\.1|localhost)|.*(\.(local|localdomain|domain|lan|home|host|corp|invalid)))\b/i,
+	);
 
 	if (is_blob_uri && uri.indexOf(`blob:${location.origin}`) === -1) {
 		const error = new Error("can't load blob: URI from another domain");
@@ -652,50 +822,69 @@ async function load_image_from_uri(uri) {
 		throw error;
 	}
 
-	const uris_to_try = (is_download && !is_localhost) ? [
-		uri,
-		// work around CORS headers not sent by whatever server
-		`https://cors.bridged.cc/${uri}`,
-		`https://jspaint-cors-proxy.herokuapp.com/${uri}`,
-		// if the image isn't available on the live web, see if it's archived
-		`https://web.archive.org/${uri}`,
-	] : [uri];
+	const uris_to_try =
+		is_download && !is_localhost
+			? [
+					uri,
+					// work around CORS headers not sent by whatever server
+					`https://cors.bridged.cc/${uri}`,
+					`https://jspaint-cors-proxy.herokuapp.com/${uri}`,
+					// if the image isn't available on the live web, see if it's archived
+					`https://web.archive.org/${uri}`,
+				]
+			: [uri];
 	const fails = [];
 
-	for (let index_to_try = 0; index_to_try < uris_to_try.length; index_to_try += 1) {
+	for (
+		let index_to_try = 0;
+		index_to_try < uris_to_try.length;
+		index_to_try += 1
+	) {
 		const uri_to_try = uris_to_try[index_to_try];
 		try {
 			if (is_download) {
-			
 			}
 
 			const show_progress = ({ loaded, total }) => {
 				if (is_download) {
-					}
+				}
 			};
 
 			if (is_download) {
-				console.log(`Try loading image from URI (${index_to_try + 1}/${uris_to_try.length}): "${uri_to_try}"`);
+				console.log(
+					`Try loading image from URI (${index_to_try + 1}/${uris_to_try.length}): "${uri_to_try}"`,
+				);
 			}
 
 			const original_response = await fetch(uri_to_try);
 			let response_to_read = original_response;
 			if (!original_response.ok) {
-				fails.push({ status: original_response.status, statusText: original_response.statusText, url: uri_to_try });
+				fails.push({
+					status: original_response.status,
+					statusText: original_response.statusText,
+					url: uri_to_try,
+				});
 				continue;
 			}
 			if (!original_response.body) {
 				if (is_download) {
-					console.log("ReadableStream not yet supported in this browser. Progress won't be shown for image requests.");
+					console.log(
+						"ReadableStream not yet supported in this browser. Progress won't be shown for image requests.",
+					);
 				}
 			} else {
 				// to access headers, server must send CORS header "Access-Control-Expose-Headers: content-encoding, content-length x-file-size"
 				// server must send custom x-file-size header if gzip or other content-encoding is used
-				const contentEncoding = original_response.headers.get("content-encoding");
-				const contentLength = original_response.headers.get(contentEncoding ? "x-file-size" : "content-length");
+				const contentEncoding =
+					original_response.headers.get("content-encoding");
+				const contentLength = original_response.headers.get(
+					contentEncoding ? "x-file-size" : "content-length",
+				);
 				if (contentLength === null) {
 					if (is_download) {
-						console.log("Response size header unavailable. Progress won't be shown for this image request.");
+						console.log(
+							"Response size header unavailable. Progress won't be shown for this image request.",
+						);
 					}
 				} else {
 					const total = parseInt(contentLength, 10);
@@ -707,22 +896,25 @@ async function load_image_from_uri(uri) {
 
 								read();
 								function read() {
-									reader.read().then(({ done, value }) => {
-										if (done) {
-											controller.close();
-											return;
-										}
-										loaded += value.byteLength;
-										show_progress({ loaded, total });
-										controller.enqueue(value);
-										read();
-									}).catch((error) => {
-										console.error(error);
-										controller.error(error);
-									});
+									reader
+										.read()
+										.then(({ done, value }) => {
+											if (done) {
+												controller.close();
+												return;
+											}
+											loaded += value.byteLength;
+											show_progress({ loaded, total });
+											controller.enqueue(value);
+											read();
+										})
+										.catch((error) => {
+											console.error(error);
+											controller.error(error);
+										});
 								}
 							},
-						})
+						}),
 					);
 				}
 			}
@@ -730,7 +922,6 @@ async function load_image_from_uri(uri) {
 			const blob = await response_to_read.blob();
 			if (is_download) {
 				console.log("Download complete.");
-				
 			}
 			// @TODO: use headers to detect HTML, since a doctype is not guaranteed
 			// @TODO: fall back to WayBack Machine still for decode errors,
@@ -752,11 +943,17 @@ async function load_image_from_uri(uri) {
 		}
 	}
 	if (is_download) {
-		
 	}
-	const error = new Error(`failed to fetch image from any of ${uris_to_try.length} URI(s):\n  ${fails.map((fail) =>
-		(fail.statusText ? `${fail.status} ${fail.statusText} ` : "") + fail.url + (fail.error ? `\n    ${fail.error}` : "")
-	).join("\n  ")}`);
+	const error = new Error(
+		`failed to fetch image from any of ${uris_to_try.length} URI(s):\n  ${fails
+			.map(
+				(fail) =>
+					(fail.statusText ? `${fail.status} ${fail.statusText} ` : "") +
+					fail.url +
+					(fail.error ? `\n    ${fail.error}` : ""),
+			)
+			.join("\n  ")}`,
+	);
 	// @ts-ignore
 	error.code = "access-failure";
 	// @ts-ignore
@@ -771,56 +968,72 @@ async function load_image_from_uri(uri) {
  * @param {boolean} [into_existing_session]
  * @param {boolean} [from_session_load]
  */
-function open_from_image_info(info, callback, canceled, into_existing_session, from_session_load) {
-	are_you_sure(({ canvas_modified_while_loading } = {}) => {
-		deselect();
-		cancel();
+function open_from_image_info(
+	info,
+	callback,
+	canceled,
+	into_existing_session,
+	from_session_load,
+) {
+	are_you_sure(
+		({ canvas_modified_while_loading } = {}) => {
+			deselect();
+			cancel();
 
-		if (!into_existing_session) {
-			$(window).triggerHandler("session-update"); // autosave old session
-			console.log('세션초기화')
-			new_local_session();
-			
-		}
+			if (!into_existing_session) {
+				$(window).triggerHandler("session-update"); // autosave old session
+				console.log("세션초기화");
+				new_local_session();
+			}
 
-		reset_file();
-		reset_selected_colors();
-		reset_canvas_and_history(); // (with newly reset colors)
-		set_magnification(PaintJSState.default_magnification);
+			reset_file();
+			reset_selected_colors();
+			reset_canvas_and_history(); // (with newly reset colors)
+			set_magnification(PaintJSState.default_magnification);
 
-		PaintJSState.main_ctx.copy(info.image || info.image_data);
-		apply_file_format_and_palette_info(info);
-		PaintJSState.transparency = has_any_transparency(PaintJSState.main_ctx);
-		PaintJSState.$canvas_area.trigger("resize");
+			PaintJSState.main_ctx.copy(info.image || info.image_data);
+			apply_file_format_and_palette_info(info);
+			PaintJSState.transparency = has_any_transparency(PaintJSState.main_ctx);
+			PaintJSState.$canvas_area.trigger("resize");
 
-		PaintJSState.current_history_node.name = localize("Open");
-		PaintJSState.current_history_node.image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-		PaintJSState.current_history_node.icon = get_help_folder_icon("p_open.png");
+			PaintJSState.current_history_node.name = localize("Open");
+			PaintJSState.current_history_node.image_data =
+				PaintJSState.main_ctx.getImageData(
+					0,
+					0,
+					PaintJSState.main_canvas.width,
+					PaintJSState.main_canvas.height,
+				);
+			PaintJSState.current_history_node.icon =
+				get_help_folder_icon("p_open.png");
 
-		if (canvas_modified_while_loading || !from_session_load) {
-			// normally we don't want to autosave if we're loading a session,
-			// as this is redundant, but if the user has modified the canvas while loading a session,
-			// right now how it works is the session would be overwritten, so if you reloaded, it'd be lost,
-			// so we'd better save it.
-			// (and we want to save if this is a new session being initialized with an image)
-			$(window).triggerHandler("session-update"); // autosave
-		}
-		$(window).triggerHandler("history-update"); // update history view
+			if (canvas_modified_while_loading || !from_session_load) {
+				// normally we don't want to autosave if we're loading a session,
+				// as this is redundant, but if the user has modified the canvas while loading a session,
+				// right now how it works is the session would be overwritten, so if you reloaded, it'd be lost,
+				// so we'd better save it.
+				// (and we want to save if this is a new session being initialized with an image)
+				$(window).triggerHandler("session-update"); // autosave
+			}
+			$(window).triggerHandler("history-update"); // update history view
 
-		if (info.source_blob instanceof File) {
-			PaintJSState.file_name = info.source_blob.name;
-			// file.path is available in Electron (see https://www.electronjs.org/docs/api/file-object#file-object)
-			// @ts-ignore
-			PaintJSState.system_file_handle = info.source_blob.path;
-		}
-		if (info.source_file_handle) {
-			PaintJSState.system_file_handle = info.source_file_handle;
-		}
-		PaintJSState.saved = true;
-		update_title();
+			if (info.source_blob instanceof File) {
+				PaintJSState.file_name = info.source_blob.name;
+				// file.path is available in Electron (see https://www.electronjs.org/docs/api/file-object#file-object)
+				// @ts-ignore
+				PaintJSState.system_file_handle = info.source_blob.path;
+			}
+			if (info.source_file_handle) {
+				PaintJSState.system_file_handle = info.source_file_handle;
+			}
+			PaintJSState.saved = true;
+			update_title();
 
-		callback?.();
-	}, canceled, from_session_load);
+			callback?.();
+		},
+		canceled,
+		from_session_load,
+	);
 }
 
 // Note: This function is part of the API.
@@ -873,10 +1086,16 @@ function apply_file_format_and_palette_info(info) {
 	}
 
 	if (info.palette) {
-		window.console?.log(`Loaded palette from image file: ${info.palette.map(() => "%c█").join("")}`, ...info.palette.map((color) => `color: ${color};`));
+		window.console?.log(
+			`Loaded palette from image file: ${info.palette.map(() => "%c█").join("")}`,
+			...info.palette.map((color) => `color: ${color};`),
+		);
 		PaintJSState.palette = info.palette;
 		PaintJSState.selected_colors.foreground = PaintJSState.palette[0];
-		PaintJSState.selected_colors.background = PaintJSState.palette.length === 14 * 2 ? PaintJSState.palette[14] : PaintJSState.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
+		PaintJSState.selected_colors.background =
+			PaintJSState.palette.length === 14 * 2
+				? PaintJSState.palette[14]
+				: PaintJSState.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
 		$(window).trigger("option-changed");
 	} else if (monochrome && !info.monochrome) {
 		PaintJSState.palette = default_palette;
@@ -921,7 +1140,9 @@ function file_new() {
 }
 
 async function file_open() {
-	const { file, fileHandle } = await systemHooks.showOpenFileDialog({ formats: image_formats });
+	const { file, fileHandle } = await systemHooks.showOpenFileDialog({
+		formats: image_formats,
+	});
 	open_from_file(file, fileHandle);
 }
 
@@ -930,7 +1151,8 @@ async function file_open() {
 let acknowledged_overwrite_capability = false;
 const confirmed_overwrite_key = "jspaint confirmed overwrite capable";
 try {
-	acknowledged_overwrite_capability = localStorage[confirmed_overwrite_key] === "true";
+	acknowledged_overwrite_capability =
+		localStorage[confirmed_overwrite_key] === "true";
 } catch (_error) {
 	// no localStorage
 	// In the year 2033, people will be more used to it, right?
@@ -957,7 +1179,9 @@ async function confirm_overwrite_capability() {
 	});
 	const result = await promise;
 	if (result === "overwrite") {
-		acknowledged_overwrite_capability = $window.$content.find("#do-not-ask-me-again-checkbox").prop("checked");
+		acknowledged_overwrite_capability = $window.$content
+			.find("#do-not-ask-me-again-checkbox")
+			.prop("checked");
 		try {
 			localStorage[confirmed_overwrite_key] = acknowledged_overwrite_capability;
 		} catch (_error) {
@@ -968,44 +1192,56 @@ async function confirm_overwrite_capability() {
 	return false;
 }
 
-
-function file_save(maybe_saved_callback = () => { }, update_from_saved = true) {
+function file_save(maybe_saved_callback = () => {}, update_from_saved = true) {
 	deselect();
 	// store and use file handle at this point in time, to avoid race conditions
 	const save_file_handle = PaintJSState.system_file_handle;
 	if (!save_file_handle || PaintJSState.file_name.match(/\.(svg|pdf)$/i)) {
 		return file_save_as(maybe_saved_callback, update_from_saved);
 	}
-	write_image_file(PaintJSState.main_canvas, PaintJSState.file_format, async (blob) => {
-		// An error may be shown by `systemHooks.writeBlobToHandle`,
-		// or it may be unknown whether the save will succeed,
-		// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
-		const success = await systemHooks.writeBlobToHandle(save_file_handle, blob);
-		// When using a file download, where it's unknown whether the save will succeed,
-		// we don't want to mark the file as saved, as it would prevent the user from retrying the save.
-		// So only mark the file as saved if it's definite.
-		if (success === true) {
-			PaintJSState.saved = true;
-			update_title();
-		}
-		// However, we can still apply format-specific color reduction to the canvas,
-		// and call the "maybe saved" callback, which, as the name implies, is intended to handle the uncertainty.
-		if (success !== false) {
-			if (update_from_saved) {
-				update_from_saved_file(blob);
+	write_image_file(
+		PaintJSState.main_canvas,
+		PaintJSState.file_format,
+		async (blob) => {
+			// An error may be shown by `systemHooks.writeBlobToHandle`,
+			// or it may be unknown whether the save will succeed,
+			// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
+			const success = await systemHooks.writeBlobToHandle(
+				save_file_handle,
+				blob,
+			);
+			// When using a file download, where it's unknown whether the save will succeed,
+			// we don't want to mark the file as saved, as it would prevent the user from retrying the save.
+			// So only mark the file as saved if it's definite.
+			if (success === true) {
+				PaintJSState.saved = true;
+				update_title();
 			}
-			maybe_saved_callback();
-		}
-	});
+			// However, we can still apply format-specific color reduction to the canvas,
+			// and call the "maybe saved" callback, which, as the name implies, is intended to handle the uncertainty.
+			if (success !== false) {
+				if (update_from_saved) {
+					update_from_saved_file(blob);
+				}
+				maybe_saved_callback();
+			}
+		},
+	);
 }
 
-function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true) {
+function file_save_as(
+	maybe_saved_callback = () => {},
+	update_from_saved = true,
+) {
 	deselect();
 	systemHooks.showSaveFileDialog({
 		dialogTitle: localize("Save As"),
 		formats: image_formats,
 		defaultFileName: PaintJSState.file_name,
-		defaultPath: typeof PaintJSState.system_file_handle === "string" ? PaintJSState.system_file_handle : null,
+		defaultPath:
+			typeof PaintJSState.system_file_handle === "string"
+				? PaintJSState.system_file_handle
+				: null,
 		defaultFileFormatID: PaintJSState.file_format,
 		getBlob: (new_file_type) => {
 			return new Promise((resolve) => {
@@ -1014,7 +1250,12 @@ function file_save_as(maybe_saved_callback = () => { }, update_from_saved = true
 				});
 			});
 		},
-		savedCallbackUnreliable: ({ newFileName, newFileFormatID, newFileHandle, newBlob }) => {
+		savedCallbackUnreliable: ({
+			newFileName,
+			newFileFormatID,
+			newFileHandle,
+			newBlob,
+		}) => {
 			PaintJSState.saved = true;
 			PaintJSState.system_file_handle = newFileHandle;
 			PaintJSState.file_name = newFileName;
@@ -1050,7 +1291,10 @@ function are_you_sure(action, canceled, from_session_load) {
 		//   http://127.0.0.1:1999/#load:https://i.imgur.com/M5zcPuk.jpeg
 		// - click an Open link in the Manage Storage dialog in the Electron app
 		showMessageBox({
-			message: localize("You've modified the document while an existing document was loading.\nSave the new document?", PaintJSState.file_name),
+			message: localize(
+				"You've modified the document while an existing document was loading.\nSave the new document?",
+				PaintJSState.file_name,
+			),
 			buttons: [
 				{
 					// label: localize("Save"),
@@ -1143,19 +1387,20 @@ function show_error_message(message, error) {
 	});
 	// $message.css("max-width", "600px");
 	if (error) {
-		const $details = $("<details><summary><span>Details</span></summary></details>")
-			.appendTo($message);
+		const $details = $(
+			"<details><summary><span>Details</span></summary></details>",
+		).appendTo($message);
 
 		// Chrome includes the error message in the error.stack string, whereas Firefox doesn't.
 		// Also note that there can be Exception objects that don't have a message (empty string) but a name,
 		// for instance Exception { message: "", name: "NS_ERROR_FAILURE", ... } for out of memory when resizing the canvas too large in Firefox.
 		// Chrome just lets you bring the system to a grating halt by trying to grab too much memory.
 		// Firefox does too sometimes.
-		const e = /** @type {Error} */(error);
+		const e = /** @type {Error} */ (error);
 		let error_string = e.stack;
 		if (!error_string) {
 			error_string = error.toString();
-			
+
 			if (error_string === "[object Object]") {
 				try {
 					error_string = JSON.stringify(error, null, 2);
@@ -1168,19 +1413,16 @@ function show_error_message(message, error) {
 		} else if (e.name && error_string.indexOf(e.name) === -1) {
 			error_string = `${e.name}\n\n${error_string}`;
 		}
-		$(E("pre"))
-			.text(error_string)
-			.appendTo($details)
-			.css({
-				background: "white",
-				color: "#333",
-				// background: "#A00",
-				// color: "white",
-				fontFamily: "monospace",
-				width: "500px",
-				maxWidth: "100%",
-				overflow: "auto",
-			});
+		$(E("pre")).text(error_string).appendTo($details).css({
+			background: "white",
+			color: "#333",
+			// background: "#A00",
+			// color: "white",
+			fontFamily: "monospace",
+			width: "500px",
+			maxWidth: "100%",
+			overflow: "auto",
+		});
 	}
 	if (error) {
 		window.console?.error?.(message, error);
@@ -1199,9 +1441,10 @@ function show_resource_load_error_message(error) {
 	if (error.code === "cross-origin-blob-uri") {
 		$message.html(`
 			<p>Can't load image from address starting with "blob:".</p>
-			${firefox ?
-				`<p>Try "Copy Image" instead of "Copy Image Location".</p>` :
-				`<p>Try "Copy image" instead of "Copy image address".</p>`
+			${
+				firefox
+					? `<p>Try "Copy Image" instead of "Copy Image Location".</p>`
+					: `<p>Try "Copy image" instead of "Copy image address".</p>`
 			}
 		`);
 	} else if (error.code === "html-not-image") {
@@ -1221,9 +1464,17 @@ function show_resource_load_error_message(error) {
 				<p>Try copying and pasting an image instead of a URL.</p>
 			`);
 			if (error.fails) {
-				$("<ul>").append(error.fails.map(({ status, statusText, url }) =>
-					$("<li>").text(url).prepend($("<b>").text(`${status || ""} ${statusText || "Failed"} `))
-				)).appendTo($message);
+				$("<ul>")
+					.append(
+						error.fails.map(({ status, statusText, url }) =>
+							$("<li>")
+								.text(url)
+								.prepend(
+									$("<b>").text(`${status || ""} ${statusText || "Failed"} `),
+								),
+						),
+					)
+					.appendTo($message);
 			}
 		} else {
 			$message.html(`
@@ -1278,22 +1529,26 @@ function show_file_format_errors({ as_image_error, as_palette_error }) {
 		"`": "&#x60;",
 		"=": "&#x3D;",
 	};
-	const escape_html = (string) => String(string).replace(/[&<>"'`=/]/g, (s) => entity_map[s]);
-	const uppercase_first = (string) => string.charAt(0).toUpperCase() + string.slice(1);
+	const escape_html = (string) =>
+		String(string).replace(/[&<>"'`=/]/g, (s) => entity_map[s]);
+	const uppercase_first = (string) =>
+		string.charAt(0).toUpperCase() + string.slice(1);
 
 	const only_palette_error = as_palette_error && !as_image_error; // update me if there are more error types
 	if (as_palette_error) {
 		let details = "";
 		if ("errors" in as_palette_error) {
-			details = `<ul dir="ltr">${as_palette_error.errors.map((error) => {
-				const format = error.__PATCHED_LIB_TO_ADD_THIS__format;
-				if (format && error.error) {
-					return `<li><b>${escape_html(`${format.name}`)}</b>: ${escape_html(uppercase_first(error.error.message))}</li>`;
-				}
-				// Fallback for unknown errors
-				// @ts-ignore
-				return `<li>${escape_html(error.message || error)}</li>`;
-			}).join("\n")}</ul>`;
+			details = `<ul dir="ltr">${as_palette_error.errors
+				.map((error) => {
+					const format = error.__PATCHED_LIB_TO_ADD_THIS__format;
+					if (format && error.error) {
+						return `<li><b>${escape_html(`${format.name}`)}</b>: ${escape_html(uppercase_first(error.error.message))}</li>`;
+					}
+					// Fallback for unknown errors
+					// @ts-ignore
+					return `<li>${escape_html(error.message || error)}</li>`;
+				})
+				.join("\n")}</ul>`;
 		} else {
 			// Fallback for unknown errors
 			details = `<p>${escape_html(as_palette_error.message || as_palette_error)}</p>`;
@@ -1310,7 +1565,6 @@ function show_file_format_errors({ as_image_error, as_palette_error }) {
 		messageHTML: html,
 	});
 }
-
 
 function exit_fullscreen_if_ios() {
 	if ($("body").hasClass("ios")) {
@@ -1353,7 +1607,6 @@ function exit_fullscreen_if_ios() {
 // show_about_paint(); // for testing
 
 function update_css_classes_for_conditional_messages() {
-
 	$(".on-dev-host, .on-third-party-host, .on-official-host").hide();
 	if (location.hostname.match(/localhost|127.0.0.1/)) {
 		$(".on-dev-host").show();
@@ -1371,7 +1624,6 @@ function update_css_classes_for_conditional_messages() {
 	}
 }
 
-
 /**
  * @param {Blob} blob
  */
@@ -1387,19 +1639,24 @@ function paste_image_from_file(blob) {
 
 // Edit > Paste From
 async function choose_file_to_paste() {
-	const { file } = await systemHooks.showOpenFileDialog({ formats: image_formats });
+	const { file } = await systemHooks.showOpenFileDialog({
+		formats: image_formats,
+	});
 	if (file.type.match(/^image|application\/pdf/)) {
 		paste_image_from_file(file);
 		return;
 	}
-	show_error_message(localize("This is not a valid bitmap file, or its format is not currently supported."));
+	show_error_message(
+		localize(
+			"This is not a valid bitmap file, or its format is not currently supported.",
+		),
+	);
 }
 
 /**
  * @param {HTMLImageElement | HTMLCanvasElement} img_or_canvas
  */
 function paste(img_or_canvas) {
-
 	// The resize gets its own undoable, as in mspaint
 	resize_canvas_and_save_dimensions(
 		Math.max(PaintJSState.main_canvas.width, img_or_canvas.width),
@@ -1407,7 +1664,7 @@ function paste(img_or_canvas) {
 		{
 			name: "Enlarge Canvas For Paste",
 			icon: get_help_folder_icon("p_stretch_both.png"),
-		}
+		},
 	);
 	do_the_paste();
 	PaintJSState.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
@@ -1416,8 +1673,18 @@ function paste(img_or_canvas) {
 		deselect();
 		select_tool(get_tool_by_id(TOOL_SELECT));
 
-		const x = Math.max(0, Math.ceil(PaintJSState.$canvas_area.scrollLeft() / PaintJSState.magnification));
-		const y = Math.max(0, Math.ceil((PaintJSState.$canvas_area.scrollTop()) / PaintJSState.magnification));
+		const x = Math.max(
+			0,
+			Math.ceil(
+				PaintJSState.$canvas_area.scrollLeft() / PaintJSState.magnification,
+			),
+		);
+		const y = Math.max(
+			0,
+			Math.ceil(
+				PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification,
+			),
+		);
 		// Nevermind, canvas, isn't aligned to the right in RTL layout!
 		// let x = Math.max(0, Math.ceil(PaintJSState.$canvas_area.scrollLeft() / magnification));
 		// if (get_direction() === "rtl") {
@@ -1428,13 +1695,22 @@ function paste(img_or_canvas) {
 		// 	x = Math.max(0, Math.ceil((-PaintJSState.$canvas_area.innerWidth() + PaintJSState.$canvas_area.scrollLeft() + scrollbar_width) / magnification + canvas.width));
 		// }
 
-		undoable({
-			name: localize("Paste"),
-			icon: get_help_folder_icon("p_paste.png"),
-			soft: true,
-		}, () => {
-			PaintJSState.selection = new OnCanvasSelection(x, y, img_or_canvas.width, img_or_canvas.height, img_or_canvas);
-		});
+		undoable(
+			{
+				name: localize("Paste"),
+				icon: get_help_folder_icon("p_paste.png"),
+				soft: true,
+			},
+			() => {
+				PaintJSState.selection = new OnCanvasSelection(
+					x,
+					y,
+					img_or_canvas.width,
+					img_or_canvas.height,
+					img_or_canvas,
+				);
+			},
+		);
 	}
 }
 
@@ -1443,11 +1719,13 @@ function paste(img_or_canvas) {
  * @param {boolean=} canceling
  */
 function go_to_history_node(target_history_node, canceling) {
-
 	if (!target_history_node.image_data) {
 		if (!canceling) {
 			show_error_message("History entry has no image data.");
-			window.console?.log("Target history entry has no image data:", target_history_node);
+			window.console?.log(
+				"Target history entry has no image data:",
+				target_history_node,
+			);
 		}
 		return;
 	}
@@ -1490,7 +1768,7 @@ function go_to_history_node(target_history_node, canceling) {
 	}
 
 	// 이자리에 뭔 쓸데없는 코드가 있었는데 왜있는지 모르겠어 오류만 일으키는 것 같아서 삭제함
-	
+
 	// window.console?.log("new undos:", undos);
 	// window.console?.log("new redos:", redos);
 
@@ -1505,7 +1783,10 @@ function go_to_history_node(target_history_node, canceling) {
  * @param {ActionMetadata} options
  * @param {function=} callback
  */
-function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, callback) {
+function undoable(
+	{ name, icon, use_loose_canvas_changes, soft, assume_saved },
+	callback,
+) {
 	if (!use_loose_canvas_changes) {
 		/* For performance (especially with two finger panning), I'm disabling this safety check that preserves certain document states in the history.
 		const current_image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
@@ -1516,7 +1797,8 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 		*/
 	}
 
-	if (!assume_saved) { // flag is used for undoable file reloading on save, for reduction in color depth
+	if (!assume_saved) {
+		// flag is used for undoable file reloading on save, for reduction in color depth
 		PaintJSState.saved = false;
 		update_title();
 	}
@@ -1524,18 +1806,37 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
 	const before_callback_history_node = PaintJSState.current_history_node;
 	callback?.();
 	if (PaintJSState.current_history_node !== before_callback_history_node) {
-		show_error_message(`History node switched during undoable callback for ${name}. This shouldn't happen.`);
-		window.console?.log(`History node switched during undoable callback for ${name}, from`, before_callback_history_node, "to", PaintJSState.current_history_node);
+		show_error_message(
+			`History node switched during undoable callback for ${name}. This shouldn't happen.`,
+		);
+		window.console?.log(
+			`History node switched during undoable callback for ${name}, from`,
+			before_callback_history_node,
+			"to",
+			PaintJSState.current_history_node,
+		);
 	}
 
-	const image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+	const image_data = PaintJSState.main_ctx.getImageData(
+		0,
+		0,
+		PaintJSState.main_canvas.width,
+		PaintJSState.main_canvas.height,
+	);
 
 	PaintJSState.redos.length = 0;
 	PaintJSState.undos.push(PaintJSState.current_history_node);
 
 	const new_history_node = make_history_node({
 		image_data,
-		selection_image_data: PaintJSState.selection && PaintJSState.selection.canvas.ctx.getImageData(0, 0, PaintJSState.selection.canvas.width, PaintJSState.selection.canvas.height),
+		selection_image_data:
+			PaintJSState.selection &&
+			PaintJSState.selection.canvas.ctx.getImageData(
+				0,
+				0,
+				PaintJSState.selection.canvas.width,
+				PaintJSState.selection.canvas.height,
+			),
 		selection_x: PaintJSState.selection && PaintJSState.selection.x,
 		selection_y: PaintJSState.selection && PaintJSState.selection.y,
 		text_tool_font: JSON.parse(JSON.stringify(PaintJSState.text_tool_font)),
@@ -1560,12 +1861,30 @@ function undoable({ name, icon, use_loose_canvas_changes, soft, assume_saved }, 
  * @param {()=> void} undoable_action
  */
 function make_or_update_undoable(undoable_meta, undoable_action) {
-	if (PaintJSState.current_history_node.futures.length === 0 && undoable_meta.match(PaintJSState.current_history_node)) {
+	if (
+		PaintJSState.current_history_node.futures.length === 0 &&
+		undoable_meta.match(PaintJSState.current_history_node)
+	) {
 		undoable_action();
-		PaintJSState.current_history_node.image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-		PaintJSState.current_history_node.selection_image_data = PaintJSState.selection && PaintJSState.selection.canvas.ctx.getImageData(0, 0, PaintJSState.selection.canvas.width, PaintJSState.selection.canvas.height);
-		PaintJSState.current_history_node.selection_x = PaintJSState.selection && PaintJSState.selection.x;
-		PaintJSState.current_history_node.selection_y = PaintJSState.selection && PaintJSState.selection.y;
+		PaintJSState.current_history_node.image_data =
+			PaintJSState.main_ctx.getImageData(
+				0,
+				0,
+				PaintJSState.main_canvas.width,
+				PaintJSState.main_canvas.height,
+			);
+		PaintJSState.current_history_node.selection_image_data =
+			PaintJSState.selection &&
+			PaintJSState.selection.canvas.ctx.getImageData(
+				0,
+				0,
+				PaintJSState.selection.canvas.width,
+				PaintJSState.selection.canvas.height,
+			);
+		PaintJSState.current_history_node.selection_x =
+			PaintJSState.selection && PaintJSState.selection.x;
+		PaintJSState.current_history_node.selection_y =
+			PaintJSState.selection && PaintJSState.selection.y;
 		if (undoable_meta.update_name) {
 			PaintJSState.current_history_node.name = undoable_meta.name;
 		}
@@ -1575,8 +1894,10 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 	}
 }
 function undo() {
-	console.log('press undo!')
-	if (PaintJSState.undos.length < 1) { return false; }
+	console.log("press undo!");
+	if (PaintJSState.undos.length < 1) {
+		return false;
+	}
 
 	PaintJSState.redos.push(PaintJSState.current_history_node);
 	let target_history_node = PaintJSState.undos.pop();
@@ -1585,7 +1906,7 @@ function undo() {
 		PaintJSState.redos.push(target_history_node);
 		target_history_node = PaintJSState.undos.pop();
 	}
-	console.log('end undo!')
+	console.log("end undo!");
 	go_to_history_node(target_history_node);
 
 	return true;
@@ -1595,7 +1916,7 @@ function undo() {
 /** @type {OSGUI$Window} */
 let $document_history_prompt_window;
 function redo() {
-	console.log('press redo!')
+	console.log("press redo!");
 	if (PaintJSState.redos.length < 1) {
 		return false;
 	}
@@ -1608,10 +1929,9 @@ function redo() {
 		PaintJSState.undos.push(target_history_node);
 		target_history_node = PaintJSState.redos.pop();
 	}
-	
-	console.log('end redo!')
-	go_to_history_node(target_history_node);
 
+	console.log("end redo!");
+	go_to_history_node(target_history_node);
 
 	return true;
 }
@@ -1638,12 +1958,12 @@ function show_document_history() {
 	if ($document_history_window) {
 		$document_history_window.close();
 	}
-	const $w = $document_history_window = $Window({
+	const $w = ($document_history_window = $Window({
 		title: "Document History",
 		resizable: false,
 		maximizeButton: false,
 		minimizeButton: false,
-	});
+	}));
 	// $w.prependTo("body").css({position: ""});
 	$w.addClass("history-window squish");
 	$w.$content.html(`
@@ -1685,7 +2005,14 @@ function show_document_history() {
 			</div>
 		`);
 		// $entry.find(".history-entry-name").text((node.name || "Unknown") + (node.soft ? " (soft)" : ""));
-		$entry.find(".history-entry-name").text((node.name || "Unknown") + (node === PaintJSState.root_history_node ? " (Start of History)" : ""));
+		$entry
+			.find(".history-entry-name")
+			.text(
+				(node.name || "Unknown") +
+					(node === PaintJSState.root_history_node
+						? " (Start of History)"
+						: ""),
+			);
 		$entry.find(".history-entry-icon-area").append(node.icon);
 		if (mode === "tree") {
 			let dist_to_root = 0;
@@ -1702,17 +2029,20 @@ function show_document_history() {
 			requestAnimationFrame(() => {
 				// scrollIntoView causes <html> to scroll when the window is partially offscreen,
 				// despite overflow: hidden on html and body, so it's not an option.
-				$history_view[0].scrollTop =
-					Math.min(
-						$entry[0].offsetTop,
-						Math.max(
-							previous_scroll_position,
-							$entry[0].offsetTop - $history_view[0].clientHeight + $entry.outerHeight()
-						)
-					);
+				$history_view[0].scrollTop = Math.min(
+					$entry[0].offsetTop,
+					Math.max(
+						previous_scroll_position,
+						$entry[0].offsetTop -
+							$history_view[0].clientHeight +
+							$entry.outerHeight(),
+					),
+				);
 			});
 		} else {
-			const history_ancestors = get_history_ancestors(PaintJSState.current_history_node);
+			const history_ancestors = get_history_ancestors(
+				PaintJSState.current_history_node,
+			);
 			if (history_ancestors.indexOf(node) > -1) {
 				$entry.addClass("ancestor-of-current");
 			}
@@ -1798,12 +2128,14 @@ function cancel(going_to_history_node, discard_document_state) {
 	// but Fill tool creates on pointerdown, so we need to delete a history node in that case.
 	// Select tool can create multiple undoables before being cancelled (for moving/resizing/inverting/smearing),
 	// but only the last should be discarded due to panning. (All of them should be undone you hit Esc. But not deleted.)
-	const history_node_to_discard = (
+	const history_node_to_discard =
 		discard_document_state &&
 		PaintJSState.current_history_node.parent && // can't discard the root node
-		PaintJSState.current_history_node !== PaintJSState.history_node_to_cancel_to && // can't discard what will be the active node
+		PaintJSState.current_history_node !==
+			PaintJSState.history_node_to_cancel_to && // can't discard what will be the active node
 		PaintJSState.current_history_node.futures.length === 0 // prevent discarding whole branches of history if you go back in history and then pan / hit Esc
-	) ? PaintJSState.current_history_node : null;
+			? PaintJSState.current_history_node
+			: null;
 
 	// console.log("history_node_to_discard", history_node_to_discard, "PaintJSState.current_history_node", PaintJSState.current_history_node, "PaintJSState.history_node_to_cancel_to", PaintJSState.history_node_to_cancel_to);
 
@@ -1818,12 +2150,20 @@ function cancel(going_to_history_node, discard_document_state) {
 		go_to_history_node(PaintJSState.history_node_to_cancel_to, true);
 
 		if (history_node_to_discard) {
-			const index = history_node_to_discard.parent.futures.indexOf(history_node_to_discard);
+			const index = history_node_to_discard.parent.futures.indexOf(
+				history_node_to_discard,
+			);
 			if (index === -1) {
 				show_error_message("History node not found. Please report this bug.");
 				console.log("history_node_to_discard", history_node_to_discard);
-				console.log("PaintJSState.current_history_node", PaintJSState.current_history_node);
-				console.log("history_node_to_discard.parent", history_node_to_discard.parent);
+				console.log(
+					"PaintJSState.current_history_node",
+					PaintJSState.current_history_node,
+				);
+				console.log(
+					"history_node_to_discard.parent",
+					history_node_to_discard.parent,
+				);
 			} else {
 				history_node_to_discard.parent.futures.splice(index, 1);
 				$(window).triggerHandler("history-update"); // update history view (don't want you to be able to click on the excised node)
@@ -1842,11 +2182,14 @@ function meld_selection_into_canvas(going_to_history_node) {
 	PaintJSState.selection.destroy();
 	PaintJSState.selection = null;
 	if (!going_to_history_node) {
-		undoable({
-			name: "Deselect",
-			icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-			use_loose_canvas_changes: true, // HACK; @TODO: make OnCanvasSelection not change the canvas outside undoable, same rules as tools
-		}, () => { });
+		undoable(
+			{
+				name: "Deselect",
+				icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+				use_loose_canvas_changes: true, // HACK; @TODO: make OnCanvasSelection not change the canvas outside undoable, same rules as tools
+			},
+			() => {},
+		);
 	}
 }
 
@@ -1868,43 +2211,61 @@ function deselect(going_to_history_node) {
  */
 function delete_selection(meta = {}) {
 	if (PaintJSState.selection) {
-		undoable({
-			name: meta.name || localize("Clear Selection"), //"Delete", (I feel like "Clear Selection" is unclear, could mean "Deselect")
-			icon: meta.icon || get_help_folder_icon("p_delete.png"),
-			// soft: @TODO: conditionally soft?,
-		}, () => {
-			PaintJSState.selection.destroy();
-			PaintJSState.selection = null;
-		});
+		undoable(
+			{
+				name: meta.name || localize("Clear Selection"), //"Delete", (I feel like "Clear Selection" is unclear, could mean "Deselect")
+				icon: meta.icon || get_help_folder_icon("p_delete.png"),
+				// soft: @TODO: conditionally soft?,
+			},
+			() => {
+				PaintJSState.selection.destroy();
+				PaintJSState.selection = null;
+			},
+		);
 	}
 }
 function select_all() {
 	deselect();
 	select_tool(get_tool_by_id(TOOL_SELECT));
 
-	undoable({
-		name: localize("Select All"),
-		icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-		soft: true,
-	}, () => {
-		PaintJSState.selection = new OnCanvasSelection(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-	});
+	undoable(
+		{
+			name: localize("Select All"),
+			icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+			soft: true,
+		},
+		() => {
+			PaintJSState.selection = new OnCanvasSelection(
+				0,
+				0,
+				PaintJSState.main_canvas.width,
+				PaintJSState.main_canvas.height,
+			);
+		},
+	);
 }
 
 /**
  * @param {string} commandId
  */
 function try_exec_command(commandId) {
-	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
+		? "⌘"
+		: "Ctrl";
 	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
 
-	if (document.queryCommandEnabled(commandId)) { // not a reliable source for whether it'll work, if I recall
+	if (document.queryCommandEnabled(commandId)) {
+		// not a reliable source for whether it'll work, if I recall
 		document.execCommand(commandId);
 		if (!navigator.userAgent.includes("Firefox") || commandId === "paste") {
-			return show_error_message(`That ${commandId} probably didn't work. ${recommendationForClipboardAccess}`);
+			return show_error_message(
+				`That ${commandId} probably didn't work. ${recommendationForClipboardAccess}`,
+			);
 		}
 	} else {
-		return show_error_message(`Cannot perform ${commandId}. ${recommendationForClipboardAccess}`);
+		return show_error_message(
+			`Cannot perform ${commandId}. ${recommendationForClipboardAccess}`,
+		);
 	}
 }
 
@@ -1913,14 +2274,20 @@ function getSelectionText() {
 	const activeEl = document.activeElement;
 	const activeElTagName = activeEl ? activeEl.tagName.toLowerCase() : null;
 	if (
-		(activeElTagName == "textarea") || (
-			activeElTagName == "input" &&
-			/^(?:text|search|password|tel|url)$/i.test(/** @type {HTMLInputElement} */(activeEl).type)
-		)
+		activeElTagName == "textarea" ||
+		(activeElTagName == "input" &&
+			/^(?:text|search|password|tel|url)$/i.test(
+				/** @type {HTMLInputElement} */ (activeEl).type,
+			))
 	) {
-		const textField = /** @type {HTMLInputElement | HTMLTextAreaElement} */(activeEl);
+		const textField = /** @type {HTMLInputElement | HTMLTextAreaElement} */ (
+			activeEl
+		);
 		if (typeof textField.selectionStart == "number") {
-			return textField.value.slice(textField.selectionStart, textField.selectionEnd);
+			return textField.value.slice(
+				textField.selectionStart,
+				textField.selectionEnd,
+			);
 		}
 	}
 	if (window.getSelection) {
@@ -1933,7 +2300,9 @@ function getSelectionText() {
  * @param {boolean} [execCommandFallback]
  */
 function edit_copy(execCommandFallback) {
-	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
+		? "⌘"
+		: "Ctrl";
 	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
 
 	const text = getSelectionText();
@@ -1943,7 +2312,9 @@ function edit_copy(execCommandFallback) {
 			if (execCommandFallback) {
 				return try_exec_command("copy");
 			} else {
-				show_error_message(`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`);
+				show_error_message(
+					`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`,
+				);
 				// show_error_message(`The Async Clipboard API is not supported by this browser. ${browserRecommendationForClipboardAccess}`);
 				return;
 			}
@@ -1954,23 +2325,32 @@ function edit_copy(execCommandFallback) {
 			if (execCommandFallback) {
 				return try_exec_command("copy");
 			} else {
-				show_error_message(`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`);
+				show_error_message(
+					`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`,
+				);
 				// show_error_message(`The Async Clipboard API is not supported by this browser. ${browserRecommendationForClipboardAccess}`);
 				return;
 			}
 		}
 		PaintJSState.selection.canvas.toBlob((blob) => {
 			sanity_check_blob(blob, () => {
-				navigator.clipboard.write([
-					new ClipboardItem(Object.defineProperty({}, blob.type, {
-						value: blob,
-						enumerable: true,
-					})),
-				]).then(() => {
-					window.console?.log("Copied image to the clipboard.");
-				}, (error) => {
-					show_error_message("Failed to copy to the Clipboard.", error);
-				});
+				navigator.clipboard
+					.write([
+						new ClipboardItem(
+							Object.defineProperty({}, blob.type, {
+								value: blob,
+								enumerable: true,
+							}),
+						),
+					])
+					.then(
+						() => {
+							window.console?.log("Copied image to the clipboard.");
+						},
+						(error) => {
+							show_error_message("Failed to copy to the Clipboard.", error);
+						},
+					);
 			});
 		});
 	}
@@ -1979,14 +2359,18 @@ function edit_copy(execCommandFallback) {
  * @param {boolean} [execCommandFallback]
  */
 function edit_cut(execCommandFallback) {
-	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
+		? "⌘"
+		: "Ctrl";
 	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
 
 	if (!navigator.clipboard || !navigator.clipboard.write) {
 		if (execCommandFallback) {
 			return try_exec_command("cut");
 		} else {
-			show_error_message(`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`);
+			show_error_message(
+				`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`,
+			);
 			// show_error_message(`The Async Clipboard API is not supported by this browser. ${browserRecommendationForClipboardAccess}`);
 			return;
 		}
@@ -2001,7 +2385,9 @@ function edit_cut(execCommandFallback) {
  * @param {boolean} [execCommandFallback]
  */
 async function edit_paste(execCommandFallback) {
-	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl";
+	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
+		? "⌘"
+		: "Ctrl";
 	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
 
 	if (
@@ -2012,7 +2398,9 @@ async function edit_paste(execCommandFallback) {
 			if (execCommandFallback) {
 				return try_exec_command("paste");
 			} else {
-				show_error_message(`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`);
+				show_error_message(
+					`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`,
+				);
 				// show_error_message(`The Async Clipboard API is not supported by this browser. ${browserRecommendationForClipboardAccess}`);
 				return;
 			}
@@ -2025,7 +2413,9 @@ async function edit_paste(execCommandFallback) {
 		if (execCommandFallback) {
 			return try_exec_command("paste");
 		} else {
-			show_error_message(`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`);
+			show_error_message(
+				`${localize("Error getting the Clipboard Data!")} ${recommendationForClipboardAccess}`,
+			);
 			// show_error_message(`The Async Clipboard API is not supported by this browser. ${browserRecommendationForClipboardAccess}`);
 			return;
 		}
@@ -2041,20 +2431,30 @@ async function edit_paste(execCommandFallback) {
 				if (clipboardText) {
 					const uris = get_uris(clipboardText);
 					if (uris.length > 0) {
-						load_image_from_uri(uris[0]).then((info) => {
-							paste(info.image || make_canvas(info.image_data));
-						}, (error) => {
-							show_resource_load_error_message(error);
-						});
+						load_image_from_uri(uris[0]).then(
+							(info) => {
+								paste(info.image || make_canvas(info.image_data));
+							},
+							(error) => {
+								show_resource_load_error_message(error);
+							},
+						);
 					} else {
 						// @TODO: should I just make a textbox instead?
-						show_error_message("The information on the Clipboard can't be inserted into Paint.");
+						show_error_message(
+							"The information on the Clipboard can't be inserted into Paint.",
+						);
 					}
 				} else {
-					show_error_message("The information on the Clipboard can't be inserted into Paint.");
+					show_error_message(
+						"The information on the Clipboard can't be inserted into Paint.",
+					);
 				}
 			} catch (error) {
-				show_error_message(localize("Error getting the Clipboard Data!"), error);
+				show_error_message(
+					localize("Error getting the Clipboard Data!"),
+					error,
+				);
 			}
 		} else {
 			show_error_message(localize("Error getting the Clipboard Data!"), error);
@@ -2063,34 +2463,51 @@ async function edit_paste(execCommandFallback) {
 }
 
 function image_invert_colors() {
-	apply_image_transformation({
-		name: localize("Invert Colors"),
-		icon: get_help_folder_icon("p_invert.png"),
-	}, (_original_canvas, original_ctx, _new_canvas, new_ctx) => {
-		invert_rgb(original_ctx, new_ctx);
-	});
+	apply_image_transformation(
+		{
+			name: localize("Invert Colors"),
+			icon: get_help_folder_icon("p_invert.png"),
+		},
+		(_original_canvas, original_ctx, _new_canvas, new_ctx) => {
+			invert_rgb(original_ctx, new_ctx);
+		},
+	);
 }
 
 function clear() {
 	deselect();
 	cancel();
-	undoable({
-		name: localize("Clear Image"),
-		icon: get_help_folder_icon("p_blank.png"),
-	}, () => {
-		PaintJSState.saved = false;
-		update_title();
+	undoable(
+		{
+			name: localize("Clear Image"),
+			icon: get_help_folder_icon("p_blank.png"),
+		},
+		() => {
+			PaintJSState.saved = false;
+			update_title();
 
-		if (PaintJSState.transparency) {
-			PaintJSState.main_ctx.clearRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-		} else {
-			PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
-			PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-		}
-	});
+			if (PaintJSState.transparency) {
+				PaintJSState.main_ctx.clearRect(
+					0,
+					0,
+					PaintJSState.main_canvas.width,
+					PaintJSState.main_canvas.height,
+				);
+			} else {
+				PaintJSState.main_ctx.fillStyle =
+					PaintJSState.selected_colors.background;
+				PaintJSState.main_ctx.fillRect(
+					0,
+					0,
+					PaintJSState.main_canvas.width,
+					PaintJSState.main_canvas.height,
+				);
+			}
+		},
+	);
 }
 
-let cleanup_bitmap_view = () => { };
+let cleanup_bitmap_view = () => {};
 function view_bitmap() {
 	cleanup_bitmap_view();
 
@@ -2121,7 +2538,10 @@ function view_bitmap() {
 		// In Chrome, if the page is already fullscreen, and you requestFullscreen,
 		// hitting Esc will change document.fullscreenElement without triggering the fullscreenchange event!
 		// It doesn't trigger a keydown either.
-		if (document.fullscreenElement === bitmap_view_div || document.webkitFullscreenElement === bitmap_view_div) {
+		if (
+			document.fullscreenElement === bitmap_view_div ||
+			document.webkitFullscreenElement === bitmap_view_div
+		) {
 			got_fullscreen = true;
 		} else if (got_fullscreen) {
 			cleanup_bitmap_view();
@@ -2140,7 +2560,10 @@ function view_bitmap() {
 		}, 100);
 		URL.revokeObjectURL(blob_url);
 		clearInterval(iid);
-		if (document.fullscreenElement === bitmap_view_div || document.webkitFullscreenElement === bitmap_view_div) {
+		if (
+			document.fullscreenElement === bitmap_view_div ||
+			document.webkitFullscreenElement === bitmap_view_div
+		) {
 			if (document.exitFullscreen) {
 				document.exitFullscreen(); // avoid warning in Firefox
 			} else if (document.msExitFullscreen) {
@@ -2152,24 +2575,34 @@ function view_bitmap() {
 			}
 		}
 		bitmap_view_div.remove();
-		cleanup_bitmap_view = () => { };
+		cleanup_bitmap_view = () => {};
 	};
-	document.addEventListener("fullscreenchange", onFullscreenChange, { once: true });
-	document.addEventListener("webkitfullscreenchange", onFullscreenChange, { once: true });
+	document.addEventListener("fullscreenchange", onFullscreenChange, {
+		once: true,
+	});
+	document.addEventListener("webkitfullscreenchange", onFullscreenChange, {
+		once: true,
+	});
 	document.addEventListener("keydown", onKeyDown);
 	document.addEventListener("mousedown", onMouseDown);
 	document.addEventListener("contextmenu", onContextMenu);
 
 	function onFullscreenChange() {
-		if (document.fullscreenElement !== bitmap_view_div && document.webkitFullscreenElement !== bitmap_view_div) {
+		if (
+			document.fullscreenElement !== bitmap_view_div &&
+			document.webkitFullscreenElement !== bitmap_view_div
+		) {
 			cleanup_bitmap_view();
 		}
 	}
 	let repeating_f = false;
 	function onKeyDown(event) {
 		// console.log(event.key, event.repeat);
-		repeating_f = repeating_f || event.repeat && (event.key === "f" || event.key === "F");
-		if (event.repeat) { return; }
+		repeating_f =
+			repeating_f || (event.repeat && (event.key === "f" || event.key === "F"));
+		if (event.repeat) {
+			return;
+		}
 		if (repeating_f && (event.key === "f" || event.key === "F")) {
 			repeating_f = false;
 			return; // Chrome sends an F keydown with repeat=false if you release Ctrl before F, while repeating.
@@ -2241,7 +2674,12 @@ function select_tools(tools) {
 function select_tool(tool, toggle) {
 	deselect();
 
-	if (!(PaintJSState.selected_tools.length === 1 && PaintJSState.selected_tool.deselect)) {
+	if (
+		!(
+			PaintJSState.selected_tools.length === 1 &&
+			PaintJSState.selected_tool.deselect
+		)
+	) {
 		PaintJSState.return_to_tools = [...PaintJSState.selected_tools];
 	}
 	if (toggle) {
@@ -2261,7 +2699,8 @@ function select_tool(tool, toggle) {
 			PaintJSState.selected_tools.splice(index, 1);
 		}
 		if (PaintJSState.selected_tools.length > 0) {
-			PaintJSState.selected_tool = PaintJSState.selected_tools[PaintJSState.selected_tools.length - 1];
+			PaintJSState.selected_tool =
+				PaintJSState.selected_tools[PaintJSState.selected_tools.length - 1];
 		} else {
 			PaintJSState.selected_tool = PaintJSState.default_tool;
 			PaintJSState.selected_tools = [PaintJSState.selected_tool];
@@ -2286,7 +2725,12 @@ function has_any_transparency(ctx) {
 	// @TODO Optimization: Assume JPEGs and some other file types are opaque.
 	// Raster file formats that SUPPORT transparency include GIF, PNG, BMP and TIFF
 	// (Yes, even BMPs support transparency!)
-	const id = ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+	const id = ctx.getImageData(
+		0,
+		0,
+		PaintJSState.main_canvas.width,
+		PaintJSState.main_canvas.height,
+	);
 	for (let i = 0, l = id.data.length; i < l; i += 4) {
 		// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
 		// or other values
@@ -2312,14 +2756,18 @@ function make_stripe_pattern(reverse, colors, stripe_size = 4) {
 	pattern_canvas.width = colors.length * stripe_size;
 	pattern_canvas.height = colors.length * stripe_size;
 
-	const pattern_image_data = PaintJSState.main_ctx.createImageData(pattern_canvas.width, pattern_canvas.height);
+	const pattern_image_data = PaintJSState.main_ctx.createImageData(
+		pattern_canvas.width,
+		pattern_canvas.height,
+	);
 
 	for (let x = 0; x < pattern_canvas.width; x += 1) {
 		for (let y = 0; y < pattern_canvas.height; y += 1) {
-			const pixel_index = ((y * pattern_image_data.width) + x) * 4;
+			const pixel_index = (y * pattern_image_data.width + x) * 4;
 			// +1000 to avoid remainder on negative numbers
-			const pos = reverse ? (x - y) : (x + y);
-			const color_index = Math.floor((pos + 1000) / stripe_size) % colors.length;
+			const pos = reverse ? x - y : x + y;
+			const color_index =
+				Math.floor((pos + 1000) / stripe_size) % colors.length;
 			const rgba = rgba_colors[color_index];
 			pattern_image_data.data[pixel_index + 0] = rgba[0];
 			pattern_image_data.data[pixel_index + 1] = rgba[1];
@@ -2333,27 +2781,33 @@ function make_stripe_pattern(reverse, colors, stripe_size = 4) {
 	return PaintJSState.main_ctx.createPattern(pattern_canvas, "repeat");
 }
 
-function switch_to_polychrome_palette() {
-
-}
+function switch_to_polychrome_palette() {}
 
 function make_opaque() {
-	undoable({
-		name: "Make Opaque",
-		icon: get_help_folder_icon("p_make_opaque.png"),
-	}, () => {
-		PaintJSState.main_ctx.save();
-		PaintJSState.main_ctx.globalCompositeOperation = "destination-atop";
+	undoable(
+		{
+			name: "Make Opaque",
+			icon: get_help_folder_icon("p_make_opaque.png"),
+		},
+		() => {
+			PaintJSState.main_ctx.save();
+			PaintJSState.main_ctx.globalCompositeOperation = "destination-atop";
 
-		PaintJSState.main_ctx.fillStyle = 'white';
-		PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+			PaintJSState.main_ctx.fillStyle = "white";
+			PaintJSState.main_ctx.fillRect(
+				0,
+				0,
+				PaintJSState.main_canvas.width,
+				PaintJSState.main_canvas.height,
+			);
 
-		// in case the selected background color is transparent/translucent
-		// PaintJSState.main_ctx.fillStyle = "white";
-		// PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+			// in case the selected background color is transparent/translucent
+			// PaintJSState.main_ctx.fillStyle = "white";
+			// PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
 
-		PaintJSState.main_ctx.restore();
-	});
+			PaintJSState.main_ctx.restore();
+		},
+	);
 }
 
 /**
@@ -2363,46 +2817,73 @@ function make_opaque() {
  * @param {number} unclamped_height - The new height of the canvas. Will be clamped to a minimum of 1.
  * @param {{name?: string, icon?: HTMLImageElement | HTMLCanvasElement}} [undoable_meta={}] - overrides certain properties of ActionMetadata
  */
-function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_height, undoable_meta = {}) {
+function resize_canvas_without_saving_dimensions(
+	unclamped_width,
+	unclamped_height,
+	undoable_meta = {},
+) {
 	const new_width = Math.max(1, unclamped_width);
 	const new_height = Math.max(1, unclamped_height);
-	if (PaintJSState.main_canvas.width !== new_width || PaintJSState.main_canvas.height !== new_height) {
-		undoable({
-			name: undoable_meta.name || "Resize Canvas",
-			icon: undoable_meta.icon || get_help_folder_icon("p_stretch_both.png"),
-		}, () => {
-			try {
-				const beforeWidth=PaintJSState.main_canvas.width;
-				const beforeHeight=PaintJSState.main_canvas.height;
-				console.log('리사이즈')
-				const image_data = PaintJSState.main_ctx.getImageData(0, 0, new_width, new_height);
-				PaintJSState.main_canvas.width = new_width;
-				PaintJSState.main_canvas.height = new_height;
-				PaintJSState.main_ctx.disable_image_smoothing();
+	if (
+		PaintJSState.main_canvas.width !== new_width ||
+		PaintJSState.main_canvas.height !== new_height
+	) {
+		undoable(
+			{
+				name: undoable_meta.name || "Resize Canvas",
+				icon: undoable_meta.icon || get_help_folder_icon("p_stretch_both.png"),
+			},
+			() => {
+				try {
+					const beforeWidth = PaintJSState.main_canvas.width;
+					const beforeHeight = PaintJSState.main_canvas.height;
+					console.log("리사이즈");
+					const image_data = PaintJSState.main_ctx.getImageData(
+						0,
+						0,
+						new_width,
+						new_height,
+					);
+					PaintJSState.main_canvas.width = new_width;
+					PaintJSState.main_canvas.height = new_height;
+					PaintJSState.main_ctx.disable_image_smoothing();
 
-				if (!PaintJSState.transparency) {
-					PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
-					PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-					PaintJSState.main_ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+					if (!PaintJSState.transparency) {
+						PaintJSState.main_ctx.fillStyle =
+							PaintJSState.selected_colors.background;
+						PaintJSState.main_ctx.fillRect(
+							0,
+							0,
+							PaintJSState.main_canvas.width,
+							PaintJSState.main_canvas.height,
+						);
+						PaintJSState.main_ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+					}
+
+					const temp_canvas = make_canvas(image_data);
+					PaintJSState.main_ctx.drawImage(temp_canvas, 0, 0);
+				} catch (exception) {
+					if (exception.name === "NS_ERROR_FAILURE") {
+						// or localize("There is not enough memory or resources to complete operation.")
+						show_error_message(
+							localize("Insufficient memory to perform operation."),
+							exception,
+						);
+					} else {
+						show_error_message(
+							localize("An unknown error has occurred."),
+							exception,
+						);
+					}
+					// @TODO: undo and clean up undoable
+					// maybe even keep Attributes dialog open if that's what's triggering the resize
+					return;
 				}
+				console.log("size:", new_width, new_height);
 
-				const temp_canvas = make_canvas(image_data);
-				PaintJSState.main_ctx.drawImage(temp_canvas, 0, 0);
-			} catch (exception) {
-				if (exception.name === "NS_ERROR_FAILURE") {
-					// or localize("There is not enough memory or resources to complete operation.")
-					show_error_message(localize("Insufficient memory to perform operation."), exception);
-				} else {
-					show_error_message(localize("An unknown error has occurred."), exception);
-				}
-				// @TODO: undo and clean up undoable
-				// maybe even keep Attributes dialog open if that's what's triggering the resize
-				return;
-			}
-			console.log('size:',new_width,new_height )
-
-			PaintJSState.$canvas_area.trigger("resize");
-		});
+				PaintJSState.$canvas_area.trigger("resize");
+			},
+		);
 	}
 }
 
@@ -2413,14 +2894,25 @@ function resize_canvas_without_saving_dimensions(unclamped_width, unclamped_heig
  * @param {number} unclamped_height - The new height of the canvas. Will be clamped to a minimum of 1.
  * @param {{name?: string, icon?: HTMLImageElement | HTMLCanvasElement}} [undoable_meta={}] - overrides certain properties of ActionMetadata
  */
-function resize_canvas_and_save_dimensions(unclamped_width, unclamped_height, undoable_meta = {}) {
-	resize_canvas_without_saving_dimensions(unclamped_width, unclamped_height, undoable_meta);
-	localStore.set({
-		width: PaintJSState.main_canvas.width.toString(),
-		height: PaintJSState.main_canvas.height.toString(),
-	}, (_error) => {
-		// oh well
-	});
+function resize_canvas_and_save_dimensions(
+	unclamped_width,
+	unclamped_height,
+	undoable_meta = {},
+) {
+	resize_canvas_without_saving_dimensions(
+		unclamped_width,
+		unclamped_height,
+		undoable_meta,
+	);
+	localStore.set(
+		{
+			width: PaintJSState.main_canvas.width.toString(),
+			height: PaintJSState.main_canvas.height.toString(),
+		},
+		(_error) => {
+			// oh well
+		},
+	);
 }
 
 function image_attributes() {
@@ -2429,8 +2921,6 @@ function image_attributes() {
 	}
 
 	// Information
-
-
 
 	handle_keyshortcuts($w);
 
@@ -2458,38 +2948,50 @@ image_attributes.unit = "px";
 function show_convert_to_black_and_white() {
 	const $w = $DialogWindow("Convert to Black and White");
 	$w.addClass("convert-to-black-and-white");
-	$w.$main.append("<fieldset><legend>Threshold:</legend><input type='range' min='0' max='1' step='0.01' value='0.5'></fieldset>");
+	$w.$main.append(
+		"<fieldset><legend>Threshold:</legend><input type='range' min='0' max='1' step='0.01' value='0.5'></fieldset>",
+	);
 	const $slider = $w.$main.find("input[type='range']");
 	const original_canvas = make_canvas(PaintJSState.main_canvas);
 	let threshold;
 	const update_threshold = () => {
-		make_or_update_undoable({
-			name: "Make Monochrome",
-			match: (history_node) => history_node.name === "Make Monochrome",
-			icon: get_help_folder_icon("p_monochrome.png"),
-		}, () => {
-			threshold = Number($slider.val());
-			PaintJSState.main_ctx.copy(original_canvas);
-			threshold_black_and_white(PaintJSState.main_ctx, threshold);
-		});
+		make_or_update_undoable(
+			{
+				name: "Make Monochrome",
+				match: (history_node) => history_node.name === "Make Monochrome",
+				icon: get_help_folder_icon("p_monochrome.png"),
+			},
+			() => {
+				threshold = Number($slider.val());
+				PaintJSState.main_ctx.copy(original_canvas);
+				threshold_black_and_white(PaintJSState.main_ctx, threshold);
+			},
+		);
 	};
 	update_threshold();
 	const update_threshold_soon = debounce(update_threshold, 100);
 	$slider.on("input", update_threshold_soon);
 
-	$w.$Button(localize("OK"), () => {
-		$w.close();
-	}, { type: "submit" }).focus();
+	$w.$Button(
+		localize("OK"),
+		() => {
+			$w.close();
+		},
+		{ type: "submit" },
+	).focus();
 	$w.$Button(localize("Cancel"), () => {
 		if (PaintJSState.current_history_node.name === "Make Monochrome") {
 			undo();
 		} else {
-			undoable({
-				name: "Cancel Make Monochrome",
-				icon: get_help_folder_icon("p_color.png"),
-			}, () => {
-				PaintJSState.main_ctx.copy(original_canvas);
-			});
+			undoable(
+				{
+					name: "Cancel Make Monochrome",
+					icon: get_help_folder_icon("p_color.png"),
+				},
+				() => {
+					PaintJSState.main_ctx.copy(original_canvas);
+				},
+			);
 		}
 		$w.close();
 	});
@@ -2643,81 +3145,72 @@ function image_flip_and_rotate() {
 	// handle_keyshortcuts($w);
 }
 
- function image_stretch_and_skew() {
-// 	const $w = $DialogWindow(localize("Stretch and Skew"));
-// 	$w.addClass("stretch-and-skew");
-
-// 	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
-// 	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
-// 	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
-// 	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
-
-// 	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
-// 		const $tr = $(E("tr")).appendTo($table);
-// 		const $img = $(E("img")).attr({
-// 			src: `images/transforms/${img_src}.png`,
-// 			width: 32,
-// 			height: 32,
-// 		}).css({
-// 			marginRight: "20px",
-// 		});
-// 		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
-// 		const $input = $(E("input")).attr({
-// 			type: "number",
-// 			min,
-// 			max,
-// 			value: default_value,
-// 			id: input_id,
-// 			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
-// 		}).css({
-// 			width: "40px",
-// 		}).addClass("no-spinner inset-deep");
-// 		$(E("td")).appendTo($tr).append($img);
-// 		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
-// 		$(E("td")).appendTo($tr).append($input);
-// 		$(E("td")).appendTo($tr).text(label_unit);
-
-// 		return $input;
-// 	};
-
-// 	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
-// 	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
-// 	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
-// 	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
-
-// 	$w.$Button(localize("OK"), () => {
-// 		const x_scale = parseFloat(stretch_x.val()) / 100;
-// 		const y_scale = parseFloat(stretch_y.val()) / 100;
-// 		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
-// 		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
-// 		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
-// 			please_enter_a_number();
-// 			return;
-// 		}
-// 		try {
-// 			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
-// 		} catch (exception) {
-// 			if (exception.name === "NS_ERROR_FAILURE") {
-// 				// or localize("There is not enough memory or resources to complete operation.")
-// 				show_error_message(localize("Insufficient memory to perform operation."), exception);
-// 			} else {
-// 				show_error_message(localize("An unknown error has occurred."), exception);
-// 			}
-// 			// @TODO: undo and clean up undoable
-// 			return;
-// 		}
-// 		$w.close();
-// 	}, { type: "submit" });
-
-// 	$w.$Button(localize("Cancel"), () => {
-// 		$w.close();
-// 	});
-
-// 	$w.$main.find("input").first().focus().select();
-
-// 	$w.center();
-
-// 	handle_keyshortcuts($w);
+function image_stretch_and_skew() {
+	// 	const $w = $DialogWindow(localize("Stretch and Skew"));
+	// 	$w.addClass("stretch-and-skew");
+	// 	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
+	// 	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
+	// 	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
+	// 	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
+	// 	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
+	// 		const $tr = $(E("tr")).appendTo($table);
+	// 		const $img = $(E("img")).attr({
+	// 			src: `images/transforms/${img_src}.png`,
+	// 			width: 32,
+	// 			height: 32,
+	// 		}).css({
+	// 			marginRight: "20px",
+	// 		});
+	// 		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
+	// 		const $input = $(E("input")).attr({
+	// 			type: "number",
+	// 			min,
+	// 			max,
+	// 			value: default_value,
+	// 			id: input_id,
+	// 			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
+	// 		}).css({
+	// 			width: "40px",
+	// 		}).addClass("no-spinner inset-deep");
+	// 		$(E("td")).appendTo($tr).append($img);
+	// 		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
+	// 		$(E("td")).appendTo($tr).append($input);
+	// 		$(E("td")).appendTo($tr).text(label_unit);
+	// 		return $input;
+	// 	};
+	// 	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
+	// 	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
+	// 	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
+	// 	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
+	// 	$w.$Button(localize("OK"), () => {
+	// 		const x_scale = parseFloat(stretch_x.val()) / 100;
+	// 		const y_scale = parseFloat(stretch_y.val()) / 100;
+	// 		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
+	// 		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
+	// 		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
+	// 			please_enter_a_number();
+	// 			return;
+	// 		}
+	// 		try {
+	// 			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
+	// 		} catch (exception) {
+	// 			if (exception.name === "NS_ERROR_FAILURE") {
+	// 				// or localize("There is not enough memory or resources to complete operation.")
+	// 				show_error_message(localize("Insufficient memory to perform operation."), exception);
+	// 			} else {
+	// 				show_error_message(localize("An unknown error has occurred."), exception);
+	// 			}
+	// 			// @TODO: undo and clean up undoable
+	// 			return;
+	// 		}
+	// 		$w.close();
+	// 	}, { type: "submit" });
+	// 	$w.$Button(localize("Cancel"), () => {
+	// 		$w.close();
+	// 	});
+	// 	$w.$main.find("input").first().focus().select();
+	// 	$w.center();
+	// 	handle_keyshortcuts($w);
 }
 
 /**
@@ -2763,16 +3256,24 @@ function handle_keyshortcuts($container) {
 	// because _theoretically_ it's better for assistive technology to know that the shortcut isn't available.
 	// (Theoretically I should also remove aria-keyshortcuts when the window isn't focused...)
 	$container.on("focusin focusout", (event) => {
-		if ($(event.target).is('textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]):not([type="file"]):not([type="color"]):not([type="range"])')) {
+		if (
+			$(event.target).is(
+				'textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]):not([type="file"]):not([type="color"]):not([type="range"])',
+			)
+		) {
 			for (const control of $container.find("[aria-keyshortcuts]")) {
 				// @ts-ignore (could use a Map but that would be a little more complicated)
-				control._original_aria_keyshortcuts = control._original_aria_keyshortcuts ?? control.getAttribute("aria-keyshortcuts");
+				control._original_aria_keyshortcuts =
+					control._original_aria_keyshortcuts ??
+					control.getAttribute("aria-keyshortcuts");
 				// Remove shortcuts without modifiers.
-				control.setAttribute("aria-keyshortcuts",
-					control.getAttribute("aria-keyshortcuts")
+				control.setAttribute(
+					"aria-keyshortcuts",
+					control
+						.getAttribute("aria-keyshortcuts")
 						.split(" ")
 						.filter((shortcut) => shortcut.match(/(Alt|Ctrl|Meta)\+/i))
-						.join(" ")
+						.join(" "),
 				);
 			}
 		} else {
@@ -2781,7 +3282,10 @@ function handle_keyshortcuts($container) {
 				// @ts-ignore
 				if (control._original_aria_keyshortcuts) {
 					// @ts-ignore
-					control.setAttribute("aria-keyshortcuts", control._original_aria_keyshortcuts);
+					control.setAttribute(
+						"aria-keyshortcuts",
+						control._original_aria_keyshortcuts,
+					);
 				}
 			}
 		}
@@ -2835,7 +3339,9 @@ function save_as_prompt({
 		const $file_name = $w.$main.find(".file-name");
 
 		for (const format of formats) {
-			$file_type.append($("<option>").val(format.formatID).text(format.nameWithExtensions));
+			$file_type.append(
+				$("<option>").val(format.formatID).text(format.nameWithExtensions),
+			);
 		}
 
 		if (promptForName) {
@@ -2853,11 +3359,16 @@ function save_as_prompt({
 
 		// Select file type when typing file name
 		const select_file_type_from_file_name = () => {
-			const extension_match = (promptForName ? String($file_name.val()) : defaultFileName).match(/\.([\w\d]+)$/);
+			const extension_match = (
+				promptForName ? String($file_name.val()) : defaultFileName
+			).match(/\.([\w\d]+)$/);
 			if (extension_match) {
 				const selected_format = get_selected_format();
 				const matched_ext = extension_match[1].toLowerCase();
-				if (selected_format && selected_format.extensions.includes(matched_ext)) {
+				if (
+					selected_format &&
+					selected_format.extensions.includes(matched_ext)
+				) {
 					// File extension already matches selected file type.
 					// Don't select a different file type with the same extension.
 					return;
@@ -2872,7 +3383,10 @@ function save_as_prompt({
 		if (promptForName) {
 			$file_name.on("input", select_file_type_from_file_name);
 		}
-		if (defaultFileFormatID && formats.some((format) => format.formatID === defaultFileFormatID)) {
+		if (
+			defaultFileFormatID &&
+			formats.some((format) => format.formatID === defaultFileFormatID)
+		) {
 			$file_type.val(defaultFileFormatID);
 		} else {
 			select_file_type_from_file_name();
@@ -2884,7 +3398,7 @@ function save_as_prompt({
 			if (!promptForName) {
 				return;
 			}
-			let file_name = /** @type {string} */($file_name.val());
+			let file_name = /** @type {string} */ ($file_name.val());
 			const selected_format = get_selected_format();
 			if (!selected_format) {
 				return;
@@ -2892,9 +3406,14 @@ function save_as_prompt({
 			const extensions_for_type = selected_format.extensions;
 			const primary_extension_for_type = extensions_for_type[0];
 			// This way of removing the file extension doesn't scale very well! But I don't want to delete text the user wanted like in case of a version number...
-			const without_extension = file_name.replace(/\.(\w{1,3}|apng|jpeg|jfif|tiff|webp|psppalette|sketchpalette|gimp|colors|scss|sass|less|styl|html|theme|themepack)$/i, "");
+			const without_extension = file_name.replace(
+				/\.(\w{1,3}|apng|jpeg|jfif|tiff|webp|psppalette|sketchpalette|gimp|colors|scss|sass|less|styl|html|theme|themepack)$/i,
+				"",
+			);
 			const extension_present = without_extension !== file_name;
-			const extension = file_name.slice(without_extension.length + 1).toLowerCase(); // without dot
+			const extension = file_name
+				.slice(without_extension.length + 1)
+				.toLowerCase(); // without dot
 			if (
 				(add_extension_if_absent || extension_present) &&
 				extensions_for_type.indexOf(extension) === -1
@@ -2909,14 +3428,20 @@ function save_as_prompt({
 		// and initially
 		update_extension_from_file_type(false);
 
-		const $save = $w.$Button(localize("Save"), () => {
-			$w.close();
-			update_extension_from_file_type(true);
-			resolve({
-				newFileName: promptForName ? String($file_name.val()) : defaultFileName,
-				newFileFormatID: String($file_type.val()),
-			});
-		}, { type: "submit" });
+		const $save = $w.$Button(
+			localize("Save"),
+			() => {
+				$w.close();
+				update_extension_from_file_type(true);
+				resolve({
+					newFileName: promptForName
+						? String($file_name.val())
+						: defaultFileName,
+					newFileFormatID: String($file_type.val()),
+				});
+			},
+			{ type: "submit" },
+		);
 		$w.$Button(localize("Cancel"), () => {
 			$w.close();
 		});
@@ -2946,7 +3471,10 @@ function write_image_file(canvas, mime_type, blob_callback) {
 	const ctx = canvas.getContext("2d");
 	const bmp_match = mime_type.match(/^image\/(?:x-)?bmp\s*(?:-(\d+)bpp)?/);
 	if (bmp_match) {
-		const file_content = encodeBMP(ctx.getImageData(0, 0, canvas.width, canvas.height), parseInt(bmp_match[1] || "24", 10));
+		const file_content = encodeBMP(
+			ctx.getImageData(0, 0, canvas.width, canvas.height),
+			parseInt(bmp_match[1] || "24", 10),
+		);
 		const blob = new Blob([file_content]);
 		sanity_check_blob(blob, () => {
 			blob_callback(blob);
@@ -2955,7 +3483,11 @@ function write_image_file(canvas, mime_type, blob_callback) {
 		// UPNG.js gives better compressed PNGs than the built-in browser PNG encoder
 		// In fact you can use it as a minifier! http://upng.photopea.com/
 		const image_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		const array_buffer = UPNG.encode([image_data.data.buffer], image_data.width, image_data.height);
+		const array_buffer = UPNG.encode(
+			[image_data.data.buffer],
+			image_data.width,
+			image_data.height,
+		);
 		const blob = new Blob([array_buffer]);
 		sanity_check_blob(blob, () => {
 			blob_callback(blob);
@@ -2965,7 +3497,12 @@ function write_image_file(canvas, mime_type, blob_callback) {
 		const metadata = {
 			t305: ["jspaint (UTIF.js)"],
 		};
-		const array_buffer = UTIF.encodeImage(image_data.data.buffer, image_data.width, image_data.height, metadata);
+		const array_buffer = UTIF.encodeImage(
+			image_data.data.buffer,
+			image_data.width,
+			image_data.height,
+			metadata,
+		);
 		const blob = new Blob([array_buffer]);
 		sanity_check_blob(blob, () => {
 			blob_callback(blob);
@@ -2973,10 +3510,15 @@ function write_image_file(canvas, mime_type, blob_callback) {
 	} else {
 		canvas.toBlob((blob) => {
 			// Note: could check blob.type (mime type) instead
-			const png_magic_bytes = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-			sanity_check_blob(blob, () => {
-				blob_callback(blob);
-			}, png_magic_bytes, mime_type === "image/png");
+			const png_magic_bytes = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+			sanity_check_blob(
+				blob,
+				() => {
+					blob_callback(blob);
+				},
+				png_magic_bytes,
+				mime_type === "image/png",
+			);
 		}, mime_type);
 	}
 }
@@ -2993,186 +3535,242 @@ function read_image_file(blob, callback) {
 	let palette;
 	let monochrome = false;
 
-	blob.arrayBuffer().then((arrayBuffer) => {
-		// Helpers:
-		// "GIF".split("").map(c=>"0x"+c.charCodeAt(0).toString("16")).join(", ")
-		// [0x47, 0x49, 0x46].map(c=>String.fromCharCode(c)).join("")
-		const magics = {
-			png: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
-			bmp: [0x42, 0x4D], // "BM" in ASCII
-			jpeg: [0xFF, 0xD8, 0xFF],
-			gif: [0x47, 0x49, 0x46, 0x38], // "GIF8" in ASCII, fully either "GIF87a" or "GIF89a"
-			webp: [0x57, 0x45, 0x42, 0x50], // "WEBP" in ASCII
-			tiff_be: [0x4D, 0x4D, 0x0, 0x2A],
-			tiff_le: [0x49, 0x49, 0x2A, 0x0],
-			ico: [0x00, 0x00, 0x01, 0x00],
-			cur: [0x00, 0x00, 0x02, 0x00],
-			icns: [0x69, 0x63, 0x6e, 0x73], // "icns" in ASCII
-		};
-		const file_bytes = new Uint8Array(arrayBuffer);
-		let detected_type_id;
-		for (const [type_id, magic_bytes] of Object.entries(magics)) {
-			const magic_found = magic_bytes.every((byte, index) => byte === file_bytes[index]);
-			if (magic_found) {
-				detected_type_id = type_id;
+	blob.arrayBuffer().then(
+		(arrayBuffer) => {
+			// Helpers:
+			// "GIF".split("").map(c=>"0x"+c.charCodeAt(0).toString("16")).join(", ")
+			// [0x47, 0x49, 0x46].map(c=>String.fromCharCode(c)).join("")
+			const magics = {
+				png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+				bmp: [0x42, 0x4d], // "BM" in ASCII
+				jpeg: [0xff, 0xd8, 0xff],
+				gif: [0x47, 0x49, 0x46, 0x38], // "GIF8" in ASCII, fully either "GIF87a" or "GIF89a"
+				webp: [0x57, 0x45, 0x42, 0x50], // "WEBP" in ASCII
+				tiff_be: [0x4d, 0x4d, 0x0, 0x2a],
+				tiff_le: [0x49, 0x49, 0x2a, 0x0],
+				ico: [0x00, 0x00, 0x01, 0x00],
+				cur: [0x00, 0x00, 0x02, 0x00],
+				icns: [0x69, 0x63, 0x6e, 0x73], // "icns" in ASCII
+			};
+			const file_bytes = new Uint8Array(arrayBuffer);
+			let detected_type_id;
+			for (const [type_id, magic_bytes] of Object.entries(magics)) {
+				const magic_found = magic_bytes.every(
+					(byte, index) => byte === file_bytes[index],
+				);
+				if (magic_found) {
+					detected_type_id = type_id;
+				}
 			}
-		}
-		if (!detected_type_id) {
-			if (String.fromCharCode(...file_bytes.slice(0, 1024)).includes("%PDF")) {
-				detected_type_id = "pdf";
+			if (!detected_type_id) {
+				if (
+					String.fromCharCode(...file_bytes.slice(0, 1024)).includes("%PDF")
+				) {
+					detected_type_id = "pdf";
+				}
 			}
-		}
-		if (detected_type_id === "bmp") {
-			const { colorTable, bitsPerPixel, imageData } = decodeBMP(arrayBuffer);
-			file_format = bitsPerPixel === 24 ? "image/bmp" : `image/bmp;bpp=${bitsPerPixel}`;
-			if (colorTable.length >= 2) {
-				palette = colorTable.map((color) => `rgb(${color.r}, ${color.g}, ${color.b})`);
-				monochrome = false;
-			}
-			// if (bitsPerPixel !== 32 && bitsPerPixel !== 16) {
-			// 	for (let i = 3; i < imageData.data.length; i += 4) {
-			// 		imageData.data[i] = 255;
-			// 	}
-			// }
-			callback(null, { file_format, monochrome, palette, image_data: imageData, source_blob: blob });
-		} else if (detected_type_id === "png") {
-			const decoded = UPNG.decode(arrayBuffer);
-			const rgba = UPNG.toRGBA8(decoded)[0];
-			const { width, height, tabs, ctype } = decoded;
-			// If it's a palettized PNG, load the palette for the Colors box.
-			// Note: PLTE (palette) chunk must be present for palettized PNGs,
-			// but can also be present as a recommended set of colors in true-color mode.
-			// tRNs (transparency) chunk can provide alpha data associated with each color in the PLTE chunk.
-			// It may contain as many transparency entries as there are palette entries, or as few as one.
-			// tRNS chunk can also be used to specify a single color to be considered fully transparent in true-color mode.
-			if (tabs.PLTE && tabs.PLTE.length >= 3 * 2 && ctype === 3 /* palettized */) {
-				palette = new Array(tabs.PLTE.length / 3);
-				for (let i = 0; i < palette.length; i++) {
-					if (tabs.tRNS && tabs.tRNS.length >= i + 1) {
-						palette[i] = `rgba(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]}, ${tabs.tRNS[i] / 255})`;
-					} else {
-						palette[i] = `rgb(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]})`;
+			if (detected_type_id === "bmp") {
+				const { colorTable, bitsPerPixel, imageData } = decodeBMP(arrayBuffer);
+				file_format =
+					bitsPerPixel === 24 ? "image/bmp" : `image/bmp;bpp=${bitsPerPixel}`;
+				if (colorTable.length >= 2) {
+					palette = colorTable.map(
+						(color) => `rgb(${color.r}, ${color.g}, ${color.b})`,
+					);
+					monochrome = false;
+				}
+				// if (bitsPerPixel !== 32 && bitsPerPixel !== 16) {
+				// 	for (let i = 3; i < imageData.data.length; i += 4) {
+				// 		imageData.data[i] = 255;
+				// 	}
+				// }
+				callback(null, {
+					file_format,
+					monochrome,
+					palette,
+					image_data: imageData,
+					source_blob: blob,
+				});
+			} else if (detected_type_id === "png") {
+				const decoded = UPNG.decode(arrayBuffer);
+				const rgba = UPNG.toRGBA8(decoded)[0];
+				const { width, height, tabs, ctype } = decoded;
+				// If it's a palettized PNG, load the palette for the Colors box.
+				// Note: PLTE (palette) chunk must be present for palettized PNGs,
+				// but can also be present as a recommended set of colors in true-color mode.
+				// tRNs (transparency) chunk can provide alpha data associated with each color in the PLTE chunk.
+				// It may contain as many transparency entries as there are palette entries, or as few as one.
+				// tRNS chunk can also be used to specify a single color to be considered fully transparent in true-color mode.
+				if (
+					tabs.PLTE &&
+					tabs.PLTE.length >= 3 * 2 &&
+					ctype === 3 /* palettized */
+				) {
+					palette = new Array(tabs.PLTE.length / 3);
+					for (let i = 0; i < palette.length; i++) {
+						if (tabs.tRNS && tabs.tRNS.length >= i + 1) {
+							palette[i] =
+								`rgba(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]}, ${tabs.tRNS[i] / 255})`;
+						} else {
+							palette[i] =
+								`rgb(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]})`;
+						}
+					}
+					monochrome = false;
+				}
+				file_format = "image/png";
+				const image_data = new ImageData(
+					new Uint8ClampedArray(rgba),
+					width,
+					height,
+				);
+				callback(null, {
+					file_format,
+					monochrome,
+					palette,
+					image_data,
+					source_blob: blob,
+				});
+			} else if (
+				detected_type_id === "tiff_be" ||
+				detected_type_id === "tiff_le"
+			) {
+				// IFDs = image file directories
+				// VSNs = ???
+				// This code is based on UTIF.bufferToURI
+				var ifds = UTIF.decode(arrayBuffer);
+				//console.log(ifds);
+				var vsns = ifds,
+					ma = 0,
+					page = vsns[0];
+				if (ifds[0].subIFD) {
+					vsns = vsns.concat(ifds[0].subIFD);
+				}
+				for (var i = 0; i < vsns.length; i++) {
+					var img = vsns[i];
+					if (img["t258"] == null || img["t258"].length < 3) continue;
+					var ar = img["t256"] * img["t257"];
+					if (ar > ma) {
+						ma = ar;
+						page = img;
 					}
 				}
-				monochrome = false;
-			}
-			file_format = "image/png";
-			const image_data = new ImageData(new Uint8ClampedArray(rgba), width, height);
-			callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
-		} else if (detected_type_id === "tiff_be" || detected_type_id === "tiff_le") {
-			// IFDs = image file directories
-			// VSNs = ???
-			// This code is based on UTIF.bufferToURI
-			var ifds = UTIF.decode(arrayBuffer);
-			//console.log(ifds);
-			var vsns = ifds, ma = 0, page = vsns[0];
-			if (ifds[0].subIFD) {
-				vsns = vsns.concat(ifds[0].subIFD);
-			}
-			for (var i = 0; i < vsns.length; i++) {
-				var img = vsns[i];
-				if (img["t258"] == null || img["t258"].length < 3) continue;
-				var ar = img["t256"] * img["t257"];
-				if (ar > ma) { ma = ar; page = img; }
-			}
-			UTIF.decodeImage(arrayBuffer, page, ifds);
-			var rgba = UTIF.toRGBA8(page);
+				UTIF.decodeImage(arrayBuffer, page, ifds);
+				var rgba = UTIF.toRGBA8(page);
 
-			var image_data = new ImageData(new Uint8ClampedArray(rgba.buffer), page.width, page.height);
+				var image_data = new ImageData(
+					new Uint8ClampedArray(rgba.buffer),
+					page.width,
+					page.height,
+				);
 
-			file_format = "image/tiff";
-			callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
-		} else if (detected_type_id === "pdf") {
-			// file_format = "application/pdf";
-
-			
-
-			// pdfjs.GlobalWorkerOptions.workerSrc = "lib/pdf.js/build/pdf.worker.js";
-
-			// const file_bytes = new Uint8Array(arrayBuffer);
-
-			// const loadingTask = pdfjs.getDocument({
-			// 	data: file_bytes,
-			// 	cMapUrl: "lib/pdf.js/web/cmaps/",
-			// 	cMapPacked: true,
-			// });
-
-			// loadingTask.promise.then((pdf) => {
-			// 	console.log("PDF loaded");
-
-			// 	// Fetch the first page
-			// 	// TODO: maybe concatenate all pages into one image?
-			// 	var pageNumber = 1;
-			// 	pdf.getPage(pageNumber).then((page) => {
-			// 		console.log("Page loaded");
-
-			// 		var scale = 1.5;
-			// 		var viewport = page.getViewport({ scale });
-
-			// 		// Prepare canvas using PDF page dimensions
-			// 		var canvas = make_canvas(viewport.width, viewport.height);
-
-			// 		// Render PDF page into canvas context
-			// 		var renderContext = {
-			// 			canvasContext: canvas.ctx,
-			// 			viewport,
-			// 		};
-			// 		var renderTask = page.render(renderContext);
-			// 		renderTask.promise.then(() => {
-			// 			console.log("Page rendered");
-			// 			const image_data = canvas.ctx.getImageData(0, 0, canvas.width, canvas.height);
-			// 			callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
-			// 		});
-			// 	});
-			// }, (reason) => {
-			// 	callback(new Error(`Failed to load PDF. ${reason}`));
-			// });
-		} else {
-			monochrome = false;
-			file_format = {
-				// bmp: "image/bmp",
-				png: "image/png",
-				webp: "image/webp",
-				jpeg: "image/jpeg",
-				gif: "image/gif",
-				tiff_be: "image/tiff",
-				tiff_le: "image/tiff", // can also be image/x-canon-cr2 etc.
-				ico: "image/x-icon",
-				cur: "image/x-win-bitmap",
-				icns: "image/icns",
-			}[detected_type_id] || blob.type;
-
-			const blob_uri = URL.createObjectURL(blob);
-			const img = new Image();
-			// img.crossOrigin = "Anonymous";
-			const handle_decode_fail = () => {
-				URL.revokeObjectURL(blob_uri);
-				blob.text().then((file_text) => {
-					const error = new Error("failed to decode blob as an image");
-					// @ts-ignore
-					error.code = file_text.match(/^\s*<!doctype\s+html/i) ? "html-not-image" : "decoding-failure";
-					callback(error);
-				}, (_err) => {
-					const error = new Error("failed to decode blob as image or text");
-					// @ts-ignore
-					error.code = "decoding-failure";
-					callback(error);
+				file_format = "image/tiff";
+				callback(null, {
+					file_format,
+					monochrome,
+					palette,
+					image_data,
+					source_blob: blob,
 				});
-			};
-			img.onload = () => {
-				URL.revokeObjectURL(blob_uri);
-				if (!img.complete || typeof img.naturalWidth == "undefined" || img.naturalWidth === 0) {
-					handle_decode_fail();
-					return;
-				}
-				callback(null, { file_format, monochrome, palette, image: img, source_blob: blob });
-			};
-			img.onerror = handle_decode_fail;
-			img.src = blob_uri;
-		}
-	}, (error) => {
-		callback(error);
-	});
+			} else if (detected_type_id === "pdf") {
+				// file_format = "application/pdf";
+				// pdfjs.GlobalWorkerOptions.workerSrc = "lib/pdf.js/build/pdf.worker.js";
+				// const file_bytes = new Uint8Array(arrayBuffer);
+				// const loadingTask = pdfjs.getDocument({
+				// 	data: file_bytes,
+				// 	cMapUrl: "lib/pdf.js/web/cmaps/",
+				// 	cMapPacked: true,
+				// });
+				// loadingTask.promise.then((pdf) => {
+				// 	console.log("PDF loaded");
+				// 	// Fetch the first page
+				// 	// TODO: maybe concatenate all pages into one image?
+				// 	var pageNumber = 1;
+				// 	pdf.getPage(pageNumber).then((page) => {
+				// 		console.log("Page loaded");
+				// 		var scale = 1.5;
+				// 		var viewport = page.getViewport({ scale });
+				// 		// Prepare canvas using PDF page dimensions
+				// 		var canvas = make_canvas(viewport.width, viewport.height);
+				// 		// Render PDF page into canvas context
+				// 		var renderContext = {
+				// 			canvasContext: canvas.ctx,
+				// 			viewport,
+				// 		};
+				// 		var renderTask = page.render(renderContext);
+				// 		renderTask.promise.then(() => {
+				// 			console.log("Page rendered");
+				// 			const image_data = canvas.ctx.getImageData(0, 0, canvas.width, canvas.height);
+				// 			callback(null, { file_format, monochrome, palette, image_data, source_blob: blob });
+				// 		});
+				// 	});
+				// }, (reason) => {
+				// 	callback(new Error(`Failed to load PDF. ${reason}`));
+				// });
+			} else {
+				monochrome = false;
+				file_format =
+					{
+						// bmp: "image/bmp",
+						png: "image/png",
+						webp: "image/webp",
+						jpeg: "image/jpeg",
+						gif: "image/gif",
+						tiff_be: "image/tiff",
+						tiff_le: "image/tiff", // can also be image/x-canon-cr2 etc.
+						ico: "image/x-icon",
+						cur: "image/x-win-bitmap",
+						icns: "image/icns",
+					}[detected_type_id] || blob.type;
+
+				const blob_uri = URL.createObjectURL(blob);
+				const img = new Image();
+				// img.crossOrigin = "Anonymous";
+				const handle_decode_fail = () => {
+					URL.revokeObjectURL(blob_uri);
+					blob.text().then(
+						(file_text) => {
+							const error = new Error("failed to decode blob as an image");
+							// @ts-ignore
+							error.code = file_text.match(/^\s*<!doctype\s+html/i)
+								? "html-not-image"
+								: "decoding-failure";
+							callback(error);
+						},
+						(_err) => {
+							const error = new Error("failed to decode blob as image or text");
+							// @ts-ignore
+							error.code = "decoding-failure";
+							callback(error);
+						},
+					);
+				};
+				img.onload = () => {
+					URL.revokeObjectURL(blob_uri);
+					if (
+						!img.complete ||
+						typeof img.naturalWidth == "undefined" ||
+						img.naturalWidth === 0
+					) {
+						handle_decode_fail();
+						return;
+					}
+					callback(null, {
+						file_format,
+						monochrome,
+						palette,
+						image: img,
+						source_blob: blob,
+					});
+				};
+				img.onerror = handle_decode_fail;
+				img.src = blob_uri;
+			}
+		},
+		(error) => {
+			callback(error);
+		},
+	);
 }
 
 /**
@@ -3182,18 +3780,27 @@ function read_image_file(blob, callback) {
 function update_from_saved_file(blob) {
 	read_image_file(blob, (error, info) => {
 		if (error) {
-			show_error_message("The file has been saved, however... " + localize("Paint cannot read this file."), error);
+			show_error_message(
+				"The file has been saved, however... " +
+					localize("Paint cannot read this file."),
+				error,
+			);
 			return;
 		}
 		apply_file_format_and_palette_info(info);
-		const format = image_formats.find(({ mimeType }) => mimeType === info.file_format);
-		undoable({
-			name: `${localize("Save As")} ${format ? format.name : info.file_format}`,
-			icon: get_help_folder_icon("p_save.png"),
-			assume_saved: true, // prevent setting saved to false
-		}, () => {
-			PaintJSState.main_ctx.copy(info.image || info.image_data);
-		});
+		const format = image_formats.find(
+			({ mimeType }) => mimeType === info.file_format,
+		);
+		undoable(
+			{
+				name: `${localize("Save As")} ${format ? format.name : info.file_format}`,
+				icon: get_help_folder_icon("p_save.png"),
+				assume_saved: true, // prevent setting saved to false
+			},
+			() => {
+				PaintJSState.main_ctx.copy(info.image || info.image_data);
+			},
+		);
 	});
 }
 
@@ -3206,9 +3813,13 @@ function save_selection_to_file() {
 			formats: image_formats,
 			getBlob: (new_file_type) => {
 				return new Promise((resolve) => {
-					write_image_file(PaintJSState.selection.canvas, new_file_type, (blob) => {
-						resolve(blob);
-					});
+					write_image_file(
+						PaintJSState.selection.canvas,
+						new_file_type,
+						(blob) => {
+							resolve(blob);
+						},
+					);
 				});
 			},
 		});
@@ -3221,33 +3832,42 @@ function save_selection_to_file() {
  * @param {number[]} [magic_number_bytes]
  * @param {boolean} [magic_wanted]
  */
-function sanity_check_blob(blob, okay_callback, magic_number_bytes, magic_wanted = true) {
+function sanity_check_blob(
+	blob,
+	okay_callback,
+	magic_number_bytes,
+	magic_wanted = true,
+) {
 	if (blob.size > 0) {
 		if (magic_number_bytes) {
-			blob.arrayBuffer().then((arrayBuffer) => {
-				const file_bytes = new Uint8Array(arrayBuffer);
-				const magic_found = magic_number_bytes.every((byte, index) => byte === file_bytes[index]);
-				// console.log(file_bytes, magic_number_bytes, magic_found, magic_wanted);
-				if (magic_found === magic_wanted) {
-					okay_callback();
-				} else {
-					showMessageBox({
-						// hackily combining messages that are already localized, in ways they were not meant to be used.
-						// you may have to do some deduction to understand this message.
-						// messageHTML: `
-						// 	<p>${localize("Unexpected file format.")}</p>
-						// 	<p>${localize("An unsupported operation was attempted.")}</p>
-						// `,
-						message:
-							window.is_electron_app ?
-								"Writing images in this file format is not supported." :
-								"Your browser does not support writing images in this file format.",
-						iconID: "error",
-					});
-				}
-			}, (error) => {
-				show_error_message(localize("An unknown error has occurred."), error);
-			});
+			blob.arrayBuffer().then(
+				(arrayBuffer) => {
+					const file_bytes = new Uint8Array(arrayBuffer);
+					const magic_found = magic_number_bytes.every(
+						(byte, index) => byte === file_bytes[index],
+					);
+					// console.log(file_bytes, magic_number_bytes, magic_found, magic_wanted);
+					if (magic_found === magic_wanted) {
+						okay_callback();
+					} else {
+						showMessageBox({
+							// hackily combining messages that are already localized, in ways they were not meant to be used.
+							// you may have to do some deduction to understand this message.
+							// messageHTML: `
+							// 	<p>${localize("Unexpected file format.")}</p>
+							// 	<p>${localize("An unsupported operation was attempted.")}</p>
+							// `,
+							message: window.is_electron_app
+								? "Writing images in this file format is not supported."
+								: "Your browser does not support writing images in this file format.",
+							iconID: "error",
+						});
+					}
+				},
+				(error) => {
+					show_error_message(localize("An unknown error has occurred."), error);
+				},
+			);
 		} else {
 			okay_callback();
 		}
@@ -3284,24 +3904,30 @@ function show_multi_user_setup_dialog(from_current_document) {
 	`);
 	const $session_name = $w.$main.find("#session-name");
 	$w.$main.css({ maxWidth: "500px" });
-	$w.$Button("Start", () => {
-		let name = String($session_name.val()).trim();
+	$w.$Button(
+		"Start",
+		() => {
+			let name = String($session_name.val()).trim();
 
-		if (name == "") {
-			show_error_message("The session name cannot be empty.");
-		} else if ($session_name.is(":invalid")) {
-			show_error_message("The session name must be made from only numbers, letters, and hyphens.");
-		} else {
-			if (from_current_document) {
-				change_url_param("session", name);
+			if (name == "") {
+				show_error_message("The session name cannot be empty.");
+			} else if ($session_name.is(":invalid")) {
+				show_error_message(
+					"The session name must be made from only numbers, letters, and hyphens.",
+				);
 			} else {
-				// @TODO: load new empty session in the same browser tab
-				// (or at least... keep settings like vertical-color-box-mode?)
-				window.open(`${location.origin}${location.pathname}#session:${name}`);
+				if (from_current_document) {
+					change_url_param("session", name);
+				} else {
+					// @TODO: load new empty session in the same browser tab
+					// (or at least... keep settings like vertical-color-box-mode?)
+					window.open(`${location.origin}${location.pathname}#session:${name}`);
+				}
+				$w.close();
 			}
-			$w.close();
-		}
-	}, { type: "submit" });
+		},
+		{ type: "submit" },
+	);
 	$w.$Button(localize("Cancel"), () => {
 		$w.close();
 	});
@@ -3310,10 +3936,85 @@ function show_multi_user_setup_dialog(from_current_document) {
 }
 
 export {
-	apply_file_format_and_palette_info, are_you_sure, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect,
-	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_new, file_open, file_print, file_save,
-	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node,  make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
-	open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_convert_to_black_and_white, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_resource_load_error_message, switch_to_polychrome_palette,
-	try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
-	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
+	apply_file_format_and_palette_info,
+	are_you_sure,
+	cancel,
+	change_some_url_params,
+	change_url_param,
+	choose_file_to_paste,
+	cleanup_bitmap_view,
+	clear,
+	confirm_overwrite_capability,
+	delete_selection,
+	deselect,
+	edit_copy,
+	edit_cut,
+	edit_paste,
+	exit_fullscreen_if_ios,
+	file_new,
+	file_open,
+	file_print,
+	file_save,
+	file_save_as,
+	getSelectionText,
+	get_all_url_params,
+	get_history_ancestors,
+	get_tool_by_id,
+	get_uris,
+	get_url_param,
+	go_to_history_node,
+	handle_keyshortcuts,
+	has_any_transparency,
+	image_attributes,
+	image_flip_and_rotate,
+	image_invert_colors,
+	image_stretch_and_skew,
+	load_image_from_uri,
+	load_theme_from_text,
+	make_history_node,
+	make_opaque,
+	make_or_update_undoable,
+	make_stripe_pattern,
+	meld_selection_into_canvas,
+	open_from_file,
+	open_from_image_info,
+	paste,
+	paste_image_from_file,
+	please_enter_a_number,
+	read_image_file,
+	redo,
+	render_canvas_view,
+	reset_canvas_and_history,
+	reset_file,
+	reset_selected_colors,
+	resize_canvas_and_save_dimensions,
+	resize_canvas_without_saving_dimensions,
+	sanity_check_blob,
+	save_as_prompt,
+	save_selection_to_file,
+	select_all,
+	select_tool,
+	select_tools,
+	set_all_url_params,
+	set_magnification,
+	show_convert_to_black_and_white,
+	show_document_history,
+	show_error_message,
+	show_file_format_errors,
+	show_multi_user_setup_dialog,
+	show_resource_load_error_message,
+	switch_to_polychrome_palette,
+	try_exec_command,
+	undo,
+	undoable,
+	update_canvas_rect,
+	update_css_classes_for_conditional_messages,
+	update_disable_aa,
+	update_from_saved_file,
+	update_helper_layer,
+	update_helper_layer_immediately,
+	update_magnified_canvas_size,
+	update_title,
+	view_bitmap,
+	write_image_file,
 };

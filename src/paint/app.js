@@ -528,7 +528,7 @@ export function initApp(canvasAreaQuery) {
 
           const clamped_magnification = Math.min(
             MAX_MAGNIFICATION,
-            Math.max(MIN_MAGNIFICATION, new_magnification)
+            Math.max(MIN_MAGNIFICATION, new_magnification),
           );
           set_magnification(
             clamped_magnification,
@@ -759,7 +759,7 @@ export function initApp(canvasAreaQuery) {
     ////////////////////////////////////
     // #region Primary Canvas Interaction
     function tool_go(selected_tool, event_name) {
-    //  console.warn("tool_go!");
+      //  console.warn("tool_go!");
       update_fill_and_stroke_colors_and_lineWidth(selected_tool);
 
       if (selected_tool[event_name]) {
@@ -862,11 +862,11 @@ export function initApp(canvasAreaQuery) {
           return;
         }
 
-         if (PaintJSState.pointerId === e.pointerId) {
-           console.log(e.pointerId)
+        if (PaintJSState.pointerId === e.pointerId) {
+          console.log(e.pointerId);
 
           PaintJSState.pointer = to_canvas_coords(e);
-         // PaintJSState.pointerId === e.pointerId;
+          // PaintJSState.pointerId === e.pointerId;
         }
       });
     }
@@ -902,7 +902,6 @@ export function initApp(canvasAreaQuery) {
     ////////////////////////////////////
     // #region Panning and Zooming
 
-
     $canvas_area.get(0).addEventListener("pointerdown", (event) => {
       if (
         document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
@@ -917,7 +916,6 @@ export function initApp(canvasAreaQuery) {
     touchEventSetting();
     // #endregion
 
-    
     ////////////////////////////////////
     // #region Primary Canvas Interaction (continued)
 
@@ -937,7 +935,7 @@ export function initApp(canvasAreaQuery) {
         PaintJSState.pointerId = e.pointerId;
         PaintJSState.pinchAllowed = false; // 초기값 false
       } else {
-         console.log("두 번째 터치 무시");
+        console.log("두 번째 터치 무시");
         return;
       }
 
@@ -961,10 +959,10 @@ export function initApp(canvasAreaQuery) {
         }
         $(window).off("pointerup pointercancel", pointerUpHandler);
       };
-      
+
       $(window).on("pointerup pointercancel", pointerUpHandler);
-       // </ pointerup 핸들러>
-      
+      // </ pointerup 핸들러>
+
       if (e.button === 0) {
         PaintJSState.reverse = false;
       } else if (e.button === 2) {
@@ -1005,15 +1003,14 @@ export function initApp(canvasAreaQuery) {
             }
           }
           //console.log('toolPointUp', eUp.pointerId,PaintJSState.pinchAllowed);
-          
-            PaintJSState.selected_tools.forEach((selected_tool) => {
-              selected_tool.pointerup?.(
-                PaintJSState.main_ctx,
-                PaintJSState.pointer.x,
-                PaintJSState.pointer.y,
-              );
-            });
-          
+
+          PaintJSState.selected_tools.forEach((selected_tool) => {
+            selected_tool.pointerup?.(
+              PaintJSState.main_ctx,
+              PaintJSState.pointer.x,
+              PaintJSState.pointer.y,
+            );
+          });
 
           if (PaintJSState.selected_tools.length === 1) {
             if (PaintJSState.selected_tool.deselect) {
@@ -1093,30 +1090,10 @@ export function initApp(canvasAreaQuery) {
   init_webgl_stuff();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 let last_zoom_pointer_distance;
 let pan_last_pos;
 
-
-function touchEventSetting(){
- 
-
-
+function touchEventSetting() {
   function average_touches(points) {
     const average = { x: 0, y: 0 };
     for (const pointer of points) {
@@ -1127,7 +1104,7 @@ function touchEventSetting(){
     average.y /= points.length;
     return average;
   }
-  
+
   PaintJSState.$canvas_area.get(0).addEventListener(
     "touchstart",
     (event) => {
@@ -1145,33 +1122,25 @@ function touchEventSetting(){
         pan_last_pos = average_touches(event.touches);
       }
 
-
       if (event.touches.length == 2) {
-       
         const elapsed = performance.now() - PaintJSState.first_pointer_time;
 
         // 일정시간 이내에 그리면 지우기
         if (elapsed <= PaintJSState.discard_quick_undo_period) {
           $(window).trigger("touchend");
-          
-         
-          
+
           // 500ms 이내 => 그림 cancel + pinchAllowed = true
           cancel(false, true);
         }
-         $(window).trigger("pointerup");
+        $(window).trigger("pointerup");
         console.log("두손가락이면 핀치줌 허용");
         // 그림그리기 완료
         // pinchAllowed가 false일때만 그리기 완료됌..
-     
 
-        
         PaintJSState.pointer_active = false;
         // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
         // 핀치 줌은 허용
         PaintJSState.pinchAllowed = true;
-
-        
       }
     },
     true,
@@ -1179,14 +1148,13 @@ function touchEventSetting(){
 
   $(window).on("touchend", (event) => {
     console.log("touchend");
-    
+
     // // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
-    if(event.touches === undefined || event.touches.length < 2){
+    if (event.touches === undefined || event.touches.length < 2) {
       PaintJSState.pinchAllowed = false;
     }
   });
 
-  
   $(window).on("touchmove", (event) => {
     if (PaintJSState.pinchAllowed) {
       const current_pos = average_touches(event.touches);
@@ -1203,7 +1171,7 @@ function touchEventSetting(){
 
       const clamped_magnification = Math.min(
         MAX_MAGNIFICATION,
-        Math.max(MIN_MAGNIFICATION, new_magnification)
+        Math.max(MIN_MAGNIFICATION, new_magnification),
       );
       set_magnification(
         clamped_magnification,
@@ -1212,20 +1180,26 @@ function touchEventSetting(){
           clientY: current_pos.y,
         }),
       );
-      
+
       const dx = pan_last_pos.x - current_pos.x;
-      const dy = pan_last_pos.y - current_pos.y ;
+      const dy = pan_last_pos.y - current_pos.y;
+      const dpr = devicePixelRatio;
 
       // 스크롤을 할때 브라우저는 1만큼 이동하라고 시켰으면 실제론 1*dpr를 계산하고. 이를 내림한 값을 브라우저에 저장한다.
-      // 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고. 
+      // 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고.
       // scrollLeft()는 2/2.6 = 0.7692가 된다. 실제와 약 23%나 차이나는 것이다.
       // 이것이 프레임당 지속되면 누적이되어 크게 차이난다. 평균 (-0.5,-0.5) 만큼의 차이가 나므로 1초에 30픽셀만큼 오차가 생긴다.
       // 반올림 하면 오차를 반으로 줄일 수 있지만 완벽히 오차를 제거한 것은 아니다.
+
+      // scaleFactor를 곱해야 제대로 되는것 같은데..? 
+      // 확대를 하기 전 거리기준이었으니깐 확대를 반영한 거리만큼 움직여야겠지..?
+      // 계산해보면 그것도 아닌데..?
+      
       PaintJSState.$canvas_area[0].scrollBy({
-        left: Math.round(dx*scaleFactor*devicePixelRatio)/devicePixelRatio,
-        top: Math.round(dy*scaleFactor*devicePixelRatio)/devicePixelRatio,
+        left: Math.round(dx * scaleFactor * dpr) / dpr,
+        top: Math.round(dy * scaleFactor * dpr) / dpr,
       });
- 
+
       pan_last_pos = current_pos;
     }
   });
