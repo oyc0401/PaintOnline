@@ -39,3 +39,8 @@
 .dropdown-button > p{
   font-size:12px;
 }
+
+/* undo & redo icon color*/
+.history-disabled path {
+  fill: #e2e2e2;
+}
