@@ -82,6 +82,7 @@ const MIN_MAGNIFICATION = 0.12;
 const MAX_MAGNIFICATION = 78;
 
 export function initApp(canvasAreaQuery) {
+
   const $canvas_area = $(canvasAreaQuery);
 
   const $canvas = $(PaintJSState.main_canvas).appendTo($canvas_area);

@@ -1122,6 +1122,8 @@ function load_theme_from_text(fileText) {
 	$(window).triggerHandler("theme-load");
 }
 
+
+// 새 이미지
 function file_new() {
 	are_you_sure(() => {
 		deselect();
@@ -1139,12 +1141,31 @@ function file_new() {
 	});
 }
 
+// 파일 열기
 async function file_open() {
-	const { file, fileHandle } = await systemHooks.showOpenFileDialog({
-		formats: image_formats,
+	const input = document.createElement('input');
+	input.type = 'file';
+	input.accept = image_formats
+		.map(format => format.extensions.map(ext => `.${ext}`).join(','))
+		.join(',');
+
+	input.click();
+
+	const file = await new Promise((resolve, reject) => {
+		input.onchange = (event) => {
+			const selectedFile = event.target.files[0];
+			if (selectedFile) {
+				resolve(selectedFile);
+			} else {
+				reject(new Error('No file selected'));
+			}
+		};
 	});
-	open_from_file(file, fileHandle);
+
+	const fileHandle = { getFile: () => Promise.resolve(file) };
+  open_from_file(file, fileHandle);
 }
+
 
 // Native FS API / File Access API allows you to overwrite files, but people are not used to it.
 // So we ask them to confirm it the first time.
@@ -1192,42 +1213,61 @@ async function confirm_overwrite_capability() {
 	return false;
 }
 
-function file_save(maybe_saved_callback = () => {}, update_from_saved = true) {
+// 저장
+function file_save() {
 	deselect();
-	// store and use file handle at this point in time, to avoid race conditions
-	const save_file_handle = PaintJSState.system_file_handle;
-	if (!save_file_handle || PaintJSState.file_name.match(/\.(svg|pdf)$/i)) {
-		return file_save_as(maybe_saved_callback, update_from_saved);
-	}
-	write_image_file(
-		PaintJSState.main_canvas,
-		PaintJSState.file_format,
-		async (blob) => {
-			// An error may be shown by `systemHooks.writeBlobToHandle`,
-			// or it may be unknown whether the save will succeed,
-			// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
-			const success = await systemHooks.writeBlobToHandle(
-				save_file_handle,
-				blob,
-			);
-			// When using a file download, where it's unknown whether the save will succeed,
-			// we don't want to mark the file as saved, as it would prevent the user from retrying the save.
-			// So only mark the file as saved if it's definite.
-			if (success === true) {
-				PaintJSState.saved = true;
-				update_title();
-			}
-			// However, we can still apply format-specific color reduction to the canvas,
-			// and call the "maybe saved" callback, which, as the name implies, is intended to handle the uncertainty.
-			if (success !== false) {
-				if (update_from_saved) {
-					update_from_saved_file(blob);
-				}
-				maybe_saved_callback();
-			}
-		},
-	);
+	// // store and use file handle at this point in time, to avoid race conditions
+	// const save_file_handle = PaintJSState.system_file_handle;
+	// if (!save_file_handle || PaintJSState.file_name.match(/\.(svg|pdf)$/i)) {
+	// 	return file_save_as(maybe_saved_callback, update_from_saved);
+	// }
+	saveCanvasAsPng(PaintJSState.main_canvas,localize("untitled"));
+	return;
+	// write_image_file(
+	// 	PaintJSState.main_canvas,
+	// 	PaintJSState.file_format,
+	// 	async (blob) => {
+	// 		// An error may be shown by `systemHooks.writeBlobToHandle`,
+	// 		// or it may be unknown whether the save will succeed,
+	// 		// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
+	// 		const success = await systemHooks.writeBlobToHandle(
+	// 			save_file_handle,
+	// 			blob,
+	// 		);
+	// 		// When using a file download, where it's unknown whether the save will succeed,
+	// 		// we don't want to mark the file as saved, as it would prevent the user from retrying the save.
+	// 		// So only mark the file as saved if it's definite.
+	// 		if (success === true) {
+	// 			PaintJSState.saved = true;
+	// 			update_title();
+	// 		}
+	// 		// However, we can still apply format-specific color reduction to the canvas,
+	// 		// and call the "maybe saved" callback, which, as the name implies, is intended to handle the uncertainty.
+	// 		if (success !== false) {
+	// 			if (update_from_saved) {
+	// 				update_from_saved_file(blob);
+	// 			}
+	// 			maybe_saved_callback();
+	// 		}
+	// 	},
+	// );
 }
+
+function saveCanvasAsPng(canvas,name) {
+	canvas.toBlob((blob) => {
+		if (blob) {
+			const a = document.createElement('a');
+			const url = URL.createObjectURL(blob);
+			a.href = url;
+			a.download =`${name}.png`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} else {
+			console.error('Failed to create PNG blob.');
+		}
+	}, 'image/png');
+}
+
 
 function file_save_as(
 	maybe_saved_callback = () => {},
@@ -3311,6 +3351,7 @@ function save_as_prompt({
 	formats,
 	promptForName = true,
 }) {
+//	console.log(saveFile)
 	return new Promise((resolve) => {
 		const $w = $DialogWindow(dialogTitle);
 		$w.addClass("save-as");
