@@ -7,7 +7,8 @@
 
   import { menuState } from "$store/menuState.svelte.js";
   import { quickClickMenu, closeDropdown } from "$store/paintFunction.js";
-  import { file_save, file_new,file_open } from "$paint/src/functions.js";
+  import { file_save, file_new, file_open } from "$paint/src/functions.js";
+  import { i18n, localize } from "$src/localize/localize";
   import "./menu.css";
   import "../toolsMenu.css";
   const MENU_NUMBER = 0;
@@ -22,14 +23,15 @@
     closeDropdown();
   }
 
-  function openFile(){
+  function openFile() {
     file_open();
-     closeDropdown();
+    closeDropdown();
   }
 </script>
 
 <div>
   <button
+    title={localize("File")}
     class="menu-button"
     class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
     onclick={() => quickClickMenu(MENU_NUMBER)}
@@ -39,17 +41,25 @@
 
   {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
     <div class="dropdown-area small-dropdown menu-top">
-      <button class="dropdown-button" onclick={newFile}>
-        <NewFileIcon/>
-        <p>새로 만들기</p>
+      <button title={localize("New")} class="dropdown-button" onclick={newFile}>
+        <NewFileIcon />
+        <p>{localize("New")}</p>
       </button>
-      <button class="dropdown-button" onclick={openFile}>
-        <OpenIcon/>
-        <p>열기</p>
+      <button
+        title={localize("Open")}
+        class="dropdown-button"
+        onclick={openFile}
+      >
+        <OpenIcon />
+        <p>{localize("Open")}</p>
       </button>
-      <button class="dropdown-button" onclick={saveFile}>
-        <SaveIcon/>
-        <p>저장</p>
+      <button
+        title={localize("Save")}
+        class="dropdown-button"
+        onclick={saveFile}
+      >
+        <SaveIcon />
+        <p>{localize("Save")}</p>
       </button>
     </div>
   {/if}

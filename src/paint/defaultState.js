@@ -191,6 +191,17 @@ let touchCount=0;
   let first_pointer_time;
   const discard_quick_undo_period=500;
 
+
+  let position_mouse_active = false;
+  let position_mouse_x;
+  let position_mouse_y;
+  let position_canvas_active = false;
+  let position_canvas_x;
+  let position_canvas_y;
+  let position_object_active = false;
+  let position_object_x;
+  let position_object_y;
+
   return {
     default_magnification,
     default_tool,
@@ -260,5 +271,13 @@ let touchCount=0;
     touchCount,
     first_pointer_time,
     discard_quick_undo_period,
+     position_mouse_x,
+     position_mouse_y,
+     position_canvas_active,
+     position_canvas_x,
+     position_canvas_y,
+    position_object_active,
+    position_object_x,
+    position_object_y,
   };
 }

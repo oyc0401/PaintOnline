@@ -75,6 +75,13 @@ class OnCanvasObject {
 		if (updateStatus) {
 			//PaintJSState.$status_position.text(`${this.x}, ${this.y}px`);
 			//PaintJSState.$status_size.text(`${this.width} x ${this.height}px`);
+			PaintJSState.position_mouse_active = true;
+			PaintJSState.position_mouse_x = this.x
+			PaintJSState.position_mouse_y = this.y
+
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = this.width;
+			PaintJSState.position_object_y = this.height
 		}
 	}
 	destroy() {

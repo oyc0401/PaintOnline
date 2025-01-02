@@ -165,6 +165,8 @@ class OnCanvasSelection extends OnCanvasObject {
 			PaintJSState.$canvas_area.trigger("resize"); // could use "update" event instead if this is just to hide the main canvas handles
 			// $status_position.text("");
 			// $status_size.text("");
+			PaintJSState.position_mouse_active = false;
+			PaintJSState.position_object_active = false;
 		};
 
 		instantiate();

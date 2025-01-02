@@ -19,4 +19,12 @@ export const menuState = $state({
   undoLength: 0,
   redoLength: 0,
   /* ... */
+
+  positionType:'pending',
+  position_mouse_active:false,
+  position_mouse: { x: 0, y: 0 },
+  position_canvas_active:false,
+  position_canvas: { x: 0, y: 0 },
+  position_object_active:false,
+  position_object: { x: 0, y: 0 },
 });

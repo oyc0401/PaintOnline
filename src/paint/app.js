@@ -859,14 +859,23 @@ export function initApp(canvasAreaQuery) {
       $canvas.on("pointermove", (e) => {
         // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
         if (!PaintJSState.pointer_active) {
+          const pointer = to_canvas_coords(e);
+          
+           PaintJSState.position_mouse_active=true;
+          PaintJSState.position_mouse_x=pointer.x;
+          PaintJSState.position_mouse_y=pointer.y;
           return;
         }
 
         if (PaintJSState.pointerId === e.pointerId) {
           console.log(e.pointerId);
 
-          PaintJSState.pointer = to_canvas_coords(e);
-          // PaintJSState.pointerId === e.pointerId;
+          const pointer = to_canvas_coords(e);
+          PaintJSState.pointer=pointer;
+
+          PaintJSState.position_mouse_active=true;
+          PaintJSState.position_mouse_x=pointer.x;
+          PaintJSState.position_mouse_y=pointer.y;
         }
       });
     }
@@ -885,6 +894,8 @@ export function initApp(canvasAreaQuery) {
       });
 
       $canvas.on("pointerleave", (e) => {
+        PaintJSState.position_mouse_active=false;
+        
         PaintJSState.pointer_over_canvas = false;
         update_helper_layer(e);
 
@@ -921,6 +932,7 @@ export function initApp(canvasAreaQuery) {
 
     $canvas.on("pointerdown", (e) => {
       console.log("$canvas.pointerdown");
+      PaintJSState.position_object_active=false;
       update_canvas_rect();
 
       const elapsed = performance.now() - PaintJSState.first_pointer_time;

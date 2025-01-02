@@ -117,6 +117,7 @@ function Handles(options) {
 		$h.add($grab_region).css({ cursor });
 
 		const drag = (event) => {
+			console.warn('drag!')
 			$resize_ghost.appendTo($object_container);
 			dragged = true;
 

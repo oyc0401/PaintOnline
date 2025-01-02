@@ -6,6 +6,7 @@
   import ToolsAbove from "./ToolsAbove.svelte";
   import ToolsBelow from "./ToolsBelow.svelte";
   import ToolsMenuHelper from "./ToolsMenuHelper.svelte";
+  import Position from "./Position.svelte";
 
   let { data } = $props();
   const { lang } = data;
@@ -47,7 +48,7 @@
 <div class="h-full flex flex-col">
   <ToolsMenuHelper></ToolsMenuHelper>
   <ToolsAbove></ToolsAbove>
-
+  <Position />
   <Canvas></Canvas>
   <ToolsBelow></ToolsBelow>
 </div>

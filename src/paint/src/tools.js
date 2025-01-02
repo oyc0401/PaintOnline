@@ -1,10 +1,10 @@
-console.log('JS 실행:','tools.js')
+console.log("JS 실행:", "tools.js");
 // @ts-check
 /* global selection:writable, PaintJSState.stroke_size:writable, textbox:writable */
 /* global PaintJSState.$canvas, PaintJSState.$canvas_area, $status_size, airbrush_size, brush_shape, brush_size, button, canvas_handles, ctrl, eraser_size, fill_color, pick_color_slot, get_language, localize, magnification, PaintJSState.main_canvas, PaintJSState.main_ctx, pencil_size, pointer, PaintJSState.pointer_active, PaintJSState.pointer_over_canvas, pointer_previous, PaintJSState.pointer_start, return_to_magnification, selected_colors, shift, PaintJSState.stroke_color, transparency */
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 // import { get_language, localize } from "./app-localization.js";
-import { localize , get_language} from "../../localize/localize.js";
+import { localize, get_language } from "../../localize/localize.js";
 import {
 	deselect,
 	get_tool_by_id,
@@ -14,9 +14,8 @@ import {
 	undoable,
 	update_helper_layer,
 } from "./functions.js";
-import {PaintJSState} from '../state';
+import { PaintJSState } from "../state";
 import {
-	
 	E,
 	get_icon_for_tool,
 	get_icon_for_tools,
@@ -46,9 +45,7 @@ import {
 	update_brush_for_drawing_lines,
 } from "./image-manipulation.js";
 
-
-
-import $ from 'jquery';
+import $ from "jquery";
 // This is for linting stuff at the bottom.
 // It has to be defined per file, so I'm defining it up top and immediately disabling it.
 // It's re-enabled below to disallow the use of `this` in functions that are added to the tool objects
@@ -156,21 +153,21 @@ import $ from 'jquery';
 // TODO: either make Shift affect the position indicator, or do what MS Paint does
 // and lock it into showing the first point defining a shape while the mouse is down.
 function getRGBAFromColor(color) {
-		// Canvas 생성
-		const canvas = document.createElement("canvas");
-		canvas.width = 1;
-		canvas.height = 1;
-		const ctx = canvas.getContext("2d");
+	// Canvas 생성
+	const canvas = document.createElement("canvas");
+	canvas.width = 1;
+	canvas.height = 1;
+	const ctx = canvas.getContext("2d");
 
-		// 캔버스에 색상 설정
-		ctx.fillStyle = color;
-		ctx.fillRect(0, 0, 1, 1);
+	// 캔버스에 색상 설정
+	ctx.fillStyle = color;
+	ctx.fillRect(0, 0, 1, 1);
 
-		// 픽셀 데이터 읽기
-		const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+	// 픽셀 데이터 읽기
+	const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
 
-		// 반환: RGBA 배열
-		return [r, g, b, a / 255]; // a는 0~255 범위이므로 0~1로 변환
+	// 반환: RGBA 배열
+	return [r, g, b, a / 255]; // a는 0~255 범위이므로 0~1로 변환
 }
 // Tool IDs have type `ToolID`
 const TOOL_FREE_FORM_SELECT = "TOOL_FREE_FORM_SELECT";
@@ -195,7 +192,7 @@ const tools = [
 	{
 		id: TOOL_FREE_FORM_SELECT,
 		name: localize("Free-Form Select"),
-		speech_recognition: [		],
+		speech_recognition: [],
 		help_icon: "p_free.gif",
 		description: localize(
 			"Selects a free-form part of the picture to move, copy, or edit.",
@@ -220,7 +217,10 @@ const tools = [
 			this.y_min = PaintJSState.pointer.y;
 			this.y_max = PaintJSState.pointer.y + 1;
 			this.points = [];
-			this.preview_canvas = make_canvas(PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+			this.preview_canvas = make_canvas(
+				PaintJSState.main_canvas.width,
+				PaintJSState.main_canvas.height,
+			);
 
 			// End prior selection, drawing it to the canvas
 
@@ -228,9 +228,15 @@ const tools = [
 		},
 		paint(_ctx, _x, _y) {
 			// Constrain the pointer to the canvas
-			PaintJSState.pointer.x = Math.min(PaintJSState.main_canvas.width, PaintJSState.pointer.x);
+			PaintJSState.pointer.x = Math.min(
+				PaintJSState.main_canvas.width,
+				PaintJSState.pointer.x,
+			);
 			PaintJSState.pointer.x = Math.max(0, PaintJSState.pointer.x);
-			PaintJSState.pointer.y = Math.min(PaintJSState.main_canvas.height, PaintJSState.pointer.y);
+			PaintJSState.pointer.y = Math.min(
+				PaintJSState.main_canvas.height,
+				PaintJSState.pointer.y,
+			);
 			PaintJSState.pointer.y = Math.max(0, PaintJSState.pointer.y);
 			// Add the point
 			this.points.push(PaintJSState.pointer);
@@ -255,6 +261,9 @@ const tools = [
 			// $status_size.text(
 			// 	`${this.x_max - this.x_min}x${this.y_max - this.y_min}`,
 			// );
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = this.x_max - this.x_min;
+			PaintJSState.position_object_y = this.y_max - this.y_min;
 		},
 		ffs_paint_iteration(x, y) {
 			// Constrain the inversion paint brush position to the canvas
@@ -271,7 +280,12 @@ const tools = [
 			const rect_h = inversion_size;
 
 			const ctx_dest = this.preview_canvas.ctx;
-			const id_src = PaintJSState.main_ctx.getImageData(rect_x, rect_y, rect_w, rect_h);
+			const id_src = PaintJSState.main_ctx.getImageData(
+				rect_x,
+				rect_y,
+				rect_w,
+				rect_h,
+			);
 			const id_dest = ctx_dest.getImageData(rect_x, rect_y, rect_w, rect_h);
 
 			for (let i = 0, l = id_dest.data.length; i < l; i += 4) {
@@ -286,7 +300,7 @@ const tools = [
 		},
 		pointerup() {
 			//$status_size.text("");
-
+			PaintJSState.position_object_active = false;
 			this.preview_canvas.width = 1;
 			this.preview_canvas.height = 1;
 
@@ -373,7 +387,11 @@ const tools = [
 				if (PaintJSState.ctrl) {
 					undoable({ name: "Crop" }, () => {
 						var cropped_canvas = make_canvas(rect_width, rect_height);
-						cropped_canvas.ctx.drawImage(PaintJSState.main_canvas, -rect_x, -rect_y);
+						cropped_canvas.ctx.drawImage(
+							PaintJSState.main_canvas,
+							-rect_x,
+							-rect_y,
+						);
 						PaintJSState.main_ctx.copy(cropped_canvas);
 						PaintJSState.canvas_handles.show();
 						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
@@ -434,7 +452,7 @@ const tools = [
 								y_max - y_min,
 								contents_canvas,
 							);
-								PaintJSState.cut_out_background();
+							PaintJSState.cut_out_background();
 						},
 					);
 				} else {
@@ -541,8 +559,11 @@ const tools = [
 		},
 		pointerdown() {
 			this.mask_canvas = PaintJSState.mask_layer.canvas;
-			this.laterCanvas = new OffscreenCanvas(this.mask_canvas.width, this.mask_canvas.height);
-			this.laterCtx = this.laterCanvas.getContext('2d')
+			this.laterCanvas = new OffscreenCanvas(
+				this.mask_canvas.width,
+				this.mask_canvas.height,
+			);
+			this.laterCtx = this.laterCanvas.getContext("2d");
 		},
 		render_from_mask(ctx, previewing) {
 			ctx.save();
@@ -579,11 +600,9 @@ const tools = [
 					icon: get_icon_for_tool(this),
 				},
 				() => {
-				
 					// 메인 캔버스에 그 만든캔버스를 사용하여 투명도 제거
 					PaintJSState.main_ctx.globalCompositeOperation = "destination-out";
 					PaintJSState.main_ctx.drawImage(this.laterCanvas, 0, 0);
-					
 
 					// 지워진 이후
 					let color = PaintJSState.selected_colors.background;
@@ -591,59 +610,83 @@ const tools = [
 					const translucent = get_rgba_from_color(color)[3] < 1;
 
 					PaintJSState.main_ctx.globalCompositeOperation = "source-over";
-					
+
 					if (translucent) {
-						// 투명지우개면 안 칠해도 됌	
-					}else{
+						// 투명지우개면 안 칠해도 됌
+					} else {
 						PaintJSState.main_ctx.drawImage(this.mask_canvas, 0, 0);
 					}
-					
-					this.mask_canvas.width=1;
-					this.laterCanvas.width=1;
+
+					this.mask_canvas.width = 1;
+					this.laterCanvas.width = 1;
 					//console.log('반영완료!')
 				},
 			);
 		},
 		cancel() {
-			this.mask_canvas.width=1;
-			this.laterCanvas.width=1;
+			this.mask_canvas.width = 1;
+			this.laterCanvas.width = 1;
 		},
 		paint(ctx, _x, _y) {
+			const eraser_size = PaintJSState.eraser_size / 2;
 
-			const eraser_size=PaintJSState.eraser_size / 2;
-	
 			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
-			const startX = Math.min(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
-			const startY = Math.min(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
-			const endX = Math.max(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
-			const endY = Math.max(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
+			const startX = Math.min(
+				PaintJSState.pointer_previous.x,
+				PaintJSState.pointer.x,
+			);
+			const startY = Math.min(
+				PaintJSState.pointer_previous.y,
+				PaintJSState.pointer.y,
+			);
+			const endX = Math.max(
+				PaintJSState.pointer_previous.x,
+				PaintJSState.pointer.x,
+			);
+			const endY = Math.max(
+				PaintJSState.pointer_previous.y,
+				PaintJSState.pointer.y,
+			);
 			const width = endX - startX + eraser_size * 2;
 			const height = endY - startY + eraser_size * 2;
 
 			const tempCanvas = new OffscreenCanvas(width, height);
-			const tempCtx = tempCanvas.getContext('2d');
+			const tempCtx = tempCanvas.getContext("2d");
 			tempCtx.imageSmoothingEnabled = false;
 
 			// 1. 임시 캔버스에 흰색으로 도형 그리기
-			tempCtx.fillStyle = 'black';
-			tempCtx.globalCompositeOperation = 'source-over';
+			tempCtx.fillStyle = "black";
+			tempCtx.globalCompositeOperation = "source-over";
 			bresenham_line(
 				PaintJSState.pointer_previous.x - startX,
 				PaintJSState.pointer_previous.y - startY,
 				PaintJSState.pointer.x - startX,
 				PaintJSState.pointer.y - startY,
 				(x, y) => {
-					this.eraser_paint_iteration(ctx, x+eraser_size, y+eraser_size, tempCtx, startX-eraser_size, startY-eraser_size);
+					this.eraser_paint_iteration(
+						ctx,
+						x + eraser_size,
+						y + eraser_size,
+						tempCtx,
+						startX - eraser_size,
+						startY - eraser_size,
+					);
 				},
 			);
 			// 이건 다 그리고 나중에 메인캔버스 지울때 필요
-			this.laterCtx.drawImage(tempCanvas, startX-eraser_size, startY-eraser_size);
-
-			
+			this.laterCtx.drawImage(
+				tempCanvas,
+				startX - eraser_size,
+				startY - eraser_size,
+			);
 
 			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
-			this.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
-			this.mask_canvas.ctx.drawImage(tempCanvas, startX - eraser_size, startY - eraser_size);
+			this.mask_canvas.ctx.globalCompositeOperation = "destination-out";
+			this.mask_canvas.ctx.drawImage(
+				tempCanvas,
+				startX - eraser_size,
+				startY - eraser_size,
+			);
 
 			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
 			// 투명색이면 붉은색으로 바꾸기
@@ -652,40 +695,44 @@ const tools = [
 			const translucent = get_rgba_from_color(color)[3] < 1;
 
 			if (translucent) {
-				color = "rgba(255, 0, 0, 0.3)"
+				color = "rgba(255, 0, 0, 0.3)";
 			}
 			tempCtx.fillStyle = color;
 
-			tempCtx.globalCompositeOperation = 'source-in';
+			tempCtx.globalCompositeOperation = "source-in";
 			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
 			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
-			this.mask_canvas.ctx.globalCompositeOperation = 'source-over';
-			this.mask_canvas.ctx.drawImage(tempCanvas, startX-eraser_size, startY-eraser_size);
-			console.log('헬퍼 그리기 완료!')
+			this.mask_canvas.ctx.globalCompositeOperation = "source-over";
+			this.mask_canvas.ctx.drawImage(
+				tempCanvas,
+				startX - eraser_size,
+				startY - eraser_size,
+			);
+			console.log("헬퍼 그리기 완료!");
 			//////////////////
-			
 		},
-		eraser_paint_iteration(ctx, x, y,drawCtx,startX, startY) {
-		
+		eraser_paint_iteration(ctx, x, y, drawCtx, startX, startY) {
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
 
 			this.color_eraser_mode = PaintJSState.button !== 0;
 
 			if (!this.color_eraser_mode) {
 				// Eraser
-				drawCtx.fillStyle = 'black';
+				drawCtx.fillStyle = "black";
 				drawCtx.fillRect(rect_x, rect_y, rect_w, rect_h);
 			} else {
 				// Color Eraser
 				// Right click with the eraser to selectively replace
 				// the selected foreground color with the selected background color
 
-				const fg_rgba = get_rgba_from_color(PaintJSState.selected_colors.foreground);
+				const fg_rgba = get_rgba_from_color(
+					PaintJSState.selected_colors.foreground,
+				);
 
 				const test_image_data = ctx.getImageData(
-					rect_x+startX,
-					rect_y+startY,
+					rect_x + startX,
+					rect_y + startY,
 					rect_w,
 					rect_h,
 				);
@@ -775,7 +822,12 @@ const tools = [
 			});
 		},
 		paint(ctx, x, y) {
-			if (x >= 0 && y >= 0 && x < PaintJSState.main_canvas.width && y < PaintJSState.main_canvas.height) {
+			if (
+				x >= 0 &&
+				y >= 0 &&
+				x < PaintJSState.main_canvas.width &&
+				y < PaintJSState.main_canvas.height
+			) {
 				const id = ctx.getImageData(~~x, ~~y, 1, 1);
 				const [r, g, b, a] = id.data;
 				this.current_color = `rgba(${r},${g},${b},${a / 255})`;
@@ -785,7 +837,8 @@ const tools = [
 			this.display_current_color();
 		},
 		pointerup() {
-			PaintJSState.selected_colors[PaintJSState.pick_color_slot] = this.current_color;
+			PaintJSState.selected_colors[PaintJSState.pick_color_slot] =
+				this.current_color;
 			$(window).trigger("option-changed");
 		},
 	},
@@ -799,30 +852,64 @@ const tools = [
 		deselect: false,
 
 		getProspectiveMagnification: (button = 1) => {
-			const zoomLevels = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 100];
+			const zoomLevels = [
+				0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 100,
+			];
 
-			const nextZoom = { 
-					0.5: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 8, 8: 10, 10: 12, 
-					12: 15, 15: 20, 20: 25, 25: 30, 30: 40, 40: 50, 50: 60, 60: 75, 75: 100, 
-					100: 100 
+			const nextZoom = {
+				0.5: 1,
+				1: 2,
+				2: 3,
+				3: 4,
+				4: 5,
+				5: 6,
+				6: 8,
+				8: 10,
+				10: 12,
+				12: 15,
+				15: 20,
+				20: 25,
+				25: 30,
+				30: 40,
+				40: 50,
+				50: 60,
+				60: 75,
+				75: 100,
+				100: 100,
 			};
 
-			const nextout = { 
-					100: 75, 75: 60, 60: 50, 50: 40, 40: 30, 30: 25, 25: 20, 20: 15, 15: 12, 
-					12: 10, 10: 8, 8: 6, 6: 5, 5: 4, 4: 3, 3: 2, 2: 1, 1: 0.5, 
-					0.5: 0.5 
+			const nextout = {
+				100: 75,
+				75: 60,
+				60: 50,
+				50: 40,
+				40: 30,
+				30: 25,
+				25: 20,
+				20: 15,
+				15: 12,
+				12: 10,
+				10: 8,
+				8: 6,
+				6: 5,
+				5: 4,
+				4: 3,
+				3: 2,
+				2: 1,
+				1: 0.5,
+				0.5: 0.5,
 			};
-
-
 
 			function getClosestZoom(currentZoom) {
-					const zoomLevels = Object.keys(nextZoom).map(Number).sort((a, b) => a - b);
-					for (let i = zoomLevels.length - 1; i >= 0; i--) {
-							if (currentZoom >= zoomLevels[i]) {
-									return zoomLevels[i];
-							}
+				const zoomLevels = Object.keys(nextZoom)
+					.map(Number)
+					.sort((a, b) => a - b);
+				for (let i = zoomLevels.length - 1; i >= 0; i--) {
+					if (currentZoom >= zoomLevels[i]) {
+						return zoomLevels[i];
 					}
-					return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
+				}
+				return zoomLevels[0]; // 만약 currentZoom이 가장 낮은 줌보다 작다면 최소값 반환
 			}
 
 			if (button == 2) {
@@ -847,7 +934,7 @@ const tools = [
 				return;
 			}
 			const prospective_magnification = this.getProspectiveMagnification();
-			console.log(prospective_magnification,PaintJSState.magnification)
+			console.log(prospective_magnification, PaintJSState.magnification);
 			//console.log("scale:", scale);
 			// hacky place to put this but whatever
 			// use specific zoom-in/zoom-out as fallback,
@@ -894,7 +981,6 @@ const tools = [
 			const rect_x = rect_x1;
 			const rect_y = rect_y1;
 
-			
 			const id_src = PaintJSState.main_canvas.ctx.getImageData(
 				rect_x,
 				rect_y,
@@ -950,23 +1036,25 @@ const tools = [
 		},
 		pointerdown(_ctx, x, y) {
 			const prev_magnification = PaintJSState.magnification;
-			const prospective_magnification =
-				this.getProspectiveMagnification(PaintJSState.button);
+			const prospective_magnification = this.getProspectiveMagnification(
+				PaintJSState.button,
+			);
 
 			//console.log("예정 배율:", prospective_magnification);
-			
+
 			set_magnification(prospective_magnification);
 
 			//console.log("이전배율:", prev_magnification);
-			
+
 			if (PaintJSState.magnification > prev_magnification) {
-			
 				// (new) viewport size in document coords
-				const w = PaintJSState.$canvas_area.width() / PaintJSState.magnification;
-				const h = PaintJSState.$canvas_area.height() / PaintJSState.magnification;
-				
+				const w =
+					PaintJSState.$canvas_area.width() / PaintJSState.magnification;
+				const h =
+					PaintJSState.$canvas_area.height() / PaintJSState.magnification;
+
 				PaintJSState.$canvas_area.scrollLeft(
-					((x - w / 2) * PaintJSState.magnification),
+					(x - w / 2) * PaintJSState.magnification,
 				);
 				// Nevermind, canvas, isn't aligned to the right in RTL layout!
 				// if (get_direction() === "rtl") {
@@ -976,7 +1064,7 @@ const tools = [
 				// 	PaintJSState.$canvas_area.scrollLeft((x - w/2) * magnification / prev_magnification);
 				// }
 				PaintJSState.$canvas_area.scrollTop(
-					((y - h / 2) * PaintJSState.magnification),
+					(y - h / 2) * PaintJSState.magnification,
 				);
 
 				//console.log("스크롤 이동",((x - w / 2) * magnification),((y - h / 2) * magnification));
@@ -1096,6 +1184,7 @@ const tools = [
 				);
 				this.points = [];
 				//$status_size.text("");
+				PaintJSState.position_object_active = false;
 			}
 		},
 		pointerdown(_ctx, x, y) {
@@ -1184,6 +1273,9 @@ const tools = [
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
 			// I don't know how helpful this is, might be more useful to show the number of points:
 			// $status_size.text(`${this.points.length} / 4 points`);
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = signed_width;
+			PaintJSState.position_object_y = signed_height;
 		},
 		drawPreviewUnderGrid(
 			ctx,
@@ -1208,11 +1300,13 @@ const tools = [
 		cancel() {
 			this.points = [];
 			//$status_size.text("");
+			PaintJSState.position_object_active = false;
 		},
 		end() {
 			this.points = [];
 			update_helper_layer();
 			//$status_size.text("");
+			PaintJSState.position_object_active = false;
 		},
 	},
 	{
@@ -1278,7 +1372,10 @@ const tools = [
 				ctx.fillRect(x, y, w, h);
 			}
 			if (PaintJSState.stroke) {
-				if (w < PaintJSState.stroke_size * 2 || h < PaintJSState.stroke_size * 2) {
+				if (
+					w < PaintJSState.stroke_size * 2 ||
+					h < PaintJSState.stroke_size * 2
+				) {
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
 					ctx.fillRect(x, y, w, h);
@@ -1287,9 +1384,19 @@ const tools = [
 					ctx.save();
 					ctx.fillStyle = ctx.strokeStyle;
 					ctx.fillRect(x, y, PaintJSState.stroke_size, h);
-					ctx.fillRect(x + w - PaintJSState.stroke_size, y, PaintJSState.stroke_size, h);
+					ctx.fillRect(
+						x + w - PaintJSState.stroke_size,
+						y,
+						PaintJSState.stroke_size,
+						h,
+					);
 					ctx.fillRect(x, y, w, PaintJSState.stroke_size);
-					ctx.fillRect(x, y + h - PaintJSState.stroke_size, w, PaintJSState.stroke_size);
+					ctx.fillRect(
+						x,
+						y + h - PaintJSState.stroke_size,
+						w,
+						PaintJSState.stroke_size,
+					);
 					ctx.restore();
 				}
 			}
@@ -1522,9 +1629,13 @@ const tools = [
 			const signed_width = x_max - x_min || 1;
 			const signed_height = y_max - y_min || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = signed_width;
+			PaintJSState.position_object_y = signed_height;
 		},
 		reset() {
 			//$status_size.text("");
+			PaintJSState.position_object_active = false;
 			this.points = [];
 			this.last_click_pointerdown = {
 				x: -Infinity,
@@ -1745,7 +1856,6 @@ const tools = [
 				);
 			}
 		},
-
 	},
 ];
 
@@ -1778,15 +1888,23 @@ tools.forEach((tool) => {
 			rect_x = ~~Math.max(0, Math.min(drag_start_x, PaintJSState.pointer.x));
 			rect_y = ~~Math.max(0, Math.min(drag_start_y, PaintJSState.pointer.y));
 			rect_width =
-				~~Math.min(PaintJSState.main_canvas.width, Math.max(drag_start_x, PaintJSState.pointer.x) + 1) -
-				rect_x;
+				~~Math.min(
+					PaintJSState.main_canvas.width,
+					Math.max(drag_start_x, PaintJSState.pointer.x) + 1,
+				) - rect_x;
 			rect_height =
-				~~Math.min(PaintJSState.main_canvas.height, Math.max(drag_start_y, PaintJSState.pointer.y + 1)) -
-				rect_y;
+				~~Math.min(
+					PaintJSState.main_canvas.height,
+					Math.max(drag_start_y, PaintJSState.pointer.y + 1),
+				) - rect_y;
 			//$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = rect_width;
+			PaintJSState.position_object_y = rect_height;
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
+			PaintJSState.position_object_active = false;
 			PaintJSState.canvas_handles.show();
 			tool.selectBox(rect_x, rect_y, rect_width, rect_height);
 		};
@@ -1846,7 +1964,10 @@ tools.forEach((tool) => {
 	if (tool.shape) {
 		tool.shape_canvas = null;
 		tool.pointerdown = () => {
-			tool.shape_canvas = make_canvas(PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+			tool.shape_canvas = make_canvas(
+				PaintJSState.main_canvas.width,
+				PaintJSState.main_canvas.height,
+			);
 		};
 		tool.paint = () => {
 			tool.shape_canvas.ctx.clearRect(
@@ -1865,12 +1986,18 @@ tools.forEach((tool) => {
 				PaintJSState.pointer.x - PaintJSState.pointer_start.x,
 				PaintJSState.pointer.y - PaintJSState.pointer_start.y,
 			);
-			const signed_width = PaintJSState.pointer.x - PaintJSState.pointer_start.x || 1;
-			const signed_height = PaintJSState.pointer.y - PaintJSState.pointer_start.y || 1;
+			const signed_width =
+				PaintJSState.pointer.x - PaintJSState.pointer_start.x || 1;
+			const signed_height =
+				PaintJSState.pointer.y - PaintJSState.pointer_start.y || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = signed_width;
+			PaintJSState.position_object_y = signed_height;
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key
+			PaintJSState.position_object_active = false;
 			if (!tool.shape_canvas) {
 				return;
 			}
@@ -1913,7 +2040,10 @@ tools.forEach((tool) => {
 
 		tool.pointerdown = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = make_canvas(PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+				tool.mask_canvas = make_canvas(
+					PaintJSState.main_canvas.width,
+					PaintJSState.main_canvas.height,
+				);
 			}
 			if (tool.mask_canvas.width !== PaintJSState.main_canvas.width) {
 				tool.mask_canvas.width = PaintJSState.main_canvas.width;
@@ -2053,36 +2183,46 @@ tools.forEach((tool) => {
 			////////////
 
 			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
-			const startX = Math.min(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
-			const startY = Math.min(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
-			const endX = Math.max(PaintJSState.pointer_previous.x, PaintJSState.pointer.x);
-			const endY = Math.max(PaintJSState.pointer_previous.y, PaintJSState.pointer.y);
+			const startX = Math.min(
+				PaintJSState.pointer_previous.x,
+				PaintJSState.pointer.x,
+			);
+			const startY = Math.min(
+				PaintJSState.pointer_previous.y,
+				PaintJSState.pointer.y,
+			);
+			const endX = Math.max(
+				PaintJSState.pointer_previous.x,
+				PaintJSState.pointer.x,
+			);
+			const endY = Math.max(
+				PaintJSState.pointer_previous.y,
+				PaintJSState.pointer.y,
+			);
 			const width = endX - startX + brush.size * 2;
 			const height = endY - startY + brush.size * 2;
 
-			const tempCanvas = new OffscreenCanvas(width,height);
-			const tempCtx = tempCanvas.getContext('2d');
+			const tempCanvas = new OffscreenCanvas(width, height);
+			const tempCtx = tempCanvas.getContext("2d");
 			tempCtx.imageSmoothingEnabled = false;
 
 			// 1. 임시 캔버스에 흰색으로 도형 그리기
-			tempCtx.fillStyle = 'white';
-			tempCtx.globalCompositeOperation = 'source-over';
-			
+			tempCtx.fillStyle = "white";
+			tempCtx.globalCompositeOperation = "source-over";
+
 			iterate_line(
 				PaintJSState.pointer_previous.x - startX,
-					PaintJSState.pointer_previous.y - startY,
-					PaintJSState.pointer.x - startX,
-					PaintJSState.pointer.y - startY,
+				PaintJSState.pointer_previous.y - startY,
+				PaintJSState.pointer.x - startX,
+				PaintJSState.pointer.y - startY,
 				(x, y) => {
-					
 					stamp_brush_canvas(
 						tempCtx,
 						x + brush.size,
 						y + brush.size,
 						brush.shape,
-						brush.size
+						brush.size,
 					);
-
 				},
 			);
 			// stamp_brush_canvas(
@@ -2101,21 +2241,25 @@ tools.forEach((tool) => {
 			// );
 
 			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
-			tool.mask_canvas.ctx.globalCompositeOperation = 'destination-out';
-			tool.mask_canvas.ctx.drawImage(tempCanvas, startX-brush.size, startY-brush.size);
-
+			tool.mask_canvas.ctx.globalCompositeOperation = "destination-out";
+			tool.mask_canvas.ctx.drawImage(
+				tempCanvas,
+				startX - brush.size,
+				startY - brush.size,
+			);
 
 			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
-			tempCtx.globalCompositeOperation = 'source-in';
+			tempCtx.globalCompositeOperation = "source-in";
 			tempCtx.fillStyle = PaintJSState.stroke_color;
 			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
 			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
-			tool.mask_canvas.ctx.globalCompositeOperation = 'source-over';
-			tool.mask_canvas.ctx.drawImage(tempCanvas, startX-brush.size, startY-brush.size);
-		
-
-			
+			tool.mask_canvas.ctx.globalCompositeOperation = "source-over";
+			tool.mask_canvas.ctx.drawImage(
+				tempCanvas,
+				startX - brush.size,
+				startY - brush.size,
+			);
 		};
 
 		tool.cancel = () => {
@@ -2131,9 +2275,8 @@ tools.forEach((tool) => {
 			// 	return false;
 			// }
 			// console.log('helper render')
-		
+
 			if (previewing && tool.dynamic_preview_cursor) {
-				
 				const brush = tool.get_brush();
 				// dynamic cursor preview:
 				// stamp just onto this temporary canvas so it's temporary
@@ -2143,7 +2286,7 @@ tools.forEach((tool) => {
 					PaintJSState.pointer.y,
 					brush.shape,
 					brush.size,
-					PaintJSState.stroke_color
+					PaintJSState.stroke_color,
 				);
 				//console.log('helper',PaintJSState.stroke_color)
 			}
@@ -2151,11 +2294,11 @@ tools.forEach((tool) => {
 			// console.log(, PaintJSState.pointer.y);
 			// console.log(PaintJSState.pointer_previous.x, PaintJSState.pointer_previous.y);
 			//console.log(PaintJSState.pointer,PaintJSState.pointer_float_previous)
-			
+
 			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
 			//ctx.drawImage(tool.mask_canvas, 0, 0);
 			// return translucent;
-			
+
 			return true;
 		};
 		tool.drawPreviewUnderGrid = (
@@ -2189,8 +2332,6 @@ tools.forEach((tool) => {
 		};
 	}
 });
-
-
 
 export {
 	TOOL_AIRBRUSH,
