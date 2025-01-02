@@ -2,7 +2,6 @@ import { Handles } from "./src/Handles.js";
 
 import {
   cancel,
-  change_url_param,
   clear,
   confirm_overwrite_capability,
   delete_selection,

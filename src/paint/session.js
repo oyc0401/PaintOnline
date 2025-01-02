@@ -5,10 +5,7 @@ import {
    change_url_param,
    get_uris,
    load_image_from_uri,
-   redo,
-
    show_resource_load_error_message,
-   undo,
    open_from_image_info,
 
 } from "./src/functions.js";
@@ -53,69 +50,6 @@ export function initSesstion() {
          .data.some((v) => v > match_threshold);
 
    let $recovery_window;
-   function show_recovery_window(no_longer_blank) {
-      $recovery_window?.close();
-      const $w = ($recovery_window = $DialogWindow());
-      $w.on("close", () => {
-         $recovery_window = null;
-      });
-      $w.title("Recover Document");
-      let backup_impossible = false;
-      try {
-         window.localStorage.getItem("bogus test key");
-      } catch (_error) {
-         backup_impossible = true;
-      }
-      // TODO: get rid of this invasive dialog https://github.com/1j01/jspaint/issues/325
-      // It appears when it shouldn't, in basic scenarios like Ctrl+A in a transparent document,
-      // and it gets bigger once you edit the document, which feels... almost aggressive.
-      // That said, I've made it more compact and delineated the expanded section with a horizontal rule,
-      // so it doesn't feel as much like it's changed out from under you and you have to re-read it.
-      $w.$main.append(
-         $(`
-         <p>Woah! The canvas became empty.</p>
-         <p>If this was on purpose, please ignore this message.</p>
-         <p>
-            If the canvas was cleared due to memory usage,<br>
-            click Undo to recover the document.
-         </p>
-         <!--<p>Remember to save with <b>File > Save</b>!</p>-->
-         ${
-            backup_impossible
-               ? "<p><b>Note:</b> No automatic backup is possible unless you enable Cookies in your browser.</p>"
-               : no_longer_blank
-                 ? `<hr>
-                  <p style="opacity: 0.8; font-size: 0.9em;">
-                     Auto-save is paused while this dialog is open.
-                  </p>
-                  <p style="opacity: 0.8; font-size: 0.9em;">
-                     (See <b>File &gt; Manage Storage</b> to view backups.)
-                  </p>`
-                 : ""
-         }
-      `),
-      );
-
-      const $undo = $w.$Button("Undo", () => {
-         undo();
-      });
-      const $redo = $w.$Button("Redo", () => {
-         redo();
-      });
-      const update_buttons_disabled = () => {
-         $undo.prop("disabled", PaintJSState.undos.length < 1);
-         $redo.prop("disabled", PaintJSState.redos.length < 1);
-      };
-      $(window).on("session-update.session-hook", update_buttons_disabled);
-      update_buttons_disabled();
-
-      $w.$Button(localize("Close"), () => {
-         $w.close();
-      });
-      $w.center();
-
-      $w.find("button:enabled").focus();
-   }
 
    let last_undos_length = PaintJSState.undos.length;
    function handle_data_loss() {
@@ -123,12 +57,13 @@ export function initSesstion() {
       let save_paused = false;
       if (!canvas_has_any_apparent_image_data()) {
          if (!window_is_open) {
-            show_recovery_window();
+            alert('show_recovery_window();')
+            
          }
          save_paused = true;
       } else if (window_is_open) {
          if (PaintJSState.undos.length > last_undos_length) {
-            show_recovery_window(true);
+            alert('show_recovery_window(true);')
          }
          save_paused = true;
       }
@@ -186,6 +121,8 @@ export function initSesstion() {
             } else if (uri) {
                load_image_from_uri(uri).then(
                   (info) => {
+                     console.log('info')
+                     console.log(info)
                      open_from_image_info(info, null, null, true, true);
                   },
                   (error) => {
@@ -279,6 +216,7 @@ export function initSesstion() {
          end_current_session();
          change_url_param("local", generate_session_id());
 
+         console.log('A')
          load_image_from_uri(url).then((info) => {
             open_from_image_info(info, null, null, true, true);
          }, show_resource_load_error_message);
