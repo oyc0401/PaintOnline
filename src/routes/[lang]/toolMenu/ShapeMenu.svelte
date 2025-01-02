@@ -15,7 +15,7 @@
   import CurveIcon from "$lib/images/curve.svelte";
 
   import { menuState } from "$store/menuState.svelte.js";
-  import { changeTool, clickMenu } from "$store/paintFunction.js";
+  import { changeTool, clickMenu ,quickChangeTool} from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
 
@@ -50,7 +50,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_RECTANGLE}
-        onclick={() => changeTool(TOOL_RECTANGLE, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_RECTANGLE, MENU_NUMBER)}
       >
         <RectangleIcon />
         <p>사각형</p>
@@ -58,7 +58,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_ROUNDED_RECTANGLE}
-        onclick={() => changeTool(TOOL_ROUNDED_RECTANGLE, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_ROUNDED_RECTANGLE, MENU_NUMBER)}
       >
         <RectangleIcon />
         <p>둥근 사각형</p>
@@ -66,7 +66,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_ELLIPSE}
-        onclick={() => changeTool(TOOL_ELLIPSE, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_ELLIPSE, MENU_NUMBER)}
       >
         <CircleIcon />
         <p>원형</p>
@@ -74,7 +74,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_POLYGON}
-        onclick={() => changeTool(TOOL_POLYGON, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_POLYGON, MENU_NUMBER)}
       >
         <PolygonIcon />
         <p>다각형</p>
@@ -82,7 +82,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_LINE}
-        onclick={() => changeTool(TOOL_LINE, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_LINE, MENU_NUMBER)}
       >
         <LineIcon />
         <p>직선</p>
@@ -90,7 +90,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_CURVE}
-        onclick={() => changeTool(TOOL_CURVE, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_CURVE, MENU_NUMBER)}
       >
         <CurveIcon />
         <p>곡선</p>

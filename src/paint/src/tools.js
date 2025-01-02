@@ -396,7 +396,8 @@ const tools = [
 						PaintJSState.canvas_handles.show();
 						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
-				} else if (free_form_selection) {
+				}
+				else if (free_form_selection) {
 					// for silly multitools feature,
 					// create a selection that's the Free-Form selection XOR the normal selection
 
@@ -455,7 +456,8 @@ const tools = [
 							PaintJSState.cut_out_background();
 						},
 					);
-				} else {
+				}
+				else {
 					undoable(
 						{
 							name: localize("Select"),
@@ -1898,9 +1900,12 @@ tools.forEach((tool) => {
 					Math.max(drag_start_y, PaintJSState.pointer.y + 1),
 				) - rect_y;
 			//$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
-			PaintJSState.position_object_active = true;
-			PaintJSState.position_object_x = rect_width;
-			PaintJSState.position_object_y = rect_height;
+			//if(rect_width > 1 && rect_height > 1){
+				PaintJSState.position_object_active = true;
+				PaintJSState.position_object_x = rect_width;
+				PaintJSState.position_object_y = rect_height;
+			//}
+			
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
@@ -1991,9 +1996,12 @@ tools.forEach((tool) => {
 			const signed_height =
 				PaintJSState.pointer.y - PaintJSState.pointer_start.y || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
-			PaintJSState.position_object_active = true;
-			PaintJSState.position_object_x = signed_width;
-			PaintJSState.position_object_y = signed_height;
+			//if(signed_width > 1 && signed_height > 1){
+				PaintJSState.position_object_active = true;
+				PaintJSState.position_object_x = signed_width;
+				PaintJSState.position_object_y = signed_height;
+			//}
+			
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key

@@ -637,10 +637,6 @@ function reset_canvas_and_history() {
 		PaintJSState.main_canvas.height,
 	);
 
-	PaintJSState.position_canvas_active = true;
-	PaintJSState.position_canvas_x = PaintJSState.main_canvas.width
-	PaintJSState.position_canvas_y = PaintJSState.main_canvas.height
-
 	///
 	// PaintJSState.mask_layer.canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	// PaintJSState.mask_layer.canvas.height = Math.max(1, PaintJSState.my_canvas_height);
@@ -2859,9 +2855,6 @@ function resize_canvas_without_saving_dimensions(
 					const beforeWidth = PaintJSState.main_canvas.width;
 					const beforeHeight = PaintJSState.main_canvas.height;
 					console.log("리사이즈");
-					PaintJSState.position_canvas_active = true;
-					PaintJSState.position_canvas_x = new_width
-					PaintJSState.position_canvas_y = new_height
 					
 					const image_data = PaintJSState.main_ctx.getImageData(
 						0,

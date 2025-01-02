@@ -6,7 +6,7 @@
   import ZoomIcon from "$lib/images/zoom.svelte";
 
   import { menuState } from "$store/menuState.svelte.js";
-  import { changeToolAndCloseDropdown, quickClickMenu } from "$store/paintFunction.js";
+  import { quickChangeTool, quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
   const MENU_NUMBER = 2;
@@ -34,7 +34,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_FILL}
-        onclick={() => changeToolAndCloseDropdown(TOOL_FILL, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_FILL, MENU_NUMBER)}
       >
         <FillColorIcon />
         <p>칠하기</p>
@@ -42,7 +42,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_MAGNIFIER}
-        onclick={() => changeToolAndCloseDropdown(TOOL_MAGNIFIER, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_MAGNIFIER, MENU_NUMBER)}
       >
         <ZoomIcon />
         <p>돋보기</p>
@@ -50,7 +50,7 @@
       <button
         class="dropdown-button"
         class:selected-tool={menuState.selectedTool === TOOL_PICK_COLOR}
-        onclick={() => changeToolAndCloseDropdown(TOOL_PICK_COLOR, MENU_NUMBER)}
+        onclick={() => quickChangeTool(TOOL_PICK_COLOR, MENU_NUMBER)}
       >
         <PickColorIcon />
         <p>색상 선택</p>

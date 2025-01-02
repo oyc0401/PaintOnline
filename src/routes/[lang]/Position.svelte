@@ -68,16 +68,8 @@
 </script>
 
 <p class="position-area">
-  {#if menuState.position_mouse_active}
-    {menuState.position_mouse.x} x {menuState.position_mouse.y}
-  {/if}
-  {" / "}
   {#if menuState.position_canvas_active}
     {menuState.position_canvas.x} x {menuState.position_canvas.y}
-  {/if}
-  {" / "}
-  {#if menuState.position_object_active}
-    {menuState.position_object.x} x {menuState.position_object.y}
   {/if}
 </p>
 
@@ -85,7 +77,7 @@
   .position-area {
     position: absolute;
     right: 8px;
-    top: 52px;
+    top: 48px;
 
     z-index: 9;
 

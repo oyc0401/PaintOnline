@@ -6,7 +6,7 @@ export const menuState = $state({
   toolHistory: {
     1: "TOOL_SELECT",
     2: "TOOL_PENCIL",
-    3: "TOOL_BRUSH",
+    3: "TOOL_PENCIL",
     4: "TOOL_RECTANGLE",
     5: "TOOL_ERASER",
   }, // 해당 메뉴에서 이전에 선택했던 도구

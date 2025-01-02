@@ -131,6 +131,10 @@ export function initApp(canvasAreaQuery) {
     update_canvas_rect();
     update_disable_aa();
     update_magnified_canvas_size();
+
+    PaintJSState.position_canvas_active = true;
+    PaintJSState.position_canvas_x = PaintJSState.main_canvas.width
+    PaintJSState.position_canvas_y = PaintJSState.main_canvas.height
   });
   $canvas_area.on("scroll", () => {
     update_canvas_rect();
@@ -869,7 +873,7 @@ export function initApp(canvasAreaQuery) {
         }
 
         if (PaintJSState.pointerId === e.pointerId) {
-          console.log(e.pointerId);
+         // console.log(e.pointerId);
 
           const pointer = to_canvas_coords(e);
           PaintJSState.pointer=pointer;

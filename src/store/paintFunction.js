@@ -19,7 +19,7 @@ export function changeTool(toolId, menuId) {
 }
 
 // 도구를 바꾸고 드롭다운을 닫는다.
-export function changeToolAndCloseDropdown(toolId, menuId) {
+export function quickChangeTool(toolId, menuId) {
   changeTool(toolId, menuId);
   closeDropdown();
 }

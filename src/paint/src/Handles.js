@@ -157,7 +157,7 @@ function Handles(options) {
 			new_rect.height = Math.max(1, new_rect.height);
 
 			if(options.is_canvas){
-				console.log('canvas:',new_rect.width,new_rect.height);
+				//console.log('canvas:',new_rect.width,new_rect.height);
 
 				PaintJSState.position_canvas_active = true;
 				PaintJSState.position_canvas_x = new_rect.width
