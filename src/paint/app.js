@@ -109,6 +109,7 @@ export function initApp(canvasAreaQuery) {
       parseFloat($canvas_area.css("padding-left")) + 1,
     get_ghost_offset_top: () => parseFloat($canvas_area.css("padding-top")) + 1,
     size_only: true,
+    is_canvas:true,
   });
 
   PaintJSState.update_fill_and_stroke_colors_and_lineWidth =
@@ -894,7 +895,7 @@ export function initApp(canvasAreaQuery) {
       });
 
       $canvas.on("pointerleave", (e) => {
-        PaintJSState.position_mouse_active=false;
+       // PaintJSState.position_mouse_active=false;
         
         PaintJSState.pointer_over_canvas = false;
         update_helper_layer(e);

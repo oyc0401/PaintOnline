@@ -36,7 +36,7 @@
     reaction(
       () => PaintJSState.position_canvas_y,
       (newValue) => {
-        menuState.canvas.y = newValue;
+        menuState.position_canvas.y = newValue;
       },
     );
     reaction(

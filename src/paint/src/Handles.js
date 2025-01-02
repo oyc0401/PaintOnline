@@ -37,9 +37,10 @@ import {PaintJSState} from '../state';
 // 	return closest;
 // }
 
-
+//is_canvas
 
 function Handles(options) {
+	console.log('is_canvas:',options.is_canvas)
 	const { $handles_container, $object_container } = options; // required
 	const outset = options.outset || 0;
 	const get_handles_offset_left = options.get_handles_offset_left || (() => 0);
@@ -117,7 +118,6 @@ function Handles(options) {
 		$h.add($grab_region).css({ cursor });
 
 		const drag = (event) => {
-			console.warn('drag!')
 			$resize_ghost.appendTo($object_container);
 			dragged = true;
 
@@ -155,6 +155,18 @@ function Handles(options) {
 
 			new_rect.width = Math.max(1, new_rect.width);
 			new_rect.height = Math.max(1, new_rect.height);
+
+			if(options.is_canvas){
+				console.log('canvas:',new_rect.width,new_rect.height);
+
+				PaintJSState.position_canvas_active = true;
+				PaintJSState.position_canvas_x = new_rect.width
+				PaintJSState.position_canvas_y = new_rect.height
+			}else{
+				PaintJSState.position_object_active = true;
+				PaintJSState.position_object_x = new_rect.width;
+				PaintJSState.position_object_y = new_rect.height;
+			}
 
 			if (options.constrain_rect) {
 				new_rect = options.constrain_rect(new_rect, x_axis, y_axis);

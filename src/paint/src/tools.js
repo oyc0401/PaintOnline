@@ -300,7 +300,7 @@ const tools = [
 		},
 		pointerup() {
 			//$status_size.text("");
-			PaintJSState.position_object_active = false;
+			//PaintJSState.position_object_active = false;
 			this.preview_canvas.width = 1;
 			this.preview_canvas.height = 1;
 
@@ -1184,7 +1184,7 @@ const tools = [
 				);
 				this.points = [];
 				//$status_size.text("");
-				PaintJSState.position_object_active = false;
+				//PaintJSState.position_object_active = false;
 			}
 		},
 		pointerdown(_ctx, x, y) {
@@ -1300,13 +1300,13 @@ const tools = [
 		cancel() {
 			this.points = [];
 			//$status_size.text("");
-			PaintJSState.position_object_active = false;
+			//PaintJSState.position_object_active = false;
 		},
 		end() {
 			this.points = [];
 			update_helper_layer();
 			//$status_size.text("");
-			PaintJSState.position_object_active = false;
+			//PaintJSState.position_object_active = false;
 		},
 	},
 	{
@@ -1635,7 +1635,7 @@ const tools = [
 		},
 		reset() {
 			//$status_size.text("");
-			PaintJSState.position_object_active = false;
+			//PaintJSState.position_object_active = false;
 			this.points = [];
 			this.last_click_pointerdown = {
 				x: -Infinity,
@@ -1904,7 +1904,7 @@ tools.forEach((tool) => {
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
-			PaintJSState.position_object_active = false;
+			//PaintJSState.position_object_active = false;
 			PaintJSState.canvas_handles.show();
 			tool.selectBox(rect_x, rect_y, rect_width, rect_height);
 		};
@@ -1997,7 +1997,7 @@ tools.forEach((tool) => {
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key
-			PaintJSState.position_object_active = false;
+			//PaintJSState.position_object_active = false;
 			if (!tool.shape_canvas) {
 				return;
 			}

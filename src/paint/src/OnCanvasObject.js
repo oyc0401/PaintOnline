@@ -81,7 +81,7 @@ class OnCanvasObject {
 
 			PaintJSState.position_object_active = true;
 			PaintJSState.position_object_x = this.width;
-			PaintJSState.position_object_y = this.height
+			PaintJSState.position_object_y = this.height;
 		}
 	}
 	destroy() {
