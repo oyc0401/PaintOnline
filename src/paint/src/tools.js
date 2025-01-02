@@ -22,6 +22,7 @@ import {
 	get_rgba_from_color,
 	make_canvas,
 	make_css_cursor,
+	drawcopy,
 } from "./helpers.js";
 
 import {
@@ -392,7 +393,7 @@ const tools = [
 							-rect_x,
 							-rect_y,
 						);
-						PaintJSState.main_ctx.copy(cropped_canvas);
+						drawcopy(PaintJSState.main_ctx,cropped_canvas)
 						PaintJSState.canvas_handles.show();
 						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
@@ -2059,7 +2060,6 @@ tools.forEach((tool) => {
 			if (tool.mask_canvas.height !== PaintJSState.main_canvas.height) {
 				tool.mask_canvas.height = PaintJSState.main_canvas.height;
 			}
-			tool.mask_canvas.ctx.disable_image_smoothing();
 		};
 		tool.pointerup = () => {
 			if (!tool.mask_canvas) {
@@ -2156,7 +2156,6 @@ tools.forEach((tool) => {
 			if (tool.mask_canvas.height !== PaintJSState.main_canvas.height) {
 				tool.mask_canvas.height = PaintJSState.main_canvas.height;
 			}
-			tool.mask_canvas.ctx.disable_image_smoothing();
 		};
 		tool.pointerdown = (_ctx, _x, _y) => {
 			tool.init_mask_canvas();

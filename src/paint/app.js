@@ -664,7 +664,6 @@ export function initApp(canvasAreaQuery) {
               1,
               PaintJSState.my_canvas_height,
             );
-            PaintJSState.main_ctx.disable_image_smoothing();
             if (!PaintJSState.transparency) {
               PaintJSState.main_ctx.fillStyle =
                 PaintJSState.selected_colors.background;

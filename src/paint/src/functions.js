@@ -21,10 +21,10 @@ import {
 	render_access_key,
 	to_canvas_coords,
 	to_canvas_coords_magnification,
+	drawcopy,
 } from "./helpers.js";
 import {
 	apply_image_transformation,
-	draw_grid,
 	draw_selection_box,
 	flip_horizontal,
 	flip_vertical,
@@ -108,7 +108,7 @@ function change_url_param(
 	value,
 	{ replace_history_state = false } = {},
 ) {
-	set_all_url_params( { [param_name]: value });
+	set_all_url_params({ [param_name]: value });
 }
 
 /**
@@ -117,7 +117,7 @@ function change_url_param(
  * @param {boolean} [options.replace_history_state=false]
  */
 function set_all_url_params(params) {
-	console.log('params:',params);
+	console.log("params:", params);
 	let new_hash = "";
 	for (const [param_name, param_type] of Object.entries(param_types)) {
 		if (params[param_name]) {
@@ -264,7 +264,6 @@ function update_helper_layer_immediately() {
 
 		PaintJSState.helper_layer.canvas.width = PaintJSState.main_canvas.width;
 		PaintJSState.helper_layer.canvas.height = PaintJSState.main_canvas.height;
-		PaintJSState.helper_layer.canvas.ctx.disable_image_smoothing();
 		PaintJSState.helper_layer.width = PaintJSState.main_canvas.width;
 		PaintJSState.helper_layer.height = PaintJSState.main_canvas.height;
 		PaintJSState.helper_layer.x = 0;
@@ -280,7 +279,6 @@ function update_helper_layer_immediately() {
 
 		PaintJSState.mask_layer.canvas.width = PaintJSState.main_canvas.width;
 		PaintJSState.mask_layer.canvas.height = PaintJSState.main_canvas.height;
-		PaintJSState.mask_layer.canvas.ctx.disable_image_smoothing();
 		PaintJSState.mask_layer.width = PaintJSState.main_canvas.width;
 		PaintJSState.mask_layer.height = PaintJSState.main_canvas.height;
 		PaintJSState.mask_layer.x = 0;
@@ -493,10 +491,6 @@ function render_canvas_view(
 		}
 	}
 
-	if (grid_visible) {
-		draw_grid(hctx, scale);
-	}
-
 	tools_to_preview.forEach((tool) => {
 		if (
 			tool.drawPreviewAboveGrid &&
@@ -628,7 +622,6 @@ function reset_canvas_and_history() {
 	console.log("캔버스 리셋!");
 	PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
-	PaintJSState.main_ctx.disable_image_smoothing();
 	PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
 	PaintJSState.main_ctx.fillRect(
 		0,
@@ -963,8 +956,7 @@ function open_from_image_info(
 			reset_selected_colors();
 			reset_canvas_and_history(); // (with newly reset colors)
 			set_magnification(PaintJSState.default_magnification);
-
-			PaintJSState.main_ctx.copy(info.image || info.image_data);
+			drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
 			apply_file_format_and_palette_info(info);
 			PaintJSState.transparency = has_any_transparency(PaintJSState.main_ctx);
 			PaintJSState.$canvas_area.trigger("resize");
@@ -1095,7 +1087,6 @@ function load_theme_from_text(fileText) {
 	$(window).triggerHandler("theme-load");
 }
 
-
 // 새 이미지
 function file_new() {
 	are_you_sure(() => {
@@ -1116,11 +1107,11 @@ function file_new() {
 
 // 파일 열기
 async function file_open() {
-	const input = document.createElement('input');
-	input.type = 'file';
+	const input = document.createElement("input");
+	input.type = "file";
 	input.accept = image_formats
-		.map(format => format.extensions.map(ext => `.${ext}`).join(','))
-		.join(',');
+		.map((format) => format.extensions.map((ext) => `.${ext}`).join(","))
+		.join(",");
 
 	input.click();
 
@@ -1130,15 +1121,14 @@ async function file_open() {
 			if (selectedFile) {
 				resolve(selectedFile);
 			} else {
-				reject(new Error('No file selected'));
+				reject(new Error("No file selected"));
 			}
 		};
 	});
 
 	const fileHandle = { getFile: () => Promise.resolve(file) };
-  open_from_file(file, fileHandle);
+	open_from_file(file, fileHandle);
 }
-
 
 // Native FS API / File Access API allows you to overwrite files, but people are not used to it.
 // So we ask them to confirm it the first time.
@@ -1194,7 +1184,7 @@ function file_save() {
 	// if (!save_file_handle || PaintJSState.file_name.match(/\.(svg|pdf)$/i)) {
 	// 	return file_save_as(maybe_saved_callback, update_from_saved);
 	// }
-	saveCanvasAsPng(PaintJSState.main_canvas,localize("untitled"));
+	saveCanvasAsPng(PaintJSState.main_canvas, localize("untitled"));
 	return;
 	// write_image_file(
 	// 	PaintJSState.main_canvas,
@@ -1226,21 +1216,20 @@ function file_save() {
 	// );
 }
 
-function saveCanvasAsPng(canvas,name) {
+function saveCanvasAsPng(canvas, name) {
 	canvas.toBlob((blob) => {
 		if (blob) {
-			const a = document.createElement('a');
+			const a = document.createElement("a");
 			const url = URL.createObjectURL(blob);
 			a.href = url;
-			a.download =`${name}.png`;
+			a.download = `${name}.png`;
 			a.click();
 			URL.revokeObjectURL(url);
 		} else {
-			console.error('Failed to create PNG blob.');
+			console.error("Failed to create PNG blob.");
 		}
-	}, 'image/png');
+	}, "image/png");
 }
-
 
 function file_save_as(
 	maybe_saved_callback = () => {},
@@ -1759,8 +1748,7 @@ function go_to_history_node(target_history_node, canceling) {
 	}
 	PaintJSState.saved = false;
 	update_title();
-
-	PaintJSState.main_ctx.copy(target_history_node.image_data); // 해당 노드이미지로 캔버스 바꾸기
+	drawcopy(PaintJSState.main_ctx, target_history_node.image_data);
 	if (target_history_node.selection_image_data) {
 		if (PaintJSState.selection) {
 			PaintJSState.selection.destroy();
@@ -2219,8 +2207,8 @@ function deselect(going_to_history_node) {
 	for (const selected_tool of PaintJSState.selected_tools) {
 		selected_tool.end?.(PaintJSState.main_ctx);
 	}
-	
-	PaintJSState.position_object_active=false;
+
+	PaintJSState.position_object_active = false;
 }
 
 /**
@@ -2854,8 +2842,7 @@ function resize_canvas_without_saving_dimensions(
 				try {
 					const beforeWidth = PaintJSState.main_canvas.width;
 					const beforeHeight = PaintJSState.main_canvas.height;
-					console.log("리사이즈");
-					
+
 					const image_data = PaintJSState.main_ctx.getImageData(
 						0,
 						0,
@@ -2864,7 +2851,6 @@ function resize_canvas_without_saving_dimensions(
 					);
 					PaintJSState.main_canvas.width = new_width;
 					PaintJSState.main_canvas.height = new_height;
-					PaintJSState.main_ctx.disable_image_smoothing();
 
 					if (!PaintJSState.transparency) {
 						PaintJSState.main_ctx.fillStyle =
@@ -2897,7 +2883,7 @@ function resize_canvas_without_saving_dimensions(
 					// maybe even keep Attributes dialog open if that's what's triggering the resize
 					return;
 				}
-				console.log("size:", new_width, new_height);
+				//console.log("size:", new_width, new_height);
 
 				PaintJSState.$canvas_area.trigger("resize");
 			},
@@ -2981,7 +2967,7 @@ function show_convert_to_black_and_white() {
 			},
 			() => {
 				threshold = Number($slider.val());
-				PaintJSState.main_ctx.copy(original_canvas);
+				drawcopy(PaintJSState.main_ctx, original_canvas);
 				threshold_black_and_white(PaintJSState.main_ctx, threshold);
 			},
 		);
@@ -3007,7 +2993,7 @@ function show_convert_to_black_and_white() {
 					icon: get_help_folder_icon("p_color.png"),
 				},
 				() => {
-					PaintJSState.main_ctx.copy(original_canvas);
+					drawcopy(PaintJSState.main_ctx,original_canvas);
 				},
 			);
 		}
@@ -3329,7 +3315,7 @@ function save_as_prompt({
 	formats,
 	promptForName = true,
 }) {
-//	console.log(saveFile)
+	//	console.log(saveFile)
 	return new Promise((resolve) => {
 		const $w = $DialogWindow(dialogTitle);
 		$w.addClass("save-as");
@@ -3817,7 +3803,7 @@ function update_from_saved_file(blob) {
 				assume_saved: true, // prevent setting saved to false
 			},
 			() => {
-				PaintJSState.main_ctx.copy(info.image || info.image_data);
+				drawcopy(PaintJSState.main_ctx,info.image || info.image_data);
 			},
 		);
 	});
@@ -3894,7 +3880,6 @@ function sanity_check_blob(
 		show_error_message(localize("Failed to save document."));
 	}
 }
-
 
 export {
 	apply_file_format_and_palette_info,

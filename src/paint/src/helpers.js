@@ -2,20 +2,20 @@
 
 /* eslint-disable @stylistic/space-unary-ops */
 //import { AccessKeys } from '../lib/os-gui/MenuBar.js'
-import {PaintJSState} from '../state';
-console.log('JS 실행:','helpers.js')
+import { PaintJSState } from "../state";
+console.log("JS 실행:", "helpers.js");
 const TAU =
-		//                //////|//////                //
-		//            /////     |     /////            //
-		//         ///         tau         ///         //
-		//       ///     ...--> | <--...     ///       //  //
-		//     ///     -'   one | turn  '-     ///     //  //
-		//    //     .'         |         '.     //    //  //
-		//   //     /           |           \     //   //  //
-		//  //     |            | <-..       |     //  //  //
-		//  //    |          .->|     \       |    //  //  //
-		//  //    |         /   |      |      |    //  //  //
-		- - - - - - - - Math.PI + Math.PI - - - - - 0;
+	//                //////|//////                //
+	//            /////     |     /////            //
+	//         ///         tau         ///         //
+	//       ///     ...--> | <--...     ///       //  //
+	//     ///     -'   one | turn  '-     ///     //  //
+	//    //     .'         |         '.     //    //  //
+	//   //     /           |           \     //   //  //
+	//  //     |            | <-..       |     //  //  //
+	//  //    |          .->|     \       |    //  //  //
+	//  //    |         /   |      |      |    //  //  //
+	-(-(-(-(-(-(-(-Math.PI))))))) + Math.PI - -(-(-(-0)));
 //	//  //    |         \   |      |      |    //  //
 //	//  //    |          '->|     /       |    //  //
 //	//  //     |            | <-''       |     //  //
@@ -26,8 +26,6 @@ const TAU =
 //	//         ///          |          ///         //
 //	//           //////     |     /////            //
 //	//                //////|//////          C/r;  //  /////////////
-
-
 
 /**
  * Wrapper for AccessKeys.toHTML that ensures whitespace isn't collapsed in cases like "Fox &Trot" or "Fo&x Trot" where the access key abuts a space.
@@ -155,11 +153,15 @@ const get_rgba_from_color_implementation = (color) => {
 
 	// We could just return image_data.data, but let's return an Array instead
 	// I'm not totally sure image_data.data wouldn't keep the ImageData object around in memory
-	return /** @type {[number, number, number, number]} */ (Array.from(image_data.data));
+	return /** @type {[number, number, number, number]} */ (
+		Array.from(image_data.data)
+	);
 	// Equivalently:
 	// return [image_data.data[0], image_data.data[1], image_data.data[2], image_data.data[3]];
 };
-const get_rgba_from_color = memoize_synchronous_function(get_rgba_from_color_implementation);
+const get_rgba_from_color = memoize_synchronous_function(
+	get_rgba_from_color_implementation,
+);
 
 /**
  * Compare two ImageData.
@@ -168,7 +170,7 @@ const get_rgba_from_color = memoize_synchronous_function(get_rgba_from_color_imp
  * @param {ImageData} b
  * @param {number} threshold  maximum difference in channel values
  * @returns {boolean} whether all pixels match within the specified threshold
-*/
+ */
 function image_data_match(a, b, threshold) {
 	const a_data = a.data;
 	const b_data = b.data;
@@ -201,75 +203,86 @@ function image_data_match(a, b, threshold) {
  * @returns {PixelCanvas}  a new canvas element, augmented with `ctx` property, which is also augmented
  */
 function make_canvas(width, height) {
-	console.log('make canvas')
+	console.log("make canvas");
 	const image = width;
-
 
 	const new_canvas = /** @type {PixelCanvas} */ (E("canvas"));
 	const new_ctx = /** @type {PixelContext} */ (new_canvas.getContext("2d"));
 
 	new_canvas.ctx = new_ctx;
 
-	new_ctx.disable_image_smoothing = () => {
-		new_ctx.imageSmoothingEnabled = false;
-		// condition is to avoid a deprecation warning in Firefox
-		if (new_ctx.imageSmoothingEnabled !== false) {
-			// @ts-ignore
-			new_ctx.mozImageSmoothingEnabled = false;
-			// @ts-ignore
-			new_ctx.webkitImageSmoothingEnabled = false;
-			// @ts-ignore
-			new_ctx.msImageSmoothingEnabled = false;
-		}
-	};
-	new_ctx.enable_image_smoothing = () => {
-		new_ctx.imageSmoothingEnabled = true;
-		if (new_ctx.imageSmoothingEnabled !== true) {
-			// @ts-ignore
-			new_ctx.mozImageSmoothingEnabled = true;
-			// @ts-ignore
-			new_ctx.webkitImageSmoothingEnabled = true;
-			// @ts-ignore
-			new_ctx.msImageSmoothingEnabled = true;
-		}
-	};
+	new_ctx.imageSmoothingEnabled = false;
+	// condition is to avoid a deprecation warning in Firefox
+	if (new_ctx.imageSmoothingEnabled !== false) {
+		// @ts-ignore
+		new_ctx.mozImageSmoothingEnabled = false;
+		// @ts-ignore
+		new_ctx.webkitImageSmoothingEnabled = false;
+		// @ts-ignore
+		new_ctx.msImageSmoothingEnabled = false;
+	}
 
 	// @TODO: simplify the abstraction by defining setters for width/height
 	// that reset the image smoothing to disabled
 	// and make image smoothing a parameter to make_canvas
-
-	new_ctx.copy = (image) => {
-		// @ts-ignore
-		new_canvas.width = image.naturalWidth || image.width;
-		// @ts-ignore
-		new_canvas.height = image.naturalHeight || image.height;
-
-		// setting width/height resets image smoothing (along with everything)
-		new_ctx.disable_image_smoothing();
-
-		if (image instanceof ImageData) {
-			new_ctx.putImageData(image, 0, 0);
-		} else {
-			new_ctx.drawImage(image, 0, 0);
-		}
-	};
-
+	
 	if (width && height) {
 		// make_canvas(width, height)
 		new_canvas.width = width;
 		new_canvas.height = height;
-		// setting width/height resets image smoothing (along with everything)
-		new_ctx.disable_image_smoothing();
 	} else if (image) {
-		// make_canvas(image)
-		new_ctx.copy(image);
+		drawcopy(new_ctx,image)
 	}
 
 	return new_canvas;
 }
 
 
+export function setDefaultCanvas(canvas, width, height){
+	console.log("setting canvas");
+	const image = width;
 
+	const new_canvas = canvas
+	const new_ctx = new_canvas.getContext("2d");
+
+	new_canvas.ctx = new_ctx;
+
+	new_ctx.imageSmoothingEnabled = false;
+	// condition is to avoid a deprecation warning in Firefox
+	if (new_ctx.imageSmoothingEnabled !== false) {
+		// @ts-ignore
+		new_ctx.mozImageSmoothingEnabled = false;
+		// @ts-ignore
+		new_ctx.webkitImageSmoothingEnabled = false;
+		// @ts-ignore
+		new_ctx.msImageSmoothingEnabled = false;
+	}
+
+	if (width && height) {
+		// make_canvas(width, height)
+		new_canvas.width = width;
+		new_canvas.height = height;
+	} else if (image) {
+		drawcopy(new_ctx,image)
+	}
+
+	return new_canvas;
+}
+
+export function drawcopy(ctx, image) {
+	const canvas = ctx.canvas;
+
+	// @ts-ignore
+	canvas.width = image.naturalWidth || image.width;
+	// @ts-ignore
+	canvas.height = image.naturalHeight || image.height;
+
+	if (image instanceof ImageData) {
+		ctx.putImageData(image, 0, 0);
+	} else {
+		ctx.drawImage(image, 0, 0);
+	}
+}
 
 /**
  * @param {string} file_name  name of an image file in the help/ folder, including extension
@@ -298,8 +311,12 @@ function load_image_simple(src) {
 	return new Promise((resolve, reject) => {
 		const img = new Image();
 
-		img.onload = () => { resolve(img); };
-		img.onerror = () => { reject(new Error(`failed to load image from ${src}`)); };
+		img.onload = () => {
+			resolve(img);
+		};
+		img.onerror = () => {
+			reject(new Error(`failed to load image from ${src}`));
+		};
 
 		img.src = src;
 	});
@@ -315,16 +332,17 @@ function get_icon_for_tools(tools) {
 	}
 	const icon_canvas = make_canvas(16, 16);
 
-	Promise.all(tools.map((tool) => load_image_simple(`help/${tool.help_icon}`)))
-		.then((icons) => {
-			icons.forEach((icon, i) => {
-				const w = icon_canvas.width / icons.length;
-				const x = i * w;
-				const h = icon_canvas.height;
-				const y = 0;
-				icon_canvas.ctx.drawImage(icon, x, y, w, h, x, y, w, h);
-			});
+	Promise.all(
+		tools.map((tool) => load_image_simple(`help/${tool.help_icon}`)),
+	).then((icons) => {
+		icons.forEach((icon, i) => {
+			const w = icon_canvas.width / icons.length;
+			const x = i * w;
+			const h = icon_canvas.height;
+			const y = 0;
+			icon_canvas.ctx.drawImage(icon, x, y, w, h, x, y, w, h);
 		});
+	});
 	return icon_canvas;
 }
 
@@ -366,10 +384,15 @@ function get_format_from_extension(formats, file_path_or_name_or_ext) {
  * @return  {[number, number, number]}  The HSL representation
  */
 function rgb_to_hsl(r, g, b) {
-	r /= 255; g /= 255; b /= 255;
+	r /= 255;
+	g /= 255;
+	b /= 255;
 
-	var max = Math.max(r, g, b), min = Math.min(r, g, b);
-	var h, s, l = (max + min) / 2;
+	var max = Math.max(r, g, b),
+		min = Math.min(r, g, b);
+	var h,
+		s,
+		l = (max + min) / 2;
 
 	if (max == min) {
 		h = s = 0; // achromatic
@@ -378,9 +401,15 @@ function rgb_to_hsl(r, g, b) {
 		s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
 		switch (max) {
-			case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-			case g: h = (b - r) / d + 2; break;
-			case b: h = (r - g) / d + 4; break;
+			case r:
+				h = (g - b) / d + (g < b ? 6 : 0);
+				break;
+			case g:
+				h = (b - r) / d + 2;
+				break;
+			case b:
+				h = (r - g) / d + 4;
+				break;
 		}
 
 		h /= 6;
@@ -396,50 +425,59 @@ function rgb_to_hsl(r, g, b) {
  */
 function to_canvas_coords(event) {
 	//console.log(event.pointerId)
-	
+
 	let clientX, clientY;
-	if(event.type == 'touchmove'){
+	if (event.type == "touchmove") {
 		clientX = event.touches[0].clientX;
 		clientY = event.touches[0].clientY;
-	}else{
+	} else {
 		clientX = event.clientX;
 		clientY = event.clientY;
 	}
 	if (clientX === undefined || clientY === undefined) {
-		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
+		throw new TypeError(
+			"clientX and clientY must be defined (not {x, y} or x, y or [x, y])",
+		);
 	}
 	const rect = PaintJSState.canvas_bounding_client_rect;
 
 	// 연필이면 정수로 ~~
 	return {
-		x: ~~((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
-		y: ~~((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
+		x: ~~(
+			((clientX - rect.left) / rect.width) *
+			PaintJSState.main_canvas.width
+		),
+		y: ~~(
+			((clientY - rect.top) / rect.height) *
+			PaintJSState.main_canvas.height
+		),
 	};
 }
 
 function to_canvas_coords_magnification(event) {
-//	console.log('mag:',event.pointerId)
+	//	console.log('mag:',event.pointerId)
 
 	let clientX, clientY;
-	if(event.type == 'touchmove'){
+	if (event.type == "touchmove") {
 		clientX = event.touches[0].clientX;
 		clientY = event.touches[0].clientY;
-	}else{
+	} else {
 		clientX = event.clientX;
 		clientY = event.clientY;
 	}
 	if (clientX === undefined || clientY === undefined) {
-		throw new TypeError("clientX and clientY must be defined (not {x, y} or x, y or [x, y])");
+		throw new TypeError(
+			"clientX and clientY must be defined (not {x, y} or x, y or [x, y])",
+		);
 	}
 	const rect = PaintJSState.canvas_bounding_client_rect;
 
 	// 연필이면 정수로 ~~
 	return {
-		x: ((clientX - rect.left) / rect.width * PaintJSState.main_canvas.width),
-		y: ((clientY - rect.top) / rect.height * PaintJSState.main_canvas.height),
+		x: ((clientX - rect.left) / rect.width) * PaintJSState.main_canvas.width,
+		y: ((clientY - rect.top) / rect.height) * PaintJSState.main_canvas.height,
 	};
 }
-
 
 export {
 	E,
@@ -459,6 +497,5 @@ export {
 	render_access_key,
 	rgb_to_hsl,
 	to_canvas_coords,
-	to_canvas_coords_magnification
+	to_canvas_coords_magnification,
 };
-

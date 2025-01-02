@@ -1,7 +1,7 @@
 import { get_tool_by_id, make_history_node } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
 import { default_palette } from "./src/color-data.js";
-import { make_canvas } from "./src/helpers.js";
+import { setDefaultCanvas } from "./src/helpers.js";
 
 export function defaultState() {
   const default_magnification = 1;
@@ -21,15 +21,15 @@ export function defaultState() {
   let return_to_magnification = 4;
 
   /** @type {PixelCanvas} */
-  const main_canvas = make_canvas();
-  main_canvas.classList.add("main-canvas");
+  const main_canvas = setDefaultCanvas(document.getElementsByClassName('main-canvas')[0])
+ // main_canvas.classList.add("main-canvas");
 
   /** @type {PixelContext} */
   const main_ctx = main_canvas.ctx;
 
   /** @type {PixelCanvas} */
-  const mask_canvas = make_canvas();
-  mask_canvas.classList.add("mask-canvas");
+ // const mask_canvas =setDefaultCanvas($('.mask-canvas')[0])
+ // mask_canvas.classList.add("mask-canvas");
 
   /** @type {(string | CanvasPattern)[]} */
   let palette = default_palette;
