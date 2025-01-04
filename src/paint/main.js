@@ -8,6 +8,7 @@ class Paint {
 
     create(canvasAreaQuery = '.canvas-area') {
         createApp(canvasAreaQuery);
+        window.PaintJSState=PaintJSState;
     }
 }
 

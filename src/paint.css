@@ -438,10 +438,7 @@ html, body, .jspaint {
   overflow: auto;
   direction: ltr/*rtl:ignore*/;
 }
-.main-canvas {
-  position: absolute;
-  z-index: 2;
-}
+
 .canvas-area .handle {
   position: absolute;
   width: 5px;
@@ -1022,18 +1019,6 @@ body {
   font-size: 15px;
 }
 
-.canvas-area > canvas {
-  /* background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC") repeat; */
-  /* 16px is a common grid size, but that gives 8px grid cells, and our max zoom is 8x */
-  /*background-size: 16px;*/
-  /* background-size: 8px; */
-}
-.main-canvas {
-  /* background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC") repeat; */
-  /* 16px is a common grid size, but that gives 8px grid cells, and our max zoom is 8x */
-  /*background-size: 16px;*/
-  /* background-size: 8px; */
-}
 
 @media (min-resolution: 1x) {
   .selection canvas,

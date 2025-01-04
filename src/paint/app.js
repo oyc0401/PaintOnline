@@ -669,7 +669,7 @@ export function initApp(canvasAreaQuery) {
               1,
               PaintJSState.my_canvas_height,
             );
-            if (!PaintJSState.transparency) {
+            if (canvas.className == "layer background") {
               PaintJSState.main_ctx.fillStyle =
                 PaintJSState.selected_colors.background;
               PaintJSState.main_ctx.fillRect(
@@ -678,6 +678,11 @@ export function initApp(canvasAreaQuery) {
                 PaintJSState.main_canvas.width,
                 PaintJSState.main_canvas.height,
               );
+            }
+            if (canvas.className == "layer background") {
+              ctx.fillStyle = PaintJSState.selected_colors.background;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.clearRect(0, 0, beforeWidth, beforeHeight);
             }
             $canvas_area.trigger("resize");
           },
@@ -702,7 +707,7 @@ export function initApp(canvasAreaQuery) {
       );
     }
   }
-  manageStorage();
+ // manageStorage();
 
   $canvas_area.on("scroll", function () {
     // 사용자가 직접 스크롤할 때는 실제 scrollLeft/scrollTop 값을 가져와

@@ -1,18 +1,20 @@
 import { initApp } from "./app.js";
-import { initSession,initSessions } from "./session.js";
+import { initSession} from "./session.js";
 import { defaultState } from "./defaultState.js";
 import { observable, reaction ,configure,runInAction} from 'mobx';
 import { PaintJSState } from "./state.js";
 
-export function createApp(canvasAreaQuery = '.canvas-area') {
+export async function createApp(canvasAreaQuery = '.canvas-area') {
     initState();
+    await initSession();
     initApp(canvasAreaQuery);
   //      initSessions();
-    initSession()
+    
 }
 
 function initState(){
-    runInAction(() => {
+   // PaintJSState = new Proxy(defaultState(), handler);
+   // runInAction(() => {
         Object.assign(PaintJSState, defaultState());
-    });
+    //});
 }

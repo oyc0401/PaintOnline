@@ -1,41 +1,55 @@
+// openDB.js
+
 let dbInstance = null;
+let dbPromise = null;
 
 /**
- * 내부적으로 DB를 열어서 Object Store를 얻는 헬퍼 함수
+ * 내부적으로 DB를 열어서 Object Store를 얻는 비동기 헬퍼 함수
+ * @returns {Promise<IDBDatabase>}
  */
-function openDB(callback) {
+export async function openDB() {
   if (dbInstance) {
-    callback(null, dbInstance);
-    return;
+    return dbInstance;
   }
 
-  const request = indexedDB.open("CanvasDatabase", 1); // 최신 버전으로 설정
+  if (dbPromise) {
+    return dbPromise;
+  }
 
-  request.onupgradeneeded = (event) => {
-    const db = event.target.result;
+  dbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open("CanvasDatabase", 1); // 최신 버전으로 설정
 
-    // canvas 스토어가 없으면 생성
-    if (!db.objectStoreNames.contains("canvas")) {
-      db.createObjectStore("canvas", { keyPath: "fileId" });
-    }
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
 
-    // layers 스토어가 없으면 생성
-    if (!db.objectStoreNames.contains("layers")) {
-      const store = db.createObjectStore("layers", { keyPath: "layerId" });
-      // fileId로 검색하기 위한 인덱스 생성
-      store.createIndex("fileId_idx", "fileId", { unique: false });
-    }
+      // "canvas" Object Store 생성
+      if (!db.objectStoreNames.contains("canvas")) {
+        db.createObjectStore("canvas", { keyPath: "fileId" });
+      }
 
-  };
+      // "layers" Object Store 생성 및 인덱스 추가
+      if (!db.objectStoreNames.contains("layers")) {
+        const store = db.createObjectStore("layers", { keyPath: "layerId" });
+        store.createIndex("fileId_idx", "fileId", { unique: false });
+      }
+    };
 
-  request.onsuccess = (event) => {
-    dbInstance = event.target.result;
-    callback(null, dbInstance);
-  };
+    request.onsuccess = (event) => {
+      dbInstance = event.target.result;
 
-  request.onerror = (event) => {
-    callback(event.target.error);
-  };
+      // DB 연결 종료 시 dbInstance 초기화
+      dbInstance.onclose = () => {
+        dbInstance = null;
+        dbPromise = null;
+      };
+
+      resolve(dbInstance);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+
+  return dbPromise;
 }
-
-export { openDB };

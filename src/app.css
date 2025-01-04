@@ -46,3 +46,21 @@ html, body{
   left: 0;
   top: 0;
 }
+
+.background {
+  position: absolute;
+  z-index: 1;
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
+    repeat;
+  /* 16px is a common grid size, but that gives 8px grid cells, and our max zoom is 8x */
+  /*background-size: 16px;*/
+  background-size: 8px;
+  left:500px;
+}
+
+.layer-area{
+  position: absolute;
+  z-index: 0;
+  width:800px;
+  height: 600px;
+}

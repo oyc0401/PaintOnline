@@ -44,13 +44,13 @@ import {
 	tools,
 } from "./tools.js";
 import $ from "jquery";
-import { PaintJSState } from "../state";
+import { PaintJSState,PaintMobXState } from "../state";
 // `sessions.js` must be loaded after `app.js`
 // This would cause it to be loaded earlier, and error trying to access `undos`
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-import { new_local_session,newLocalFile } from "../session.js";
+import { newLocalFile } from "../session.js";
 
 // expresses order in the URL as well as type
 const param_types = {
@@ -612,6 +612,8 @@ function reset_file() {
 function reset_canvas_and_history() {
 	PaintJSState.undos.length = 0;
 	PaintJSState.redos.length = 0;
+	PaintMobXState.undo_length = PaintJSState.undos.length;
+	PaintMobXState.redo_length = PaintJSState.redos.length;
 	PaintJSState.current_history_node = PaintJSState.root_history_node =
 		make_history_node({
 			name: localize("New"),
@@ -620,15 +622,30 @@ function reset_canvas_and_history() {
 	PaintJSState.history_node_to_cancel_to = null;
 
 	console.log("캔버스 리셋!");
-	PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
-	PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
-	PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
-	PaintJSState.main_ctx.fillRect(
-		0,
-		0,
-		PaintJSState.main_canvas.width,
-		PaintJSState.main_canvas.height,
-	);
+	
+	for (const layer of PaintJSState.layers) {
+		const canvas = layer.canvas;
+		const ctx = canvas.ctx;
+
+		canvas.width = Math.max(1, PaintJSState.my_canvas_width);
+		canvas.height = Math.max(1, PaintJSState.my_canvas_height);
+
+		if (canvas.className == "layer background") {
+			ctx.fillStyle = PaintJSState.selected_colors.background;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+		}
+	}
+	
+	// PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
+	// PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
+	// PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
+	// PaintJSState.main_ctx.fillRect(
+	// 	0,
+	// 	0,
+	// 	PaintJSState.main_canvas.width,
+	// 	PaintJSState.main_canvas.height,
+	// );
 
 	///
 	// PaintJSState.mask_layer.canvas.width = Math.max(1, PaintJSState.my_canvas_width);
@@ -950,7 +967,7 @@ function open_from_image_info(
 				$(window).triggerHandler("session-update"); // autosave old session
 				console.log("세션초기화");
 				// new_local_session();
-				newLocalFile()
+				newLocalFile();
 			}
 
 			reset_file();
@@ -1096,7 +1113,7 @@ function file_new() {
 
 		$(window).triggerHandler("session-update"); // autosave old session
 		//new_local_session();
-		newLocalFile()
+		newLocalFile();
 
 		reset_file();
 		reset_selected_colors();
@@ -1831,6 +1848,8 @@ function undoable(
 
 	PaintJSState.redos.length = 0;
 	PaintJSState.undos.push(PaintJSState.current_history_node);
+	PaintMobXState.undo_length = PaintJSState.undos.length;
+	PaintMobXState.redo_length = PaintJSState.redos.length;
 
 	const new_history_node = make_history_node({
 		image_data,
@@ -1913,6 +1932,9 @@ function undo() {
 	}
 	console.log("end undo!");
 	go_to_history_node(target_history_node);
+	
+	PaintMobXState.undo_length = PaintJSState.undos.length;
+	PaintMobXState.redo_length = PaintJSState.redos.length;
 
 	return true;
 }
@@ -1937,6 +1959,9 @@ function redo() {
 
 	console.log("end redo!");
 	go_to_history_node(target_history_node);
+
+	PaintMobXState.undo_length = PaintJSState.undos.length;
+	PaintMobXState.redo_length = PaintJSState.redos.length;
 
 	return true;
 }
@@ -2493,23 +2518,33 @@ function clear() {
 			PaintJSState.saved = false;
 			update_title();
 
-			if (PaintJSState.transparency) {
-				PaintJSState.main_ctx.clearRect(
-					0,
-					0,
-					PaintJSState.main_canvas.width,
-					PaintJSState.main_canvas.height,
-				);
-			} else {
-				PaintJSState.main_ctx.fillStyle =
-					PaintJSState.selected_colors.background;
-				PaintJSState.main_ctx.fillRect(
-					0,
-					0,
-					PaintJSState.main_canvas.width,
-					PaintJSState.main_canvas.height,
-				);
+			for (const layer of PaintJSState.layers) {
+				const canvas = layer.canvas;
+				const ctx = canvas.ctx;
+				if (canvas.className == "layer background") {
+					ctx.fillStyle = PaintJSState.selected_colors.background;
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+				}
 			}
+			
+			// if (PaintJSState.transparency) {
+			// 	PaintJSState.main_ctx.clearRect(
+			// 		0,
+			// 		0,
+			// 		PaintJSState.main_canvas.width,
+			// 		PaintJSState.main_canvas.height,
+			// 	);
+			// } else {
+			// 	PaintJSState.main_ctx.fillStyle =
+			// 		PaintJSState.selected_colors.background;
+			// 	PaintJSState.main_ctx.fillRect(
+			// 		0,
+			// 		0,
+			// 		PaintJSState.main_canvas.width,
+			// 		PaintJSState.main_canvas.height,
+			// 	);
+			// }
 		},
 	);
 }
@@ -2791,30 +2826,30 @@ function make_stripe_pattern(reverse, colors, stripe_size = 4) {
 function switch_to_polychrome_palette() {}
 
 function make_opaque() {
-	undoable(
-		{
-			name: "Make Opaque",
-			icon: get_help_folder_icon("p_make_opaque.png"),
-		},
-		() => {
-			PaintJSState.main_ctx.save();
-			PaintJSState.main_ctx.globalCompositeOperation = "destination-atop";
+	// undoable(
+	// 	{
+	// 		name: "Make Opaque",
+	// 		icon: get_help_folder_icon("p_make_opaque.png"),
+	// 	},
+	// 	() => {
+	// 		PaintJSState.main_ctx.save();
+	// 		PaintJSState.main_ctx.globalCompositeOperation = "destination-atop";
 
-			PaintJSState.main_ctx.fillStyle = "white";
-			PaintJSState.main_ctx.fillRect(
-				0,
-				0,
-				PaintJSState.main_canvas.width,
-				PaintJSState.main_canvas.height,
-			);
+	// 		PaintJSState.main_ctx.fillStyle = "white";
+	// 		PaintJSState.main_ctx.fillRect(
+	// 			0,
+	// 			0,
+	// 			PaintJSState.main_canvas.width,
+	// 			PaintJSState.main_canvas.height,
+	// 		);
 
-			// in case the selected background color is transparent/translucent
-			// PaintJSState.main_ctx.fillStyle = "white";
-			// PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
+	// 		// in case the selected background color is transparent/translucent
+	// 		// PaintJSState.main_ctx.fillStyle = "white";
+	// 		// PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
 
-			PaintJSState.main_ctx.restore();
-		},
-	);
+	// 		PaintJSState.main_ctx.restore();
+	// 	},
+	// );
 }
 
 /**
@@ -2845,14 +2880,14 @@ function resize_canvas_without_saving_dimensions(
 					const beforeWidth = PaintJSState.main_canvas.width;
 					const beforeHeight = PaintJSState.main_canvas.height;
 
-					const image_data = PaintJSState.main_ctx.getImageData(
-						0,
-						0,
-						new_width,
-						new_height,
-					);
-					PaintJSState.main_canvas.width = new_width;
-					PaintJSState.main_canvas.height = new_height;
+					// const image_data = PaintJSState.main_ctx.getImageData(
+					// 	0,
+					// 	0,
+					// 	new_width,
+					// 	new_height,
+					// );
+					//PaintJSState.main_canvas.width = new_width;
+					//PaintJSState.main_canvas.height = new_height;
 
 					PaintJSState.$layer_area.css("width", new_width); // '500px'로 설정
 					PaintJSState.$layer_area.css("height", new_height); // '500px'로 설정
@@ -2865,7 +2900,7 @@ function resize_canvas_without_saving_dimensions(
 						canvas.width = new_width;
 						canvas.height = new_height;
 
-						if (canvas.className=='layer background') {
+						if (canvas.className == "layer background") {
 							ctx.fillStyle = PaintJSState.selected_colors.background;
 							ctx.fillRect(0, 0, canvas.width, canvas.height);
 							ctx.clearRect(0, 0, beforeWidth, beforeHeight);
@@ -2875,20 +2910,20 @@ function resize_canvas_without_saving_dimensions(
 						ctx.drawImage(temp_canvas, 0, 0);
 					}
 
-					if (!PaintJSState.transparency) {
-						PaintJSState.main_ctx.fillStyle =
-							PaintJSState.selected_colors.background;
-						PaintJSState.main_ctx.fillRect(
-							0,
-							0,
-							PaintJSState.main_canvas.width,
-							PaintJSState.main_canvas.height,
-						);
-						PaintJSState.main_ctx.clearRect(0, 0, beforeWidth, beforeHeight);
-					}
+					// if (!PaintJSState.transparency) {
+					// 	PaintJSState.main_ctx.fillStyle =
+					// 		PaintJSState.selected_colors.background;
+					// 	PaintJSState.main_ctx.fillRect(
+					// 		0,
+					// 		0,
+					// 		PaintJSState.main_canvas.width,
+					// 		PaintJSState.main_canvas.height,
+					// 	);
+					// 	PaintJSState.main_ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+					// }
 
-					const temp_canvas = make_canvas(image_data);
-					PaintJSState.main_ctx.drawImage(temp_canvas, 0, 0);
+					// const temp_canvas = make_canvas(image_data);
+					// PaintJSState.main_ctx.drawImage(temp_canvas, 0, 0);
 				} catch (exception) {
 					if (exception.name === "NS_ERROR_FAILURE") {
 						// or localize("There is not enough memory or resources to complete operation.")

@@ -2,6 +2,7 @@ import { get_tool_by_id, make_history_node } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
 import { default_palette } from "./src/color-data.js";
 import { setDefaultCanvas ,make_canvas} from "./src/helpers.js";
+import $ from "jquery";
 
 export function defaultState() {
   const default_magnification = 1;
@@ -24,10 +25,11 @@ export function defaultState() {
   const main_canvas = make_canvas(default_canvas_width, default_canvas_height);
  main_canvas.classList.add("main-canvas");
 
-  
-
   /** @type {PixelContext} */
   const main_ctx = main_canvas.ctx;
+
+  const $layer_area = $('.layer-area');
+ 
 
   /** @type {PixelCanvas} */
  // const mask_canvas =setDefaultCanvas($('.mask-canvas')[0])
@@ -287,6 +289,7 @@ let touchCount=0;
     position_object_y,
     layers,
     activeLayerIndex,
+    $layer_area,
   };
 }
 

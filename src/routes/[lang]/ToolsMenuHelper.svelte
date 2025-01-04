@@ -5,7 +5,7 @@
   import { menuState } from "$store/menuState.svelte.js";
   import { reaction } from "mobx";
 
-  import { PaintJSState } from "$paint/state";
+  import { PaintJSState,PaintMobXState } from "$paint/state";
 
   import { closeDropdown } from "$store/paintFunction.js";
 
@@ -22,14 +22,14 @@
     };
 
     reaction(
-      () => PaintJSState.undos.length, // 감시할 상태
+      () => PaintMobXState.undo_length, // 감시할 상태
       (newValue) => {
         menuState.undoLength = newValue;
         console.log("undo:", newValue);
       },
     );
     reaction(
-      () => PaintJSState.redos.length, // 감시할 상태
+      () => PaintMobXState.redo_length, // 감시할 상태
       (newValue) => {
         menuState.redoLength = newValue;
         console.log("redo:", newValue);
