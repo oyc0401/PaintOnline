@@ -12,7 +12,7 @@ const localStore = {
 	 * @param {((error: Error, value_or_values?: string) => void) | ((error: Error, value_or_values?: Record<string, string>) => void)} callback
 	 */
 	get(key_or_keys_or_pairs, callback) {
-		const request = indexedDB.open('MyDatabase', 1);
+		const request = indexedDB.open('MyDatabase', 2);
 
 		request.onupgradeneeded = function (event) {
 			const db = event.target.result;
@@ -85,7 +85,7 @@ const localStore = {
 	 * @param {(error: Error) => void} [callback]
 	 */
 	set(key_or_pairs, value_or_callback, callback) {
-		const request = indexedDB.open('MyDatabase', 1);
+		const request = indexedDB.open('MyDatabase', 2);
 
 		request.onupgradeneeded = function (event) {
 			const db = event.target.result;

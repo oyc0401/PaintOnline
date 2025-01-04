@@ -50,7 +50,7 @@ import { PaintJSState } from "../state";
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-import { new_local_session } from "../session.js";
+import { new_local_session,newLocalFile } from "../session.js";
 
 // expresses order in the URL as well as type
 const param_types = {
@@ -949,7 +949,8 @@ function open_from_image_info(
 			if (!into_existing_session) {
 				$(window).triggerHandler("session-update"); // autosave old session
 				console.log("세션초기화");
-				new_local_session();
+				// new_local_session();
+				newLocalFile()
 			}
 
 			reset_file();
@@ -1094,7 +1095,8 @@ function file_new() {
 		cancel();
 
 		$(window).triggerHandler("session-update"); // autosave old session
-		new_local_session();
+		//new_local_session();
+		newLocalFile()
 
 		reset_file();
 		reset_selected_colors();
@@ -2852,6 +2854,27 @@ function resize_canvas_without_saving_dimensions(
 					PaintJSState.main_canvas.width = new_width;
 					PaintJSState.main_canvas.height = new_height;
 
+					PaintJSState.$layer_area.css("width", new_width); // '500px'로 설정
+					PaintJSState.$layer_area.css("height", new_height); // '500px'로 설정
+
+					for (const layer of PaintJSState.layers) {
+						const canvas = layer.canvas;
+						const ctx = canvas.ctx;
+						const image_data = ctx.getImageData(0, 0, new_width, new_height);
+
+						canvas.width = new_width;
+						canvas.height = new_height;
+
+						if (canvas.className=='layer background') {
+							ctx.fillStyle = PaintJSState.selected_colors.background;
+							ctx.fillRect(0, 0, canvas.width, canvas.height);
+							ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+						}
+
+						const temp_canvas = make_canvas(image_data);
+						ctx.drawImage(temp_canvas, 0, 0);
+					}
+
 					if (!PaintJSState.transparency) {
 						PaintJSState.main_ctx.fillStyle =
 							PaintJSState.selected_colors.background;
@@ -2993,7 +3016,7 @@ function show_convert_to_black_and_white() {
 					icon: get_help_folder_icon("p_color.png"),
 				},
 				() => {
-					drawcopy(PaintJSState.main_ctx,original_canvas);
+					drawcopy(PaintJSState.main_ctx, original_canvas);
 				},
 			);
 		}
@@ -3803,7 +3826,7 @@ function update_from_saved_file(blob) {
 				assume_saved: true, // prevent setting saved to false
 			},
 			() => {
-				drawcopy(PaintJSState.main_ctx,info.image || info.image_data);
+				drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
 			},
 		);
 	});

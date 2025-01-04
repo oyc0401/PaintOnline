@@ -40,3 +40,9 @@ html, body{
 .helper-layer canvas {
   left:600px !important;
 } */
+
+.layer{
+  position: absolute;
+  left: 0;
+  top: 0;
+}

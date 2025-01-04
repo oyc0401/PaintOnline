@@ -1,25 +1,316 @@
 import { showMessageBox } from "./src/msgbox.js";
 import {
-
    show_error_message,
    change_url_param,
    get_uris,
    load_image_from_uri,
    show_resource_load_error_message,
    open_from_image_info,
-
 } from "./src/functions.js";
-import $ from 'jquery'
-import {debounce} from "./src/helpers.js";
+import $ from "jquery";
+import { debounce, make_canvas } from "./src/helpers.js";
 
 import { localStore } from "./src/storage.js";
-import { localize } from "../localize/localize.js";
+import { keyStore } from "./keyStorage.js";
 import { PaintJSState } from "./state.js";
+import { layerRepository } from "./layerRepository.js";
+import { canvasRepository } from "./canvasRepository.js";
 
+/**
+ * 전역으로 현재 파일 ID
+ */
+let currentFileId = null;
+
+// --------------------------- 세션 초기화 ---------------------------
+
+export function initSession() {
+   console.log("initSession");
+
+   // 1) 최근에 사용하던 fileId 불러오기
+   keyStore.get("recent_key", (err, storedFileId) => {
+      if (err) {
+         console.error("Failed to retrieve recent_key:", err);
+         // 에러가 나면 새 파일 ID 만들어서 진행
+         storedFileId = generateFileId();
+      }
+
+      if (!storedFileId) {
+         // 저장된게 없으면 새 파일 ID
+         storedFileId = generateFileId();
+      }
+
+      // 전역 변수에 현재 파일 ID 저장
+      currentFileId = storedFileId;
+
+      // 다시 recent_key 갱신
+      keyStore.set("recent_key", currentFileId, (setErr) => {
+         if (setErr) {
+            console.error("Failed to set recent_key:", setErr);
+         }
+      });
+
+      // 2) 파일 로드
+      loadFileFromRepositories(currentFileId);
+   });
+
+   // 레이어 변경(그리기 등) 시에 저장
+   window.addEventListener("session-update", () => {
+      // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
+      saveFileSoon();
+   });
+}
+
+/**
+ * 파일 ID에 해당하는 레이어 목록과 캔버스 데이터를 로드 후,
+ * PaintJSState에 반영
+ * @param {string} fileId
+ */
+function loadFileFromRepositories(fileId) {
+   // 1) 캔버스 정보 로드
+   canvasRepository.getCanvas(fileId, (canvasErr, canvasInfo) => {
+      if (canvasErr) {
+         console.error(
+            "Failed to retrieve canvas info from canvasRepository:",
+            canvasErr,
+         );
+         // 에러 시 기본 캔버스 정보 설정
+         canvasInfo = { width: PaintJSState.default_canvas_width, height: PaintJSState.default_canvas_height };
+         // 필요에 따라 기본 캔버스를 저장할 수도 있습니다.
+         canvasRepository.setCanvas(fileId, canvasInfo, (setErr) => {
+            if (setErr) {
+               console.error("Failed to set default canvas info:", setErr);
+            }
+         });
+      }
+
+      const width = canvasInfo ? canvasInfo.width : PaintJSState.default_canvas_width;
+      const height = canvasInfo ? canvasInfo.height : PaintJSState.default_canvas_height;
+
+      // 2) 레이어 메타데이터 로드
+      layerRepository.getLayers(fileId, (layerErr, layerList) => {
+         if (layerErr) {
+            console.error(
+               "Failed to retrieve layers from layerRepository:",
+               layerErr,
+            );
+            // 에러 시 기본 레이어 생성
+            createDefaultLayers();
+         } else if (!layerList || layerList.length === 0) {
+            // 레이어 정보가 없는 경우 => 기본 레이어 생성
+            createDefaultLayers();
+         } else {
+            // 3) PaintJSState.layers 초기화
+            PaintJSState.layers.length = 0;
+
+            // 4) 각 레이어에 대해 PaintJSState.layers에 추가
+            layerList.forEach((layerMeta, index) => {
+               const {
+                  layerId,
+                  name,
+                  dataURL,
+                  width: layerWidth,
+                  height: layerHeight,
+               } = layerMeta;
+
+               // canvasRepository에 저장된 width, height를 우선 사용, 없으면 기본값 사용
+               const layerW = layerWidth || width;
+               const layerH = layerHeight || height;
+
+               const canvas = make_canvas(layerW, layerH);
+               const ctx = canvas.ctx;
+
+               if (dataURL) {
+                  const image = new Image();
+                  image.onload = () => {
+                     ctx.drawImage(image, 0, 0);
+                  };
+                  image.src = dataURL;
+               } else {
+                  // 기본 흰색으로 채우기
+                  ctx.fillStyle = "#ffffff";
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+               }
+
+               PaintJSState.layers.push({
+                  canvas,
+                  ctx,
+                  name,
+                  width: layerW,
+                  height: layerH,
+               });
+            });
+         }
+         setLayer();
+         PaintJSState.activeLayerIndex = 0;
+      });
+   });
+}
+
+/**
+ * 화면에 레이어 canvas들을 배치
+ */
+function setLayer() {
+   // console.log("viewLayers", PaintJSState.layers.length);
+   // console.log('PaintJSState.$layer_area',PaintJSState.$layer_area)
+   PaintJSState.$layer_area.empty();
+   for (let i = 0; i < PaintJSState.layers.length; i++) {
+      const layer = PaintJSState.layers[i];
+      // console.log("layer", layer.canvas);
+      const zIndex = i + 2; // zIndex는 2부터 시작 (1은 background-canvas)
+      if (i == 0) {
+         $(layer.canvas)
+            .css({ zIndex })
+            .addClass("layer background")
+            .appendTo(PaintJSState.$layer_area);
+      } else {
+         $(layer.canvas)
+            .css({ zIndex })
+            .addClass("layer")
+            .appendTo(PaintJSState.$layer_area);
+      }
+   }
+
+   PaintJSState.main_canvas = PaintJSState.layers[1].canvas;
+   PaintJSState.main_ctx = PaintJSState.layers[1].ctx;
+
+   PaintJSState.$canvas_area.trigger("resize");
+}
+
+// --------------------------- 기본 레이어 생성 ---------------------------
+
+function createDefaultLayers() {
+   console.log("createDefaultLayers");
+   PaintJSState.layers.length = 0;
+
+   addBackgroundLayer(PaintJSState.layers);
+   addLayer(PaintJSState.layers);
+   PaintJSState.activeLayerIndex = 1;
+
+   // 생성 직후 저장
+   saveFileImmediately();
+}
+
+function addBackgroundLayer(layers) {
+   const canvas = make_canvas(PaintJSState.default_canvas_width, PaintJSState.default_canvas_height);
+   const ctx = canvas.ctx;
+   ctx.fillStyle = "#ffffff";
+   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+   layers.push({
+      canvas,
+      ctx,
+      name: "BackgroundLayer",
+      width: PaintJSState.default_canvas_width,
+      height: PaintJSState.default_canvas_height,
+   });
+}
+
+function addLayer(layers) {
+   const canvas = make_canvas(PaintJSState.default_canvas_width, PaintJSState.default_canvas_height);
+   const ctx = canvas.ctx;
+   ctx.fillStyle = "#ffffff";
+   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+   layers.push({
+      canvas,
+      ctx,
+      name: "Layer1",
+      width: PaintJSState.default_canvas_width,
+      height: PaintJSState.default_canvas_height,
+   });
+}
+
+// --------------------------- 저장 로직 ---------------------------
+
+const saveFileSoon = debounce(saveFileImmediately, 100);
+
+/**
+ * 실제로 IndexedDB에 즉시 저장
+ * - canvasRepository를 통해 캔버스 정보 저장
+ * - layerRepository를 통해 각 레이어별 그림과 크기 저장
+ */
+function saveFileImmediately() {
+   if (!currentFileId) {
+      currentFileId = generateFileId();
+      keyStore.set("recent_key", currentFileId, (err) => {
+         if (err) {
+            console.error("Failed to set recent_key:", err);
+         }
+      });
+   }
+
+   console.log("saveFileImmediately for fileId =", currentFileId);
+
+   // 1) 캔버스 정보 저장
+   const activeCanvas = PaintJSState.layers[0]; // 예: 첫 번째 레이어가 배경 캔버스
+   canvasRepository.setCanvas(
+      currentFileId,
+      {
+         width: activeCanvas.width,
+         height: activeCanvas.height,
+      },
+      (err) => {
+         if (err) {
+            console.error("Failed to save canvas info:", err);
+         } else {
+            console.log("Canvas info saved.");
+         }
+      },
+   );
+
+   // 2) 레이어 메타데이터 저장
+   const layerList = PaintJSState.layers.map((layer) => ({
+      layerId: generateLayerId(),
+      name: layer.name,
+      fileId: currentFileId,
+      dataURL: layer.canvas.toDataURL("image/png")
+   }));
+   layerRepository.setLayers(currentFileId, layerList, (err) => {
+      if (err) {
+         console.error("Failed to save layers metadata:", err);
+      } else {
+         console.log("Layers metadata saved.");
+      }
+   });
+}
+
+// --------------------------- 세션 종료 / 새 파일 ---------------------------
+
+export function endSession() {
+   saveFileSoon.cancel();
+   saveFileImmediately();
+   console.log("Session ended.");
+}
+
+/**
+ * 새 fileId 생성
+ */
+function generateFileId() {
+   return Math.random().toString(36).substr(2, 9);
+}
+
+/**
+ * 고유한 layerId 생성
+ */
+function generateLayerId() {
+   return `layer_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+export function newLocalFile() {
+   endSession();
+   console.log("Creating new file...");
+   currentFileId = generateFileId();
+   keyStore.set("recent_key", currentFileId, (err) => {
+      if (err) {
+         console.error("Failed to set recent_key:", err);
+      }
+   });
+   createDefaultLayers();
+}
 
 ////////////////////////////////////////////////////////
 
-export function initSesstion() {
+export function initSessions() {
    console.log("initSesstion");
 
    const log = (...args) => window.console?.log(...args);
@@ -57,13 +348,12 @@ export function initSesstion() {
       let save_paused = false;
       if (!canvas_has_any_apparent_image_data()) {
          if (!window_is_open) {
-            alert('show_recovery_window();')
-            
+            alert("show_recovery_window();");
          }
          save_paused = true;
       } else if (window_is_open) {
          if (PaintJSState.undos.length > last_undos_length) {
-            alert('show_recovery_window(true);')
+            alert("show_recovery_window(true);");
          }
          save_paused = true;
       }
@@ -121,8 +411,8 @@ export function initSesstion() {
             } else if (uri) {
                load_image_from_uri(uri).then(
                   (info) => {
-                     console.log('info')
-                     console.log(info)
+                     console.log("info");
+                     console.log(info);
                      open_from_image_info(info, null, null, true, true);
                   },
                   (error) => {
@@ -151,8 +441,6 @@ export function initSesstion() {
    }
 
    // Handle the starting, switching, and ending of sessions from the location.hash
-
-   
 
    const update_session_from_location_hash = () => {
       const session_match = location.hash.match(
@@ -196,7 +484,7 @@ export function initSesstion() {
             if (local) {
                log(`Starting a new LocalSession, ID: ${session_id}`);
                current_session = new LocalSession(session_id);
-            } 
+            }
          }
       } else if (load_from_url_match) {
          const url = decodeURIComponent(load_from_url_match[2]);
@@ -216,7 +504,7 @@ export function initSesstion() {
          end_current_session();
          change_url_param("local", generate_session_id());
 
-         console.log('A')
+         console.log("A");
          load_image_from_uri(url).then((info) => {
             open_from_image_info(info, null, null, true, true);
          }, show_resource_load_error_message);

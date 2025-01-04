@@ -1,7 +1,7 @@
 import { get_tool_by_id, make_history_node } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
 import { default_palette } from "./src/color-data.js";
-import { setDefaultCanvas } from "./src/helpers.js";
+import { setDefaultCanvas ,make_canvas} from "./src/helpers.js";
 
 export function defaultState() {
   const default_magnification = 1;
@@ -21,8 +21,10 @@ export function defaultState() {
   let return_to_magnification = 4;
 
   /** @type {PixelCanvas} */
-  const main_canvas = setDefaultCanvas(document.getElementsByClassName('main-canvas')[0])
- // main_canvas.classList.add("main-canvas");
+  const main_canvas = make_canvas(default_canvas_width, default_canvas_height);
+ main_canvas.classList.add("main-canvas");
+
+  
 
   /** @type {PixelContext} */
   const main_ctx = main_canvas.ctx;
@@ -190,6 +192,7 @@ export function defaultState() {
 let touchCount=0;
   let first_pointer_time;
   const discard_quick_undo_period=500;
+  
 
 
   let position_mouse_active = false;
@@ -201,6 +204,9 @@ let touchCount=0;
   let position_object_active = false;
   let position_object_x;
   let position_object_y;
+
+   let layers= [];
+  let activeLayerIndex= 0;
 
   return {
     default_magnification,
@@ -279,5 +285,12 @@ let touchCount=0;
     position_object_active,
     position_object_x,
     position_object_y,
+    layers,
+    activeLayerIndex,
   };
+}
+
+
+export function defaultMobXState(){
+  return{};
 }

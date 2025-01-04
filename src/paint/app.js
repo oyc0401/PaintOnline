@@ -84,8 +84,13 @@ export function initApp(canvasAreaQuery) {
 
   const $canvas_area = $(canvasAreaQuery);
 
-  const $canvas = $(PaintJSState.main_canvas).appendTo($canvas_area);
+  //const $canvas = $(PaintJSState.main_canvas).appendTo($canvas_area);
 
+  const $layer_area = $('.layer-area');
+  const $canvas = $layer_area
+  PaintJSState.$layer_area=$layer_area;
+  
+  
   $canvas.css("touch-action", "none");
   $canvas_area.css("touch-action", "none");
 

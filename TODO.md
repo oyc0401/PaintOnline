@@ -21,3 +21,14 @@ i18n을 좀더 쉽게 할 수 있는 방안을 찾아봐야할 듯.
 
 
 
+
+
+const canvases = document.querySelectorAll('canvas.main-canvas');
+
+// 각각의 canvas를 투명하게 칠하기
+canvases.forEach(canvas => {
+  const ctx = canvas.getContext('2d'); // canvas의 2D context 가져오기
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // 기존 내용 지우기
+  ctx.fillStyle = 'rgba(0, 0, 0, 0)'; // 투명 색 설정
+  ctx.fillRect(0, 0, canvas.width, canvas.height); // canvas 전체를 투명 색으로 칠하기
+});

@@ -2,7 +2,10 @@ import { observable, configure } from "mobx";
 
 configure({ enforceActions: "never" }); // strict-mode 비활성화
 
-export const PaintJSState = observable({
+export const PaintJSState = {};
+
+
+export const PaintMobXState = observable({
   undos:[],
   redos:[],
 });
