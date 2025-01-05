@@ -131,8 +131,9 @@ async function loadFileFromRepositories(fileId) {
       }
     }
 
-    const width = canvasInfo.width || PaintJSState.default_canvas_width;
-    const height = canvasInfo.height || PaintJSState.default_canvas_height;
+   // console.log(canvasInfo);
+    const width = canvasInfo?.width ?? PaintJSState.default_canvas_width;
+    const height = canvasInfo?.height ?? PaintJSState.default_canvas_height;
 
     // 2) 레이어 메타데이터 로드
     let layerList;
@@ -140,7 +141,7 @@ async function loadFileFromRepositories(fileId) {
       layerList = await layerRepository.getLayers(fileId);
       if (!layerList || layerList.length === 0) throw new Error("No layers found");
     } catch (layerErr) {
-      console.error("Failed to retrieve layers:", layerErr);
+     // console.error("Failed to retrieve layers:", layerErr);
       // 기본 레이어 생성
       createDefaultLayers();
       PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;

@@ -1,38 +1,6 @@
 // layerRepository.js
-import { openDB } from './openDB.js';
+import { dbPromise } from './openDB.js';
 
-/**
- * 헬퍼 함수: IDBRequest를 프로미스로 변환
- * @param {IDBRequest} request
- * @returns {Promise<any>}
- */
-function promisifyRequest(request) {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-/**
- * 헬퍼 함수: IndexedDB 트랜잭션을 프로미스로 변환
- * @param {IDBTransaction} tx
- * @returns {Promise<void>}
- */
-function promisifyTransaction(tx) {
-  return new Promise((resolve, reject) => {
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
-  });
-}
-
-/**
- * 레이어 저장소
- * - DB 이름: "MyDatabase"
- * - Object Store: "layers"
- *   - keyPath: "layerId"
- *   - 데이터 구조: { layerId, fileId, name, dataURL, width, height }
- */
 export const layerRepository = {
   /**
    * 특정 파일의 모든 레이어를 비동기적으로 불러온다
@@ -40,15 +8,8 @@ export const layerRepository = {
    * @returns {Promise<{ layerId: string, name: string, dataURL: string, width: number, height: number }[]>}
    */
   async getLayers(fileId) {
-    const db = await openDB();
-    const tx = db.transaction('layers', 'readonly');
-    const store = tx.objectStore('layers');
-    const index = store.index('fileId_idx');
-    const getReq = index.getAll(IDBKeyRange.only(fileId));
-
-    const layers = await promisifyRequest(getReq);
-    await promisifyTransaction(tx);
-    return layers || [];
+    const db = await dbPromise;
+    return db.getAllFromIndex('layers', 'fileId_idx', fileId) || [];
   },
 
   /**
@@ -58,14 +19,9 @@ export const layerRepository = {
    * @returns {Promise<void>}
    */
   async addLayer(fileId, layer) {
-    const db = await openDB();
-    const tx = db.transaction('layers', 'readwrite');
-    const store = tx.objectStore('layers');
+    const db = await dbPromise;
     const record = { ...layer, fileId };
-    const putReq = store.put(record);
-
-    await promisifyRequest(putReq);
-    await promisifyTransaction(tx);
+    await db.put('layers', record);
   },
 
   /**
@@ -75,26 +31,24 @@ export const layerRepository = {
    * @returns {Promise<void>}
    */
   async setLayers(fileId, layers) {
-    const db = await openDB();
+    const db = await dbPromise;
+
     const tx = db.transaction('layers', 'readwrite');
     const store = tx.objectStore('layers');
     const index = store.index('fileId_idx');
 
     // 기존 레이어 삭제
-    const cursorReq = index.openCursor(IDBKeyRange.only(fileId));
-    const cursor = await promisifyRequest(cursorReq);
-    while (cursor) {
-      cursor.delete();
-      cursor = await promisifyRequest(cursorReq);
+    const keysToDelete = await index.getAllKeys(fileId);
+    for (const key of keysToDelete) {
+      store.delete(key);
     }
 
     // 새 레이어 추가
     for (const layer of layers) {
       const record = { ...layer, fileId };
-      const putReq = store.put(record);
-      await promisifyRequest(putReq);
+      store.put(record);
     }
 
-    await promisifyTransaction(tx);
+    await tx.done;
   },
 };
