@@ -5,6 +5,8 @@ import { keyStore } from "./keyStorage.js";
 import { PaintJSState } from "./state.js";
 import { layerRepository } from "./layerRepository.js";
 import { canvasRepository } from "./canvasRepository.js";
+import { make_or_update_undoable } from "./src/functions.js";
+import { localize } from "../localize/localize.js";
 
 /**
  * 전역으로 현재 파일 ID
@@ -30,7 +32,7 @@ export async function initSession() {
       // 다시 recent_key 갱신
       await keyStore.set("recent_key", storedFileId);
       currentFileId = storedFileId;
-      
+
       // 키가 없으니깐 레이어 만들기!
 
       await createDefaultCanvas();
@@ -39,7 +41,7 @@ export async function initSession() {
       currentFileId = storedFileId;
       // 키가 있으니깐 레이어 불러오기!
       // 2) 파일 로드
-      
+
       await loadFileFromRepositories(storedFileId);
     }
 
@@ -63,10 +65,10 @@ async function loadFileFromRepositories(fileId) {
     // 1) 캔버스 정보 로드
     let canvasInfo = await canvasRepository.getCanvas(fileId);
     console.log("canvasInfo", canvasInfo);
-    
+
     if (!canvasInfo) {
-      console.error('캔버스 다시만들어요');
-     return await createDefaultCanvas();
+      console.error("캔버스 다시만들어요");
+      return await createDefaultCanvas();
     }
 
     // console.log(canvasInfo);
@@ -75,48 +77,63 @@ async function loadFileFromRepositories(fileId) {
 
     // 2) 레이어 메타데이터 로드
     let layerList = await layerRepository.getLayers(fileId);
-    if (!layerList || layerList.length === 0){
-       console.error('캔버스 다시만들어요');
+    if (!layerList || layerList.length === 0) {
+      console.error("캔버스 다시만들어요");
       return await createDefaultCanvas();
     }
 
-    console.log('layerList',layerList)
+    make_or_update_undoable(
+      {
+        match: (history_node) => history_node.name === localize("New"),
+        name: "Resize Canvas For New Document",
+      },
+      async () => {
+        console.log("layerList", layerList);
 
-    // 3) PaintJSState.layers 초기화
-    PaintJSState.layers = [];
+        PaintJSState.my_canvas_width = width;
+        PaintJSState.my_canvas_height = height;
 
-    // 4) 각 레이어 처리
-    for (const layerMeta of layerList) {
-      const layerWidth = width;
-      const layerHeight = height;
-      const canvas = make_canvas(layerWidth, layerHeight);
-      const ctx = canvas.ctx;
+        // 3) PaintJSState.layers 초기화
+        PaintJSState.layers = [];
 
-      if (layerMeta.dataURL) {
-        try {
-          const image = await loadImage(layerMeta.dataURL);
-          ctx.drawImage(image, 0, 0);
-        } catch (imgErr) {
-          console.error("Failed to load image:", imgErr);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // 4) 각 레이어 처리
+        for (const layerMeta of layerList) {
+          const layerWidth = width;
+          const layerHeight = height;
+          const canvas = make_canvas(layerWidth, layerHeight);
+          const ctx = canvas.ctx;
+
+          if (layerMeta.dataURL) {
+            try {
+              const image = await loadImage(layerMeta.dataURL);
+              ctx.drawImage(image, 0, 0);
+            } catch (imgErr) {
+              console.error("Failed to load image:", imgErr);
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+          } else {
+            // 기본 흰색으로 채우기
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+
+          PaintJSState.layers.push({
+            canvas,
+            ctx,
+            name: layerMeta.name,
+            layerId:layerMeta.layerId,
+            priority: layerMeta.priority,
+          });
         }
-      } else {
-        // 기본 흰색으로 채우기
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
 
-      PaintJSState.layers.push({
-        canvas,
-        ctx,
-        name: layerMeta.name,
-      });
-    }
+        // 5) 레이어 설정 및 활성화
+        setLayer();
+        PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
 
-    // 5) 레이어 설정 및 활성화
-    setLayer();
-    PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
+        PaintJSState.$canvas_area.trigger("resize");
+      },
+    );
   } catch (error) {
     console.error("An unexpected error occurred:", error);
   }
@@ -135,7 +152,7 @@ function loadImage(dataURL) {
 /**
  * 화면에 레이어 canvas들을 배치
  */
-function setLayer() {
+export function setLayer() {
   // console.log("viewLayers", PaintJSState.layers.length);
   // console.log('PaintJSState.$layer_area',PaintJSState.$layer_area)
   PaintJSState.$layer_area.empty();
@@ -156,40 +173,20 @@ function setLayer() {
     }
   }
 
-  PaintJSState.main_canvas = PaintJSState.layers[1].canvas;
-  PaintJSState.main_ctx = PaintJSState.layers[1].ctx;
-
-  //PaintJSState.$canvas_area.trigger("resize");
+  PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
+  PaintJSState.$canvas_area.trigger("resize");
 }
 
 // --------------------------- 기본 레이어 생성 ---------------------------
 
 async function createDefaultCanvas() {
-  console.log("createDefaultCanvas");
-
-  // 기본 캔버스
-  const canvasInfo = {
-    width: PaintJSState.default_canvas_width,
-    height: PaintJSState.default_canvas_height,
-  };
-  console.log('currentFileId',currentFileId)
-  await canvasRepository.setCanvas(currentFileId, canvasInfo);
-
-  // 레이어 만들기
-  PaintJSState.layers = [];
-
-  addBackgroundLayer(PaintJSState.layers);
-  addLayer(PaintJSState.layers);
-  PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
+  console.log("지금 있는 레이어를 기본레이어로 하고 DB에 저장하기");
 
   // 생성 직후 저장
   saveFileImmediately();
-
-  // 레이어 보여주기
-  setLayer();
 }
 
-function addBackgroundLayer(layers) {
+export function makeBackgroundLayer() {
   const canvas = make_canvas(
     PaintJSState.default_canvas_width,
     PaintJSState.default_canvas_height,
@@ -198,29 +195,29 @@ function addBackgroundLayer(layers) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  layers.push({
+  return {
+    layerId: generateLayerId(),
     canvas,
     ctx,
     name: "BackgroundLayer",
-    width: PaintJSState.default_canvas_width,
-    height: PaintJSState.default_canvas_height,
-  });
+    priority: 0,
+  };
 }
 
-function addLayer(layers) {
+export function makeLayer() {
   const canvas = make_canvas(
     PaintJSState.default_canvas_width,
     PaintJSState.default_canvas_height,
   );
   const ctx = canvas.ctx;
 
-  layers.push({
+  return {
+    layerId: generateLayerId(),
     canvas,
     ctx,
     name: "Layer1",
-    width: PaintJSState.default_canvas_width,
-    height: PaintJSState.default_canvas_height,
-  });
+    priority: 1,
+  };
 }
 
 // --------------------------- 저장 로직 ---------------------------
@@ -256,30 +253,23 @@ async function saveFileImmediately() {
       return;
     }
 
-    try {
-      await canvasRepository.setCanvas(currentFileId, {
-        width: activeCanvas.canvas.width,
-        height: activeCanvas.canvas.height,
-      });
-      console.log("Canvas info saved.");
-    } catch (err) {
-      console.error("Failed to save canvas info:", err);
-    }
+    await canvasRepository.setCanvas(currentFileId, {
+      width: activeCanvas.canvas.width,
+      height: activeCanvas.canvas.height,
+    });
+    console.log("Canvas info saved.");
 
     // 2) 레이어 메타데이터 저장
     const layerList = PaintJSState.layers.map((layer) => ({
-      layerId: generateLayerId(),
+      layerId: layer.layerId,
       name: layer.name,
       fileId: currentFileId,
       dataURL: layer.canvas.toDataURL("image/png"),
+      priority: layer.priority,
     }));
 
-    try {
-      await layerRepository.setLayers(currentFileId, layerList);
-      console.log("Layers metadata saved.");
-    } catch (err) {
-      console.error("Failed to save layers metadata:", err);
-    }
+    await layerRepository.setLayers(currentFileId, layerList);
+    console.log("Layers metadata saved.");
   } catch (error) {
     console.error(
       "An unexpected error occurred in saveFileImmediately:",
@@ -319,7 +309,6 @@ export function newLocalFile() {
       console.error("Failed to set recent_key:", err);
     }
   });
-  createDefaultCanvas();
 }
 
 ////////////////////////////////////////////////////////

@@ -50,7 +50,7 @@ import { PaintJSState, PaintMobXState } from "../state";
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-import { newLocalFile } from "../session.js";
+import { newLocalFile, makeLayer, makeBackgroundLayer,setLayer } from "../session.js";
 
 // expresses order in the URL as well as type
 const param_types = {
@@ -148,12 +148,6 @@ function set_all_url_params(params) {
 }
 
 function update_magnified_canvas_size() {
-	//const dpr = window.devicePixelRatio;
-	//const targetDpr = roundDPR(dpr);
-	//const div = targetDpr / dpr;
-	//const dprScale=PaintJSState.magnification * div;
-	//console.log('업데이트!')
-
 	PaintJSState.$layer_area.css(
 		"width",
 		PaintJSState.main_canvas.width * PaintJSState.magnification,
@@ -511,6 +505,7 @@ function render_canvas_view(
 		}
 	});
 }
+
 function update_disable_aa() {
 	const dots_per_canvas_px =
 		window.devicePixelRatio * PaintJSState.magnification;
@@ -625,42 +620,15 @@ function reset_canvas_and_history() {
 	console.log("캔버스 리셋!");
 
 	// 모든 캔버스 초기화
-	// for (const layer of PaintJSState.layers) {
-	// 	const canvas = layer.canvas;
-	// 	const ctx = canvas.ctx;
+	// 레이어 만들기
 
-	// 	canvas.width = Math.max(1, PaintJSState.layer[0].width);
-	// 	canvas.height = Math.max(1, PaintJSState.layer[0].height);
+	const back = makeBackgroundLayer(PaintJSState.layers);
+	const la = makeLayer(PaintJSState.layers);
+	PaintJSState.layers = [back, la];
 
-	// 	if (canvas.className == "layer background") {
-	// 		ctx.fillStyle = PaintJSState.selected_colors.background;
-	// 		ctx.fillRect(0, 0, canvas.width, canvas.height);
-	// 	}
-	// }
+	PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
 
-	// PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
-	// PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
-	// PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
-	// PaintJSState.main_ctx.fillRect(
-	// 	0,
-	// 	0,
-	// 	PaintJSState.main_canvas.width,
-	// 	PaintJSState.main_canvas.height,
-	// );
-
-	///
-	// PaintJSState.mask_layer.canvas.width = Math.max(1, PaintJSState.my_canvas_width);
-	// PaintJSState.mask_layer.canvas.height = Math.max(1, PaintJSState.my_canvas_height);
-	// ///
-
-	// PaintJSState.current_history_node.image_data =
-	// 	PaintJSState.main_ctx.getImageData(
-	// 		0,
-	// 		0,
-	// 		PaintJSState.main_canvas.width,
-	// 		PaintJSState.main_canvas.height,
-	// 	);
-
+	// 히스토리
 	let layers = [];
 	for (let i = 0; i < PaintJSState.layers.length; i++) {
 		const layer = PaintJSState.layers[i];
@@ -672,10 +640,10 @@ function reset_canvas_and_history() {
 		);
 		layers.push({ image_data, id: layer.layerId, name: layer.name });
 	}
-		PaintJSState.current_history_node.layers=layers;
+	PaintJSState.current_history_node.layers = layers;
 
 	PaintJSState.$canvas_area.trigger("resize");
-	$(window).triggerHandler("history-update"); // update history view
+	// $(window).triggerHandler("history-update"); // update history view
 }
 
 // TODO: fix inconsistent use of ancestry metaphor (parent vs futures); could use the term "basis" for the parent, or "children" for the futures
@@ -994,20 +962,20 @@ function open_from_image_info(
 			PaintJSState.$canvas_area.trigger("resize");
 
 			PaintJSState.current_history_node.name = localize("Open");
-		
-		let layers = [];
-		for (let i = 0; i < PaintJSState.layers.length; i++) {
-			const layer = PaintJSState.layers[i];
-			const image_data = layer.ctx.getImageData(
-				0,
-				0,
-				layer.canvas.width,
-				layer.canvas.height,
-			);
-			layers.push({ image_data, id: layer.layerId, name: layer.name });
-		}
-			PaintJSState.current_history_node.layers=layers;
-		
+
+			let layers = [];
+			for (let i = 0; i < PaintJSState.layers.length; i++) {
+				const layer = PaintJSState.layers[i];
+				const image_data = layer.ctx.getImageData(
+					0,
+					0,
+					layer.canvas.width,
+					layer.canvas.height,
+				);
+				layers.push({ image_data, id: layer.layerId, name: layer.name });
+			}
+			PaintJSState.current_history_node.layers = layers;
+
 			PaintJSState.current_history_node.icon =
 				get_help_folder_icon("p_open.png");
 
@@ -1128,21 +1096,20 @@ function load_theme_from_text(fileText) {
 
 // 새 이미지
 function file_new() {
-	are_you_sure(() => {
-		deselect();
-		cancel();
+	deselect();
+	cancel();
 
-		$(window).triggerHandler("session-update"); // autosave old session
-		//new_local_session();
-		newLocalFile();
+	$(window).triggerHandler("session-update"); // autosave old session
 
-		reset_file();
-		reset_selected_colors();
-		reset_canvas_and_history(); // (with newly reset colors)
-		set_magnification(PaintJSState.default_magnification);
+	reset_file();
+	reset_selected_colors();
+	reset_canvas_and_history(); // (with newly reset colors)
+	setLayer();
+	set_magnification(PaintJSState.default_magnification);
 
-		$(window).triggerHandler("session-update"); // autosave
-	});
+	newLocalFile();
+
+	$(window).triggerHandler("session-update"); // autosave
 }
 
 // 파일 열기
@@ -1763,7 +1730,7 @@ function paste(img_or_canvas) {
  * @param {boolean=} canceling
  */
 function go_to_history_node(target_history_node, canceling) {
-	if (!target_history_node.layers || target_history_node.layers.length==0) {
+	if (!target_history_node.layers || target_history_node.layers.length == 0) {
 		if (!canceling) {
 			show_error_message("History entry has no image data.");
 			window.console?.log(
@@ -1773,7 +1740,7 @@ function go_to_history_node(target_history_node, canceling) {
 		}
 		return;
 	}
-	
+
 	PaintJSState.current_history_node = target_history_node;
 
 	console.log("target_history_node:", target_history_node);
@@ -1792,7 +1759,7 @@ function go_to_history_node(target_history_node, canceling) {
 			drawcopy(PaintJSState.layers[i].ctx, layer.image_data);
 		}
 	} else {
-		console.error('error!!!')
+		console.error("error!!!");
 		//drawcopy(PaintJSState.main_ctx, target_history_node.image_data);
 	}
 
@@ -1933,8 +1900,8 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 			);
 			layers.push({ image_data, id: layer.layerId, name: layer.name });
 		}
-			PaintJSState.current_history_node.layers=layers;
-		
+		PaintJSState.current_history_node.layers = layers;
+
 		// PaintJSState.current_history_node.image_data =
 		// 	PaintJSState.main_ctx.getImageData(
 		// 		0,
@@ -1962,6 +1929,7 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 		undoable(undoable_meta, undoable_action);
 	}
 }
+
 function undo() {
 	console.log("press undo!");
 	if (PaintJSState.undos.length < 1) {
@@ -2021,168 +1989,6 @@ function get_history_ancestors(node) {
 		ancestors.push(node);
 	}
 	return ancestors;
-}
-
-/** @type {OSGUI$Window} */
-let $document_history_window;
-// setTimeout(show_document_history, 100);
-function show_document_history() {
-	if ($document_history_prompt_window) {
-		$document_history_prompt_window.close();
-	}
-	if ($document_history_window) {
-		$document_history_window.close();
-	}
-	const $w = ($document_history_window = $Window({
-		title: "Document History",
-		resizable: false,
-		maximizeButton: false,
-		minimizeButton: false,
-	}));
-	// $w.prependTo("body").css({position: ""});
-	$w.addClass("history-window squish");
-	$w.$content.html(`
-		<label>
-			<select id="history-view-mode" class="inset-deep">
-				<option value="linear">Linear timeline</option>
-				<option value="tree">Tree</option>
-			</select>
-		</label>
-		<div class="history-view" tabIndex="0"></div>
-	`);
-
-	const $history_view = $w.$content.find(".history-view");
-	$history_view.focus();
-
-	let previous_scroll_position = 0;
-
-	let rendered_$entries = [];
-	let current_$entry;
-
-	let $mode_select = $w.$content.find("#history-view-mode");
-	$mode_select.css({
-		margin: "10px",
-	});
-	let mode = $mode_select.val();
-	$mode_select.on("change", () => {
-		mode = $mode_select.val();
-		render_tree();
-	});
-
-	/**
-	 * @param {HistoryNode} node
-	 */
-	function render_tree_from_node(node) {
-		const $entry = $(`
-			<div class="history-entry">
-				<div class="history-entry-icon-area"></div>
-				<div class="history-entry-name"></div>
-			</div>
-		`);
-		// $entry.find(".history-entry-name").text((node.name || "Unknown") + (node.soft ? " (soft)" : ""));
-		$entry
-			.find(".history-entry-name")
-			.text(
-				(node.name || "Unknown") +
-					(node === PaintJSState.root_history_node
-						? " (Start of History)"
-						: ""),
-			);
-		$entry.find(".history-entry-icon-area").append(node.icon);
-		if (mode === "tree") {
-			let dist_to_root = 0;
-			for (let ancestor = node.parent; ancestor; ancestor = ancestor.parent) {
-				dist_to_root++;
-			}
-			$entry.css({
-				marginInlineStart: `${dist_to_root * 8}px`,
-			});
-		}
-		if (node === PaintJSState.current_history_node) {
-			$entry.addClass("current");
-			current_$entry = $entry;
-			requestAnimationFrame(() => {
-				// scrollIntoView causes <html> to scroll when the window is partially offscreen,
-				// despite overflow: hidden on html and body, so it's not an option.
-				$history_view[0].scrollTop = Math.min(
-					$entry[0].offsetTop,
-					Math.max(
-						previous_scroll_position,
-						$entry[0].offsetTop -
-							$history_view[0].clientHeight +
-							$entry.outerHeight(),
-					),
-				);
-			});
-		} else {
-			const history_ancestors = get_history_ancestors(
-				PaintJSState.current_history_node,
-			);
-			if (history_ancestors.indexOf(node) > -1) {
-				$entry.addClass("ancestor-of-current");
-			}
-		}
-		for (const sub_node of node.futures) {
-			render_tree_from_node(sub_node);
-		}
-		$entry.on("click", () => {
-			go_to_history_node(node);
-		});
-		// @ts-ignore  (TODO: maybe don't tack properties onto objects so much!)
-		$entry.history_node = node;
-		rendered_$entries.push($entry);
-	}
-	const render_tree = () => {
-		previous_scroll_position = $history_view.scrollTop();
-		$history_view.empty();
-		rendered_$entries = [];
-		render_tree_from_node(PaintJSState.root_history_node);
-		if (mode === "linear") {
-			rendered_$entries.sort(($a, $b) => {
-				if ($a.history_node.timestamp < $b.history_node.timestamp) {
-					return -1;
-				}
-				if ($b.history_node.timestamp < $a.history_node.timestamp) {
-					return +1;
-				}
-				return 0;
-			});
-		} else {
-			rendered_$entries.reverse();
-		}
-		rendered_$entries.forEach(($entry) => {
-			$history_view.append($entry);
-		});
-	};
-	render_tree();
-
-	// This is different from Ctrl+Z/Ctrl+Shift+Z because it goes over all branches of the history tree, chronologically,
-	// not just one branch.
-	const go_by = (index_delta) => {
-		const from_index = rendered_$entries.indexOf(current_$entry);
-		const to_index = from_index + index_delta;
-		if (rendered_$entries[to_index]) {
-			rendered_$entries[to_index].click();
-		}
-	};
-	$history_view.on("keydown", (event) => {
-		if (!event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
-			if (event.key === "ArrowDown" || event.key === "Down") {
-				go_by(1);
-				event.preventDefault();
-			} else if (event.key === "ArrowUp" || event.key === "Up") {
-				go_by(-1);
-				event.preventDefault();
-			}
-		}
-	});
-
-	$(window).on("history-update", render_tree);
-	$w.on("close", () => {
-		$(window).off("history-update", render_tree);
-	});
-
-	$w.center();
 }
 
 /**
@@ -3016,15 +2822,15 @@ function resize_canvas_and_save_dimensions(
 		unclamped_height,
 		undoable_meta,
 	);
-	localStore.set(
-		{
-			width: PaintJSState.main_canvas.width.toString(),
-			height: PaintJSState.main_canvas.height.toString(),
-		},
-		(_error) => {
-			// oh well
-		},
-	);
+	// localStore.set(
+	// 	{
+	// 		width: PaintJSState.main_canvas.width.toString(),
+	// 		height: PaintJSState.main_canvas.height.toString(),
+	// 	},
+	// 	(_error) => {
+	// 		// oh well
+	// 	},
+	// );
 }
 
 function image_attributes() {
@@ -4051,7 +3857,6 @@ export {
 	set_all_url_params,
 	set_magnification,
 	show_convert_to_black_and_white,
-	show_document_history,
 	show_error_message,
 	show_file_format_errors,
 	show_resource_load_error_message,

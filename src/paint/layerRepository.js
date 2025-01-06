@@ -9,7 +9,8 @@ export const layerRepository = {
    */
   async getLayers(fileId) {
     const db = await dbPromise;
-    return db.getAllFromIndex('layers', 'fileId_idx', fileId) || [];
+    const layers = (await db.getAllFromIndex('layers', 'fileId_idx', fileId)) || [];
+    return layers.sort((a, b) => a.priority - b.priority); // priority 오름차순 정렬
   },
 
   /**
@@ -40,13 +41,13 @@ export const layerRepository = {
     // 기존 레이어 삭제
     const keysToDelete = await index.getAllKeys(fileId);
     for (const key of keysToDelete) {
-      store.delete(key);
+      await store.delete(key);
     }
 
     // 새 레이어 추가
     for (const layer of layers) {
       const record = { ...layer, fileId };
-      store.put(record);
+      await store.put(record);
     }
 
     await tx.done;
