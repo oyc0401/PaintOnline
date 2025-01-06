@@ -16,7 +16,7 @@ const handler = {
   get(target, prop) {
     // 특정 속성('undos', 'redos')은 PaintMobXState에서 가져옴
     if (["main_canvas"].includes(prop)) {
-      //console.error(`[GET] Accessing MobX state: ${prop}`);
+     // console.log()
       return getMainCanvas();
     }
     if (["main_ctx"].includes(prop)) {

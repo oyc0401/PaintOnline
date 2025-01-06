@@ -1,16 +1,6 @@
-import { showMessageBox } from "./src/msgbox.js";
-import {
-   show_error_message,
-   change_url_param,
-   get_uris,
-   load_image_from_uri,
-   show_resource_load_error_message,
-   open_from_image_info,
-} from "./src/functions.js";
 import $ from "jquery";
 import { debounce, make_canvas } from "./src/helpers.js";
 
-import { localStore } from "./src/storage.js";
 import { keyStore } from "./keyStorage.js";
 import { PaintJSState } from "./state.js";
 import { layerRepository } from "./layerRepository.js";
@@ -24,41 +14,6 @@ let currentFileId = null;
 // --------------------------- 세션 초기화 ---------------------------
 
 /**
- * 헬퍼 함수: keyStore.get을 프로미스로 변환
- * @param {string} key
- * @returns {Promise<any>}
- */
-function getKeyAsync(key) {
-  return new Promise((resolve, reject) => {
-    keyStore.get(key, (err, value) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(value);
-      }
-    });
-  });
-}
-
-/**
- * 헬퍼 함수: keyStore.set을 프로미스로 변환
- * @param {string} key
- * @param {any} value
- * @returns {Promise<void>}
- */
-function setKeyAsync(key, value) {
-  return new Promise((resolve, reject) => {
-    keyStore.set(key, value, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-/**
  * 세션을 초기화하는 비동기 함수
  * @returns {Promise<void>}
  */
@@ -69,7 +24,7 @@ export async function initSession() {
     // 1) 최근에 사용하던 fileId 불러오기
     let storedFileId;
     try {
-      storedFileId = await getKeyAsync("recent_key");
+      storedFileId = await keyStore.get("recent_key");
     } catch (err) {
       console.error("Failed to retrieve recent_key:", err);
       // 에러가 나면 새 파일 ID 만들어서 진행
@@ -86,7 +41,7 @@ export async function initSession() {
 
     // 다시 recent_key 갱신
     try {
-      await setKeyAsync("recent_key", currentFileId);
+      await keyStore.set("recent_key", currentFileId)
     } catch (setErr) {
       console.error("Failed to set recent_key:", setErr);
       // 필요에 따라 추가적인 에러 처리 로직을 여기에 추가할 수 있습니다.
@@ -292,7 +247,7 @@ async function saveFileImmediately() {
     if (!currentFileId) {
       currentFileId = generateFileId();
       try {
-        await setKeyAsync('recent_key', currentFileId);
+        await keyStore.set('recent_key', currentFileId);
       } catch (err) {
         console.error('Failed to set recent_key:', err);
         // 필요에 따라 추가적인 에러 처리 로직을 여기에 추가할 수 있습니다.

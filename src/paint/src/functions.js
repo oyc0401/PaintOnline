@@ -44,7 +44,7 @@ import {
 	tools,
 } from "./tools.js";
 import $ from "jquery";
-import { PaintJSState,PaintMobXState } from "../state";
+import { PaintJSState, PaintMobXState } from "../state";
 // `sessions.js` must be loaded after `app.js`
 // This would cause it to be loaded earlier, and error trying to access `undos`
 // I'm surprised I haven't been bitten by this sort of bug, and I've
@@ -154,11 +154,11 @@ function update_magnified_canvas_size() {
 	//const dprScale=PaintJSState.magnification * div;
 	//console.log('업데이트!')
 
-	PaintJSState.$canvas.css(
+	PaintJSState.$layer_area.css(
 		"width",
 		PaintJSState.main_canvas.width * PaintJSState.magnification,
 	);
-	PaintJSState.$canvas.css(
+	PaintJSState.$layer_area.css(
 		"height",
 		PaintJSState.main_canvas.height * PaintJSState.magnification,
 	);
@@ -512,16 +512,17 @@ function render_canvas_view(
 	});
 }
 function update_disable_aa() {
-	//const dots_per_canvas_px = window.devicePixelRatio * PaintJSState.magnification;
-	//if (dots_per_canvas_px >= 1) {
-	PaintJSState.$canvas_area.addClass("pixeled-canvas");
-	//.removeClass("smooth-canvas");
-	//}
-	// else {
-	// 	PaintJSState.$canvas_area
-	// 			.addClass("smooth-canvas")
-	// 			.removeClass("pixeled-canvas");
-	// }
+	const dots_per_canvas_px = window.devicePixelRatio * PaintJSState.magnification;
+	if (dots_per_canvas_px >= 1) {
+	PaintJSState.$canvas_area
+		.addClass("pixeled-canvas")
+	.removeClass("smooth-canvas");
+	}
+	else {
+		PaintJSState.$canvas_area
+				.addClass("smooth-canvas")
+				.removeClass("pixeled-canvas");
+	}
 }
 
 //window.PaintJSState=PaintJSState
@@ -622,7 +623,8 @@ function reset_canvas_and_history() {
 	PaintJSState.history_node_to_cancel_to = null;
 
 	console.log("캔버스 리셋!");
-	
+
+	// 모든 캔버스 초기화
 	for (const layer of PaintJSState.layers) {
 		const canvas = layer.canvas;
 		const ctx = canvas.ctx;
@@ -633,10 +635,9 @@ function reset_canvas_and_history() {
 		if (canvas.className == "layer background") {
 			ctx.fillStyle = PaintJSState.selected_colors.background;
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.clearRect(0, 0, beforeWidth, beforeHeight);
 		}
 	}
-	
+
 	// PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	// PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);
 	// PaintJSState.main_ctx.fillStyle = PaintJSState.selected_colors.background;
@@ -1932,7 +1933,7 @@ function undo() {
 	}
 	console.log("end undo!");
 	go_to_history_node(target_history_node);
-	
+
 	PaintMobXState.undo_length = PaintJSState.undos.length;
 	PaintMobXState.redo_length = PaintJSState.redos.length;
 
@@ -2518,16 +2519,25 @@ function clear() {
 			PaintJSState.saved = false;
 			update_title();
 
+			// 캔버스 초기화
 			for (const layer of PaintJSState.layers) {
 				const canvas = layer.canvas;
 				const ctx = canvas.ctx;
 				if (canvas.className == "layer background") {
+					// 배경 레이어는 색칠
 					ctx.fillStyle = PaintJSState.selected_colors.background;
 					ctx.fillRect(0, 0, canvas.width, canvas.height);
-					ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+				} else {
+					// 일반 레이어는 다 투명하게
+					PaintJSState.main_ctx.clearRect(
+						0,
+						0,
+						PaintJSState.main_canvas.width,
+						PaintJSState.main_canvas.height,
+					);
 				}
 			}
-			
+
 			// if (PaintJSState.transparency) {
 			// 	PaintJSState.main_ctx.clearRect(
 			// 		0,
@@ -2834,7 +2844,6 @@ function make_opaque() {
 	// 	() => {
 	// 		PaintJSState.main_ctx.save();
 	// 		PaintJSState.main_ctx.globalCompositeOperation = "destination-atop";
-
 	// 		PaintJSState.main_ctx.fillStyle = "white";
 	// 		PaintJSState.main_ctx.fillRect(
 	// 			0,
@@ -2842,11 +2851,9 @@ function make_opaque() {
 	// 			PaintJSState.main_canvas.width,
 	// 			PaintJSState.main_canvas.height,
 	// 		);
-
 	// 		// in case the selected background color is transparent/translucent
 	// 		// PaintJSState.main_ctx.fillStyle = "white";
 	// 		// PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-
 	// 		PaintJSState.main_ctx.restore();
 	// 	},
 	// );
@@ -2880,23 +2887,16 @@ function resize_canvas_without_saving_dimensions(
 					const beforeWidth = PaintJSState.main_canvas.width;
 					const beforeHeight = PaintJSState.main_canvas.height;
 
-					// const image_data = PaintJSState.main_ctx.getImageData(
-					// 	0,
-					// 	0,
-					// 	new_width,
-					// 	new_height,
-					// );
-					//PaintJSState.main_canvas.width = new_width;
-					//PaintJSState.main_canvas.height = new_height;
-
 					PaintJSState.$layer_area.css("width", new_width); // '500px'로 설정
 					PaintJSState.$layer_area.css("height", new_height); // '500px'로 설정
 
+					// 캔버스 늘리기
 					for (const layer of PaintJSState.layers) {
 						const canvas = layer.canvas;
 						const ctx = canvas.ctx;
-						const image_data = ctx.getImageData(0, 0, new_width, new_height);
+						const image_data = ctx.getImageData(0, 0, beforeWidth, beforeHeight);
 
+						// 캔버스 초기화
 						canvas.width = new_width;
 						canvas.height = new_height;
 
@@ -2906,6 +2906,7 @@ function resize_canvas_without_saving_dimensions(
 							ctx.clearRect(0, 0, beforeWidth, beforeHeight);
 						}
 
+						// 기존 영역은 기존 그림으로 그리기
 						const temp_canvas = make_canvas(image_data);
 						ctx.drawImage(temp_canvas, 0, 0);
 					}

@@ -1020,14 +1020,6 @@ body {
 }
 
 
-@media (min-resolution: 1x) {
-  .selection canvas,
-  .selection img {
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-    image-rendering: pixelated;
-  }
-}
 .pixeled-canvas canvas{
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
