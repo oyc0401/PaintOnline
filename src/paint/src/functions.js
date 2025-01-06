@@ -512,16 +512,16 @@ function render_canvas_view(
 	});
 }
 function update_disable_aa() {
-	const dots_per_canvas_px = window.devicePixelRatio * PaintJSState.magnification;
+	const dots_per_canvas_px =
+		window.devicePixelRatio * PaintJSState.magnification;
 	if (dots_per_canvas_px >= 1) {
-	PaintJSState.$canvas_area
-		.addClass("pixeled-canvas")
-	.removeClass("smooth-canvas");
-	}
-	else {
 		PaintJSState.$canvas_area
-				.addClass("smooth-canvas")
-				.removeClass("pixeled-canvas");
+			.addClass("pixeled-canvas")
+			.removeClass("smooth-canvas");
+	} else {
+		PaintJSState.$canvas_area
+			.addClass("smooth-canvas")
+			.removeClass("pixeled-canvas");
 	}
 }
 
@@ -653,13 +653,26 @@ function reset_canvas_and_history() {
 	// PaintJSState.mask_layer.canvas.height = Math.max(1, PaintJSState.my_canvas_height);
 	// ///
 
-	PaintJSState.current_history_node.image_data =
-		PaintJSState.main_ctx.getImageData(
+	// PaintJSState.current_history_node.image_data =
+	// 	PaintJSState.main_ctx.getImageData(
+	// 		0,
+	// 		0,
+	// 		PaintJSState.main_canvas.width,
+	// 		PaintJSState.main_canvas.height,
+	// 	);
+
+	let layers = [];
+	for (let i = 0; i < PaintJSState.layers.length; i++) {
+		const layer = PaintJSState.layers[i];
+		const image_data = layer.ctx.getImageData(
 			0,
 			0,
-			PaintJSState.main_canvas.width,
-			PaintJSState.main_canvas.height,
+			layer.canvas.width,
+			layer.canvas.height,
 		);
+		layers.push({ image_data, id: layer.layerId, name: layer.name });
+	}
+		PaintJSState.current_history_node.layers=layers;
 
 	PaintJSState.$canvas_area.trigger("resize");
 	$(window).triggerHandler("history-update"); // update history view
@@ -689,7 +702,7 @@ function make_history_node({
 	futures = [], // the states branching off from this state (its children)
 	timestamp = Date.now(), // when this state was created
 	soft = false, // indicates that undo should skip this state; it can still be accessed with the History window
-	image_data = null, // the image data for the canvas (TODO: region updates)
+	layers = [], // the image data for the canvas (TODO: region updates)
 	selection_image_data = null, // the image data for the selection, if any
 	selection_x, // the x position of the selection, if any
 	selection_y, // the y position of the selection, if any
@@ -706,7 +719,7 @@ function make_history_node({
 		futures,
 		timestamp,
 		soft,
-		image_data,
+		layers,
 		selection_image_data,
 		selection_x,
 		selection_y,
@@ -981,13 +994,20 @@ function open_from_image_info(
 			PaintJSState.$canvas_area.trigger("resize");
 
 			PaintJSState.current_history_node.name = localize("Open");
-			PaintJSState.current_history_node.image_data =
-				PaintJSState.main_ctx.getImageData(
-					0,
-					0,
-					PaintJSState.main_canvas.width,
-					PaintJSState.main_canvas.height,
-				);
+		
+		let layers = [];
+		for (let i = 0; i < PaintJSState.layers.length; i++) {
+			const layer = PaintJSState.layers[i];
+			const image_data = layer.ctx.getImageData(
+				0,
+				0,
+				layer.canvas.width,
+				layer.canvas.height,
+			);
+			layers.push({ image_data, id: layer.layerId, name: layer.name });
+		}
+			PaintJSState.current_history_node.layers=layers;
+		
 			PaintJSState.current_history_node.icon =
 				get_help_folder_icon("p_open.png");
 
@@ -1743,7 +1763,7 @@ function paste(img_or_canvas) {
  * @param {boolean=} canceling
  */
 function go_to_history_node(target_history_node, canceling) {
-	if (!target_history_node.image_data) {
+	if (!target_history_node.layers || target_history_node.layers.length==0) {
 		if (!canceling) {
 			show_error_message("History entry has no image data.");
 			window.console?.log(
@@ -1753,22 +1773,30 @@ function go_to_history_node(target_history_node, canceling) {
 		}
 		return;
 	}
-	/* For performance (especially with two finger panning), I'm disabling this safety check that preserves certain document states in the history.
-	const current_image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-	if (!PaintJSState.current_history_node.image_data || !image_data_match(PaintJSState.current_history_node.image_data, current_image_data, 5)) {
-		window.console?.log("Canvas image data changed outside of undoable", PaintJSState.current_history_node, "PaintJSState.current_history_node.image_data:", PaintJSState.current_history_node.image_data, "document's current image data:", current_image_data);
-		undoable({name: "Unknown [go_to_history_node]", use_loose_canvas_changes: true}, ()=> {});
-	}
-	*/
+	
 	PaintJSState.current_history_node = target_history_node;
 
+	console.log("target_history_node:", target_history_node);
 	deselect(true);
 	if (!canceling) {
 		cancel(true);
 	}
 	PaintJSState.saved = false;
 	update_title();
-	drawcopy(PaintJSState.main_ctx, target_history_node.image_data);
+
+	// 이미지 그리기
+	if (target_history_node.layers) {
+		let layers = target_history_node.layers;
+		for (let i = 0; i < layers.length; i++) {
+			const layer = layers[i];
+			drawcopy(PaintJSState.layers[i].ctx, layer.image_data);
+		}
+	} else {
+		console.error('error!!!')
+		//drawcopy(PaintJSState.main_ctx, target_history_node.image_data);
+	}
+
+	// 선택 요소 그리기
 	if (target_history_node.selection_image_data) {
 		if (PaintJSState.selection) {
 			PaintJSState.selection.destroy();
@@ -1790,14 +1818,8 @@ function go_to_history_node(target_history_node, canceling) {
 		);
 	}
 
-	// 이자리에 뭔 쓸데없는 코드가 있었는데 왜있는지 모르겠어 오류만 일으키는 것 같아서 삭제함
-
-	// window.console?.log("new undos:", undos);
-	// window.console?.log("new redos:", redos);
-
 	PaintJSState.$canvas_area.trigger("resize");
 	$(window).triggerHandler("session-update"); // autosave
-	$(window).triggerHandler("history-update"); // update history view
 }
 
 // Note: This function is part of the API.
@@ -1840,12 +1862,20 @@ function undoable(
 		);
 	}
 
-	const image_data = PaintJSState.main_ctx.getImageData(
-		0,
-		0,
-		PaintJSState.main_canvas.width,
-		PaintJSState.main_canvas.height,
-	);
+	// 이미지 데이터 만들기
+	let layers = [];
+	for (let i = 0; i < PaintJSState.layers.length; i++) {
+		const layer = PaintJSState.layers[i];
+		const image_data = layer.ctx.getImageData(
+			0,
+			0,
+			layer.canvas.width,
+			layer.canvas.height,
+		);
+		layers.push({ image_data, id: layer.layerId, name: layer.name });
+	}
+
+	/////
 
 	PaintJSState.redos.length = 0;
 	PaintJSState.undos.push(PaintJSState.current_history_node);
@@ -1853,7 +1883,7 @@ function undoable(
 	PaintMobXState.redo_length = PaintJSState.redos.length;
 
 	const new_history_node = make_history_node({
-		image_data,
+		layers,
 		selection_image_data:
 			PaintJSState.selection &&
 			PaintJSState.selection.canvas.ctx.getImageData(
@@ -1891,13 +1921,27 @@ function make_or_update_undoable(undoable_meta, undoable_action) {
 		undoable_meta.match(PaintJSState.current_history_node)
 	) {
 		undoable_action();
-		PaintJSState.current_history_node.image_data =
-			PaintJSState.main_ctx.getImageData(
+		// 이미지 데이터 만들기
+		let layers = [];
+		for (let i = 0; i < PaintJSState.layers.length; i++) {
+			const layer = PaintJSState.layers[i];
+			const image_data = layer.ctx.getImageData(
 				0,
 				0,
-				PaintJSState.main_canvas.width,
-				PaintJSState.main_canvas.height,
+				layer.canvas.width,
+				layer.canvas.height,
 			);
+			layers.push({ image_data, id: layer.layerId, name: layer.name });
+		}
+			PaintJSState.current_history_node.layers=layers;
+		
+		// PaintJSState.current_history_node.image_data =
+		// 	PaintJSState.main_ctx.getImageData(
+		// 		0,
+		// 		0,
+		// 		PaintJSState.main_canvas.width,
+		// 		PaintJSState.main_canvas.height,
+		// 	);
 		PaintJSState.current_history_node.selection_image_data =
 			PaintJSState.selection &&
 			PaintJSState.selection.canvas.ctx.getImageData(
@@ -2894,7 +2938,12 @@ function resize_canvas_without_saving_dimensions(
 					for (const layer of PaintJSState.layers) {
 						const canvas = layer.canvas;
 						const ctx = canvas.ctx;
-						const image_data = ctx.getImageData(0, 0, beforeWidth, beforeHeight);
+						const image_data = ctx.getImageData(
+							0,
+							0,
+							beforeWidth,
+							beforeHeight,
+						);
 
 						// 캔버스 초기화
 						canvas.width = new_width;
