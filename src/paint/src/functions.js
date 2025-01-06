@@ -625,18 +625,18 @@ function reset_canvas_and_history() {
 	console.log("캔버스 리셋!");
 
 	// 모든 캔버스 초기화
-	for (const layer of PaintJSState.layers) {
-		const canvas = layer.canvas;
-		const ctx = canvas.ctx;
+	// for (const layer of PaintJSState.layers) {
+	// 	const canvas = layer.canvas;
+	// 	const ctx = canvas.ctx;
 
-		canvas.width = Math.max(1, PaintJSState.my_canvas_width);
-		canvas.height = Math.max(1, PaintJSState.my_canvas_height);
+	// 	canvas.width = Math.max(1, PaintJSState.layer[0].width);
+	// 	canvas.height = Math.max(1, PaintJSState.layer[0].height);
 
-		if (canvas.className == "layer background") {
-			ctx.fillStyle = PaintJSState.selected_colors.background;
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-		}
-	}
+	// 	if (canvas.className == "layer background") {
+	// 		ctx.fillStyle = PaintJSState.selected_colors.background;
+	// 		ctx.fillRect(0, 0, canvas.width, canvas.height);
+	// 	}
+	// }
 
 	// PaintJSState.main_canvas.width = Math.max(1, PaintJSState.my_canvas_width);
 	// PaintJSState.main_canvas.height = Math.max(1, PaintJSState.my_canvas_height);

@@ -132,7 +132,6 @@ export function initApp(canvasAreaQuery) {
 
   $(window).on("resize", () => {
     // for browser zoom, and in-app zoom of the canvas
-
     update_canvas_rect();
     update_disable_aa();
     update_magnified_canvas_size();
