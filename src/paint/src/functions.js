@@ -4,7 +4,7 @@ import UPNG from "../lib/UPNG.js";
 //import AnyPalette from '../lib/anypalette-0.6.0.js';
 
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
-import { OnCanvasMaskLayer } from "./OnCanvasMaskLayer.js";
+import { OnCanvasDrawLayer } from "./OnCanvasDrawLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { image_formats } from "./file-format-data.js";
@@ -136,9 +136,9 @@ function update_helper_layer_immediately() {
 		);
 	}
 
-	if (!PaintJSState.mask_layer) {
-		//console.log('make mask_layer')
-		PaintJSState.mask_layer = new OnCanvasMaskLayer(
+	if (!PaintJSState.draw_layer) {
+		//console.log('make draw_layer')
+		PaintJSState.draw_layer = new OnCanvasDrawLayer(
 			0,
 			0,
 			PaintJSState.main_canvas.width,
@@ -164,18 +164,18 @@ function update_helper_layer_immediately() {
 	}
 
 	if (
-		PaintJSState.mask_layer.canvas.width != PaintJSState.main_canvas.width ||
-		PaintJSState.mask_layer.canvas.height != PaintJSState.main_canvas.height
+		PaintJSState.draw_layer.canvas.width != PaintJSState.main_canvas.width ||
+		PaintJSState.draw_layer.canvas.height != PaintJSState.main_canvas.height
 	) {
 		//console.log('같지않음2')
 
-		PaintJSState.mask_layer.canvas.width = PaintJSState.main_canvas.width;
-		PaintJSState.mask_layer.canvas.height = PaintJSState.main_canvas.height;
-		PaintJSState.mask_layer.width = PaintJSState.main_canvas.width;
-		PaintJSState.mask_layer.height = PaintJSState.main_canvas.height;
-		PaintJSState.mask_layer.x = 0;
-		PaintJSState.mask_layer.y = 0;
-		PaintJSState.mask_layer.position();
+		PaintJSState.draw_layer.canvas.width = PaintJSState.main_canvas.width;
+		PaintJSState.draw_layer.canvas.height = PaintJSState.main_canvas.height;
+		PaintJSState.draw_layer.width = PaintJSState.main_canvas.width;
+		PaintJSState.draw_layer.height = PaintJSState.main_canvas.height;
+		PaintJSState.draw_layer.x = 0;
+		PaintJSState.draw_layer.y = 0;
+		PaintJSState.draw_layer.position();
 	}
 
 	render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
@@ -941,31 +941,31 @@ function open_from_file(file, source_file_handle) {
  * @param {ImageInfo} info
  */
 function apply_file_format_and_palette_info(info) {
-	PaintJSState.file_format = info.file_format;
+	// PaintJSState.file_format = info.file_format;
 
-	if (!PaintJSState.enable_palette_loading_from_indexed_images) {
-		return;
-	}
+	// if (!PaintJSState.enable_palette_loading_from_indexed_images) {
+	// 	return;
+	// }
 
-	if (info.palette) {
-		window.console?.log(
-			`Loaded palette from image file: ${info.palette.map(() => "%c█").join("")}`,
-			...info.palette.map((color) => `color: ${color};`),
-		);
-		PaintJSState.palette = info.palette;
-		PaintJSState.selected_colors.foreground = PaintJSState.palette[0];
-		PaintJSState.selected_colors.background =
-			PaintJSState.palette.length === 14 * 2
-				? PaintJSState.palette[14]
-				: PaintJSState.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
-		$(window).trigger("option-changed");
-	} else if (monochrome && !info.monochrome) {
-	//	PaintJSState.palette = default_palette;
-		reset_selected_colors();
-	}
-	//$colorbox.rebuild_palette();
+	// if (info.palette) {
+	// 	window.console?.log(
+	// 		`Loaded palette from image file: ${info.palette.map(() => "%c█").join("")}`,
+	// 		...info.palette.map((color) => `color: ${color};`),
+	// 	);
+	// 	PaintJSState.palette = info.palette;
+	// 	PaintJSState.selected_colors.foreground = PaintJSState.palette[0];
+	// 	PaintJSState.selected_colors.background =
+	// 		PaintJSState.palette.length === 14 * 2
+	// 			? PaintJSState.palette[14]
+	// 			: PaintJSState.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
+	// 	$(window).trigger("option-changed");
+	// } else if (monochrome && !info.monochrome) {
+	// //	PaintJSState.palette = default_palette;
+	// 	reset_selected_colors();
+	// }
+	// //$colorbox.rebuild_palette();
 
-	monochrome = info.monochrome;
+	// monochrome = info.monochrome;
 }
 
 /**

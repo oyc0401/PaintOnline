@@ -1,6 +1,5 @@
 import { get_tool_by_id, make_history_node } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
-import { default_palette } from "./src/color-data.js";
 import { make_canvas } from "./src/helpers.js";
 import $ from "jquery";
 
@@ -28,14 +27,6 @@ export function defaultState() {
 
   const $layer_area = $(".layer-area");
 
-  /** @type {PixelCanvas} */
-  // const mask_canvas =setDefaultCanvas($('.mask-canvas')[0])
-  // mask_canvas.classList.add("mask-canvas");
-
-  /** @type {(string | CanvasPattern)[]} */
-  let palette = default_palette;
-  /** @type {(string | CanvasPattern)[]} */
-  let polychrome_palette = palette;
 
   // This feature is not ready yet.
   // It needs to let the user decide when to switch the palette or not, when saving/opening an image.
@@ -101,7 +92,7 @@ export function defaultState() {
   /** @type {OnCanvasHelperLayer} */
   let helper_layer; // instance used for the grid and tool previews (not a singleton)
 
-  let mask_layer;
+  let draw_layer;
   /** @type {OSGUI$Window} */
   let $thumbnail_window;
   /** @type {PixelCanvas} */
@@ -216,8 +207,6 @@ export function defaultState() {
     return_to_magnification,
     main_canvas,
     main_ctx,
-    palette,
-    polychrome_palette,
     enable_palette_loading_from_indexed_images,
     enable_fs_access_api,
     brush_shape,
@@ -263,7 +252,7 @@ export function defaultState() {
     pointer_over_canvas,
     update_helper_layer_on_pointermove_active,
     pointers,
-    mask_layer,
+    draw_layer,
     pointer_float_previous,
     fill,
     stroke,

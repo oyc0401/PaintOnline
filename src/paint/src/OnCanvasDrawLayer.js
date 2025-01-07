@@ -4,7 +4,7 @@ console.log('JS 실행:','OnCanvasHelpLayer.js')
 import { OnCanvasObject } from "./OnCanvasObject.js";
 import { make_canvas } from "./helpers.js";
 
-class OnCanvasMaskLayer extends OnCanvasObject {
+export class OnCanvasDrawLayer extends OnCanvasObject {
   /**
    * @param {number} x
    * @param {number} y
@@ -16,7 +16,7 @@ class OnCanvasMaskLayer extends OnCanvasObject {
   constructor(x, y, width, height, hideMainCanvasHandles, pixelRatio = 1) {
     super(x, y, width, height, hideMainCanvasHandles);
 
-    this.$el.addClass("mask-layer");
+    this.$el.addClass("draw-layer");
     this.$el.css({
       pointerEvents: "none",
     });
@@ -25,6 +25,3 @@ class OnCanvasMaskLayer extends OnCanvasObject {
     this.$el.append(this.canvas);
   }
 }
-
-export { OnCanvasMaskLayer };
-

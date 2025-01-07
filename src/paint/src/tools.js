@@ -16,7 +16,6 @@ import {
 } from "./functions.js";
 import { PaintJSState } from "../state";
 import {
-	E,
 	get_icon_for_tool,
 	get_icon_for_tools,
 	get_rgba_from_color,
@@ -561,7 +560,7 @@ const tools = [
 			}
 		},
 		pointerdown() {
-			this.mask_canvas = PaintJSState.mask_layer.canvas;
+			this.mask_canvas = PaintJSState.draw_layer.canvas;
 			this.laterCanvas = new OffscreenCanvas(
 				this.mask_canvas.width,
 				this.mask_canvas.height,
@@ -2148,7 +2147,7 @@ tools.forEach((tool) => {
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = PaintJSState.mask_layer.canvas;
+				tool.mask_canvas = PaintJSState.draw_layer.canvas;
 			}
 			if (tool.mask_canvas.width !== PaintJSState.main_canvas.width) {
 				tool.mask_canvas.width = PaintJSState.main_canvas.width;
