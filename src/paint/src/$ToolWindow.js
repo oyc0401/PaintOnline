@@ -3,28 +3,12 @@ console.log('JS 실행:','$ToolWindow.js')
 /* global $Window */
 
 import { E } from "./helpers.js";
-// import $ from "jquery";
-/**
- * @param {OSGUIWindowOptions} options
- * @returns {OSGUI$Window}
- */
-
-/**
- * @param {JQuery<HTMLDivElement> & I$Component} [$component]
- * @returns {OSGUI$Window & I$ToolWindow}
- */
-function $ToolWindow($component) {
-	return make_window_supporting_scale({
-		$component,
-		toolWindow: true,
-	});
-}
 
 /**
  * @param {string} [title]
  * @returns {OSGUI$Window & I$DialogWindow}
  */
-function $DialogWindow(title) {
+export function $DialogWindow(title) {
 	const $w = /** @type {OSGUI$Window & I$DialogWindow} */ (make_window_supporting_scale({
 		title,
 		resizable: false,
@@ -98,6 +82,3 @@ function $DialogWindow(title) {
 
 	return $w;
 }
-
-export { $DialogWindow, $ToolWindow };
-
