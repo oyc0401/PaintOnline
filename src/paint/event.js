@@ -1,7 +1,6 @@
 import {
   cancel,
   clear,
-  confirm_overwrite_capability,
   delete_selection,
   deselect,
   edit_copy,
@@ -11,21 +10,15 @@ import {
   file_open,
   file_save,
   file_save_as,
-  get_tool_by_id,
   get_uris,
   image_attributes,
-  image_flip_and_rotate,
   image_invert_colors,
-  image_stretch_and_skew,
   load_image_from_uri,
-  make_or_update_undoable,
   open_from_file,
   paste,
   paste_image_from_file,
   redo,
-  resize_canvas_and_save_dimensions,
-  resize_canvas_without_saving_dimensions,
-  save_as_prompt,
+
   select_all,
   select_tool,
   select_tools,
@@ -38,7 +31,6 @@ import {
   update_helper_layer,
   update_magnified_canvas_size,
   view_bitmap,
-  write_image_file,
 } from "./src/functions.js";
 import $ from "jquery";
 import {
@@ -438,12 +430,8 @@ export function setEvent() {
             file_new();
           }
           break;
-        case "R":
-          image_flip_and_rotate();
-          break;
-        case "W":
-          image_stretch_and_skew();
-          break;
+      
+       
 
         default:
           return; // don't preventDefault
@@ -679,6 +667,9 @@ export function setEvent() {
     // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
     function setPrimaryPointPosition() {
       $layer_area.on("pointermove", (e) => {
+        if(!PaintJSState.init){
+          return;
+        }
         // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
         if (!PaintJSState.pointer_active) {
           const pointer = to_canvas_coords(e);

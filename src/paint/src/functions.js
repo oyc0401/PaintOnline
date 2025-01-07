@@ -3,12 +3,10 @@ console.log("JS 실행:", "functions.js");
 import UPNG from "../lib/UPNG.js";
 //import AnyPalette from '../lib/anypalette-0.6.0.js';
 
-import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
 import { OnCanvasMaskLayer } from "./OnCanvasMaskLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
-import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
 import {
 	E,
@@ -962,7 +960,7 @@ function apply_file_format_and_palette_info(info) {
 				: PaintJSState.palette[1]; // first in second row for default sized palette, else second color (debatable behavior; should it find a dark and a light color?)
 		$(window).trigger("option-changed");
 	} else if (monochrome && !info.monochrome) {
-		PaintJSState.palette = default_palette;
+	//	PaintJSState.palette = default_palette;
 		reset_selected_colors();
 	}
 	//$colorbox.rebuild_palette();
@@ -2654,273 +2652,273 @@ image_attributes.$window = null;
  */
 image_attributes.unit = "px";
 
-function show_convert_to_black_and_white() {
-	const $w = $DialogWindow("Convert to Black and White");
-	$w.addClass("convert-to-black-and-white");
-	$w.$main.append(
-		"<fieldset><legend>Threshold:</legend><input type='range' min='0' max='1' step='0.01' value='0.5'></fieldset>",
-	);
-	const $slider = $w.$main.find("input[type='range']");
-	const original_canvas = make_canvas(PaintJSState.main_canvas);
-	let threshold;
-	const update_threshold = () => {
-		make_or_update_undoable(
-			{
-				name: "Make Monochrome",
-				match: (history_node) => history_node.name === "Make Monochrome",
-				icon: get_help_folder_icon("p_monochrome.png"),
-			},
-			() => {
-				threshold = Number($slider.val());
-				drawcopy(PaintJSState.main_ctx, original_canvas);
-				threshold_black_and_white(PaintJSState.main_ctx, threshold);
-			},
-		);
-	};
-	update_threshold();
-	const update_threshold_soon = debounce(update_threshold, 100);
-	$slider.on("input", update_threshold_soon);
+// function show_convert_to_black_and_white() {
+// 	const $w = $DialogWindow("Convert to Black and White");
+// 	$w.addClass("convert-to-black-and-white");
+// 	$w.$main.append(
+// 		"<fieldset><legend>Threshold:</legend><input type='range' min='0' max='1' step='0.01' value='0.5'></fieldset>",
+// 	);
+// 	const $slider = $w.$main.find("input[type='range']");
+// 	const original_canvas = make_canvas(PaintJSState.main_canvas);
+// 	let threshold;
+// 	const update_threshold = () => {
+// 		make_or_update_undoable(
+// 			{
+// 				name: "Make Monochrome",
+// 				match: (history_node) => history_node.name === "Make Monochrome",
+// 				icon: get_help_folder_icon("p_monochrome.png"),
+// 			},
+// 			() => {
+// 				threshold = Number($slider.val());
+// 				drawcopy(PaintJSState.main_ctx, original_canvas);
+// 				threshold_black_and_white(PaintJSState.main_ctx, threshold);
+// 			},
+// 		);
+// 	};
+// 	update_threshold();
+// 	const update_threshold_soon = debounce(update_threshold, 100);
+// 	$slider.on("input", update_threshold_soon);
 
-	$w.$Button(
-		localize("OK"),
-		() => {
-			$w.close();
-		},
-		{ type: "submit" },
-	).focus();
-	$w.$Button(localize("Cancel"), () => {
-		if (PaintJSState.current_history_node.name === "Make Monochrome") {
-			undo();
-		} else {
-			undoable(
-				{
-					name: "Cancel Make Monochrome",
-					icon: get_help_folder_icon("p_color.png"),
-				},
-				() => {
-					drawcopy(PaintJSState.main_ctx, original_canvas);
-				},
-			);
-		}
-		$w.close();
-	});
-	$w.center();
-}
+// 	$w.$Button(
+// 		localize("OK"),
+// 		() => {
+// 			$w.close();
+// 		},
+// 		{ type: "submit" },
+// 	).focus();
+// 	$w.$Button(localize("Cancel"), () => {
+// 		if (PaintJSState.current_history_node.name === "Make Monochrome") {
+// 			undo();
+// 		} else {
+// 			undoable(
+// 				{
+// 					name: "Cancel Make Monochrome",
+// 					icon: get_help_folder_icon("p_color.png"),
+// 				},
+// 				() => {
+// 					drawcopy(PaintJSState.main_ctx, original_canvas);
+// 				},
+// 			);
+// 		}
+// 		$w.close();
+// 	});
+// 	$w.center();
+// }
 
-function image_flip_and_rotate() {
-	const $w = $DialogWindow(localize("Flip and Rotate"));
-	$w.addClass("flip-and-rotate");
+// function image_flip_and_rotate() {
+// 	const $w = $DialogWindow(localize("Flip and Rotate"));
+// 	$w.addClass("flip-and-rotate");
 
-	const $fieldset = $(E("fieldset")).appendTo($w.$main);
-	$fieldset.append(`
-		<legend>${localize("Flip or rotate")}</legend>
-	// 	<div class="radio-wrapper">
-	// 		<input
-	// 			type="radio"
-	// 			name="flip-or-rotate"
-	// 			id="flip-horizontal"
-	// 			value="flip-horizontal"
-	// 			aria-keyshortcuts="Alt+F"
-	// 			checked
-	// 		/><label for="flip-horizontal">${render_access_key(localize("&Flip horizontal"))}</label>
-	// 	</div>
-	// 	<div class="radio-wrapper">
-	// 		<input
-	// 			type="radio"
-	// 			name="flip-or-rotate"
-	// 			id="flip-vertical"
-	// 			value="flip-vertical"
-	// 			aria-keyshortcuts="Alt+V"
-	// 		/><label for="flip-vertical">${render_access_key(localize("Flip &vertical"))}</label>
-	// 	</div>
-	// 	<div class="radio-wrapper">
-	// 		<input
-	// 			type="radio"
-	// 			name="flip-or-rotate"
-	// 			id="rotate-by-angle"
-	// 			value="rotate-by-angle"
-	// 			aria-keyshortcuts="Alt+R"
-	// 		/><label for="rotate-by-angle">${render_access_key(localize("&Rotate by angle"))}</label>
-	// 	</div>
-	// `);
+// 	const $fieldset = $(E("fieldset")).appendTo($w.$main);
+// 	$fieldset.append(`
+// 		<legend>${localize("Flip or rotate")}</legend>
+// 	// 	<div class="radio-wrapper">
+// 	// 		<input
+// 	// 			type="radio"
+// 	// 			name="flip-or-rotate"
+// 	// 			id="flip-horizontal"
+// 	// 			value="flip-horizontal"
+// 	// 			aria-keyshortcuts="Alt+F"
+// 	// 			checked
+// 	// 		/><label for="flip-horizontal">${render_access_key(localize("&Flip horizontal"))}</label>
+// 	// 	</div>
+// 	// 	<div class="radio-wrapper">
+// 	// 		<input
+// 	// 			type="radio"
+// 	// 			name="flip-or-rotate"
+// 	// 			id="flip-vertical"
+// 	// 			value="flip-vertical"
+// 	// 			aria-keyshortcuts="Alt+V"
+// 	// 		/><label for="flip-vertical">${render_access_key(localize("Flip &vertical"))}</label>
+// 	// 	</div>
+// 	// 	<div class="radio-wrapper">
+// 	// 		<input
+// 	// 			type="radio"
+// 	// 			name="flip-or-rotate"
+// 	// 			id="rotate-by-angle"
+// 	// 			value="rotate-by-angle"
+// 	// 			aria-keyshortcuts="Alt+R"
+// 	// 		/><label for="rotate-by-angle">${render_access_key(localize("&Rotate by angle"))}</label>
+// 	// 	</div>
+// 	// `);
 
-	// const $rotate_by_angle = $(E("div")).appendTo($fieldset);
-	// $rotate_by_angle.addClass("sub-options");
-	// for (const label_with_hotkey of [
-	// 	"&90°",
-	// 	"&180°",
-	// 	"&270°",
-	// ]) {
-	// 	const degrees = parseInt(AccessKeys.toText(label_with_hotkey), 10);
-	// 	$rotate_by_angle.append(`
-	// 		<div class="radio-wrapper">
-	// 			<input
-	// 				type="radio"
-	// 				name="rotate-by-angle"
-	// 				value="${degrees}"
-	// 				id="rotate-${degrees}"
-	// 				aria-keyshortcuts="Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}"
-	// 			/><label
-	// 				for="rotate-${degrees}"
-	// 			>${render_access_key(label_with_hotkey)}</label>
-	// 		</div>
-	// 	`);
-	// }
-	// $rotate_by_angle.append(`
-	// 	<div class="radio-wrapper">
-	// 		<input
-	// 			type="radio"
-	// 			name="rotate-by-angle"
-	// 			value="arbitrary"
-	// 		/><input
-	// 			type="number"
-	// 			min="-360"
-	// 			max="360"
-	// 			name="rotate-by-arbitrary-angle"
-	// 			id="custom-degrees"
-	// 			value=""
-	// 			class="no-spinner inset-deep"
-	// 			style="width: 50px"
-	// 		/>
-	// 		<label for="custom-degrees">${localize("Degrees")}</label>
-	// 	</div>
-	// `);
-	// $rotate_by_angle.find("#rotate-90").attr({ checked: true });
-	// // Disabling inputs makes them not even receive mouse events,
-	// // and so pointer-events: none is needed to respond to events on the parent.
-	// $rotate_by_angle.find("input").attr({ disabled: true });
-	// $fieldset.find("input").on("change", () => {
-	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
-	// 	$rotate_by_angle.find("input").attr({
-	// 		disabled: action !== "rotate-by-angle",
-	// 	});
-	// });
-	// $rotate_by_angle.find(".radio-wrapper").on("click", (e) => {
-	// 	// Select "Rotate by angle" and enable subfields
-	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
-	// 	$fieldset.find("input").triggerHandler("change");
+// 	// const $rotate_by_angle = $(E("div")).appendTo($fieldset);
+// 	// $rotate_by_angle.addClass("sub-options");
+// 	// for (const label_with_hotkey of [
+// 	// 	"&90°",
+// 	// 	"&180°",
+// 	// 	"&270°",
+// 	// ]) {
+// 	// 	const degrees = parseInt(AccessKeys.toText(label_with_hotkey), 10);
+// 	// 	$rotate_by_angle.append(`
+// 	// 		<div class="radio-wrapper">
+// 	// 			<input
+// 	// 				type="radio"
+// 	// 				name="rotate-by-angle"
+// 	// 				value="${degrees}"
+// 	// 				id="rotate-${degrees}"
+// 	// 				aria-keyshortcuts="Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}"
+// 	// 			/><label
+// 	// 				for="rotate-${degrees}"
+// 	// 			>${render_access_key(label_with_hotkey)}</label>
+// 	// 		</div>
+// 	// 	`);
+// 	// }
+// 	// $rotate_by_angle.append(`
+// 	// 	<div class="radio-wrapper">
+// 	// 		<input
+// 	// 			type="radio"
+// 	// 			name="rotate-by-angle"
+// 	// 			value="arbitrary"
+// 	// 		/><input
+// 	// 			type="number"
+// 	// 			min="-360"
+// 	// 			max="360"
+// 	// 			name="rotate-by-arbitrary-angle"
+// 	// 			id="custom-degrees"
+// 	// 			value=""
+// 	// 			class="no-spinner inset-deep"
+// 	// 			style="width: 50px"
+// 	// 		/>
+// 	// 		<label for="custom-degrees">${localize("Degrees")}</label>
+// 	// 	</div>
+// 	// `);
+// 	// $rotate_by_angle.find("#rotate-90").attr({ checked: true });
+// 	// // Disabling inputs makes them not even receive mouse events,
+// 	// // and so pointer-events: none is needed to respond to events on the parent.
+// 	// $rotate_by_angle.find("input").attr({ disabled: true });
+// 	// $fieldset.find("input").on("change", () => {
+// 	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
+// 	// 	$rotate_by_angle.find("input").attr({
+// 	// 		disabled: action !== "rotate-by-angle",
+// 	// 	});
+// 	// });
+// 	// $rotate_by_angle.find(".radio-wrapper").on("click", (e) => {
+// 	// 	// Select "Rotate by angle" and enable subfields
+// 	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
+// 	// 	$fieldset.find("input").triggerHandler("change");
 
-	// 	const $wrapper = $(e.target).closest(".radio-wrapper");
-	// 	// Focus the numerical input if this field has one
-	// 	const num_input = $wrapper.find("input[type='number']")[0];
-	// 	if (num_input) {
-	// 		num_input.focus();
-	// 	}
-	// 	// Select the radio for this field
-	// 	$wrapper.find("input[type='radio']").prop("checked", true);
-	// });
+// 	// 	const $wrapper = $(e.target).closest(".radio-wrapper");
+// 	// 	// Focus the numerical input if this field has one
+// 	// 	const num_input = $wrapper.find("input[type='number']")[0];
+// 	// 	if (num_input) {
+// 	// 		num_input.focus();
+// 	// 	}
+// 	// 	// Select the radio for this field
+// 	// 	$wrapper.find("input[type='radio']").prop("checked", true);
+// 	// });
 
-	// $fieldset.find("input[name='rotate-by-arbitrary-angle']").on("input", () => {
-	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
-	// 	$fieldset.find("input[value='arbitrary']").prop("checked", true);
-	// });
+// 	// $fieldset.find("input[name='rotate-by-arbitrary-angle']").on("input", () => {
+// 	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
+// 	// 	$fieldset.find("input[value='arbitrary']").prop("checked", true);
+// 	// });
 
-	// $w.$Button(localize("OK"), () => {
-	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
-	// 	switch (action) {
-	// 		case "flip-horizontal":
-	// 			flip_horizontal();
-	// 			break;
-	// 		case "flip-vertical":
-	// 			flip_vertical();
-	// 			break;
-	// 		case "rotate-by-angle": {
-	// 			let angle_val = $fieldset.find("input[name='rotate-by-angle']:checked").val();
-	// 			if (angle_val === "arbitrary") {
-	// 				angle_val = $fieldset.find("input[name='rotate-by-arbitrary-angle']").val();
-	// 			}
-	// 			const angle_deg = Number(angle_val);
-	// 			const angle = angle_deg / 360 * TAU;
+// 	// $w.$Button(localize("OK"), () => {
+// 	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
+// 	// 	switch (action) {
+// 	// 		case "flip-horizontal":
+// 	// 			flip_horizontal();
+// 	// 			break;
+// 	// 		case "flip-vertical":
+// 	// 			flip_vertical();
+// 	// 			break;
+// 	// 		case "rotate-by-angle": {
+// 	// 			let angle_val = $fieldset.find("input[name='rotate-by-angle']:checked").val();
+// 	// 			if (angle_val === "arbitrary") {
+// 	// 				angle_val = $fieldset.find("input[name='rotate-by-arbitrary-angle']").val();
+// 	// 			}
+// 	// 			const angle_deg = Number(angle_val);
+// 	// 			const angle = angle_deg / 360 * TAU;
 
-	// 			if (isNaN(angle)) {
-	// 				please_enter_a_number();
-	// 				return;
-	// 			}
-	// 			rotate(angle);
-	// 			break;
-	// 		}
-	// 	}
+// 	// 			if (isNaN(angle)) {
+// 	// 				please_enter_a_number();
+// 	// 				return;
+// 	// 			}
+// 	// 			rotate(angle);
+// 	// 			break;
+// 	// 		}
+// 	// 	}
 
-	// 	$w.close();
-	// }, { type: "submit" });
-	// $w.$Button(localize("Cancel"), () => {
-	// 	$w.close();
-	// });
+// 	// 	$w.close();
+// 	// }, { type: "submit" });
+// 	// $w.$Button(localize("Cancel"), () => {
+// 	// 	$w.close();
+// 	// });
 
-	// $fieldset.find("input[type='radio']").first().focus();
+// 	// $fieldset.find("input[type='radio']").first().focus();
 
-	// $w.center();
+// 	// $w.center();
 
-	// handle_keyshortcuts($w);
-}
+// 	// handle_keyshortcuts($w);
+// }
 
-function image_stretch_and_skew() {
-	// 	const $w = $DialogWindow(localize("Stretch and Skew"));
-	// 	$w.addClass("stretch-and-skew");
-	// 	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
-	// 	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
-	// 	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
-	// 	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
-	// 	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
-	// 		const $tr = $(E("tr")).appendTo($table);
-	// 		const $img = $(E("img")).attr({
-	// 			src: `images/transforms/${img_src}.png`,
-	// 			width: 32,
-	// 			height: 32,
-	// 		}).css({
-	// 			marginRight: "20px",
-	// 		});
-	// 		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
-	// 		const $input = $(E("input")).attr({
-	// 			type: "number",
-	// 			min,
-	// 			max,
-	// 			value: default_value,
-	// 			id: input_id,
-	// 			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
-	// 		}).css({
-	// 			width: "40px",
-	// 		}).addClass("no-spinner inset-deep");
-	// 		$(E("td")).appendTo($tr).append($img);
-	// 		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
-	// 		$(E("td")).appendTo($tr).append($input);
-	// 		$(E("td")).appendTo($tr).text(label_unit);
-	// 		return $input;
-	// 	};
-	// 	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
-	// 	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
-	// 	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
-	// 	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
-	// 	$w.$Button(localize("OK"), () => {
-	// 		const x_scale = parseFloat(stretch_x.val()) / 100;
-	// 		const y_scale = parseFloat(stretch_y.val()) / 100;
-	// 		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
-	// 		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
-	// 		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
-	// 			please_enter_a_number();
-	// 			return;
-	// 		}
-	// 		try {
-	// 			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
-	// 		} catch (exception) {
-	// 			if (exception.name === "NS_ERROR_FAILURE") {
-	// 				// or localize("There is not enough memory or resources to complete operation.")
-	// 				show_error_message(localize("Insufficient memory to perform operation."), exception);
-	// 			} else {
-	// 				show_error_message(localize("An unknown error has occurred."), exception);
-	// 			}
-	// 			// @TODO: undo and clean up undoable
-	// 			return;
-	// 		}
-	// 		$w.close();
-	// 	}, { type: "submit" });
-	// 	$w.$Button(localize("Cancel"), () => {
-	// 		$w.close();
-	// 	});
-	// 	$w.$main.find("input").first().focus().select();
-	// 	$w.center();
-	// 	handle_keyshortcuts($w);
-}
+// function image_stretch_and_skew() {
+// 	// 	const $w = $DialogWindow(localize("Stretch and Skew"));
+// 	// 	$w.addClass("stretch-and-skew");
+// 	// 	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
+// 	// 	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
+// 	// 	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
+// 	// 	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
+// 	// 	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
+// 	// 		const $tr = $(E("tr")).appendTo($table);
+// 	// 		const $img = $(E("img")).attr({
+// 	// 			src: `images/transforms/${img_src}.png`,
+// 	// 			width: 32,
+// 	// 			height: 32,
+// 	// 		}).css({
+// 	// 			marginRight: "20px",
+// 	// 		});
+// 	// 		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
+// 	// 		const $input = $(E("input")).attr({
+// 	// 			type: "number",
+// 	// 			min,
+// 	// 			max,
+// 	// 			value: default_value,
+// 	// 			id: input_id,
+// 	// 			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
+// 	// 		}).css({
+// 	// 			width: "40px",
+// 	// 		}).addClass("no-spinner inset-deep");
+// 	// 		$(E("td")).appendTo($tr).append($img);
+// 	// 		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
+// 	// 		$(E("td")).appendTo($tr).append($input);
+// 	// 		$(E("td")).appendTo($tr).text(label_unit);
+// 	// 		return $input;
+// 	// 	};
+// 	// 	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
+// 	// 	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
+// 	// 	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
+// 	// 	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
+// 	// 	$w.$Button(localize("OK"), () => {
+// 	// 		const x_scale = parseFloat(stretch_x.val()) / 100;
+// 	// 		const y_scale = parseFloat(stretch_y.val()) / 100;
+// 	// 		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
+// 	// 		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
+// 	// 		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
+// 	// 			please_enter_a_number();
+// 	// 			return;
+// 	// 		}
+// 	// 		try {
+// 	// 			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
+// 	// 		} catch (exception) {
+// 	// 			if (exception.name === "NS_ERROR_FAILURE") {
+// 	// 				// or localize("There is not enough memory or resources to complete operation.")
+// 	// 				show_error_message(localize("Insufficient memory to perform operation."), exception);
+// 	// 			} else {
+// 	// 				show_error_message(localize("An unknown error has occurred."), exception);
+// 	// 			}
+// 	// 			// @TODO: undo and clean up undoable
+// 	// 			return;
+// 	// 		}
+// 	// 		$w.close();
+// 	// 	}, { type: "submit" });
+// 	// 	$w.$Button(localize("Cancel"), () => {
+// 	// 		$w.close();
+// 	// 	});
+// 	// 	$w.$main.find("input").first().focus().select();
+// 	// 	$w.center();
+// 	// 	handle_keyshortcuts($w);
+// }
 
 /**
  * @param {JQuery<HTMLElement>} $container
@@ -3013,163 +3011,163 @@ function handle_keyshortcuts($container) {
  *
  * @returns {Promise<{newFileName: string, newFileFormatID: string}>} - A promise that resolves with the new file name and format ID.
  */
-function save_as_prompt({
-	dialogTitle = localize("Save As"),
-	defaultFileName = "",
-	defaultFileFormatID,
-	formats,
-	promptForName = true,
-}) {
-	//	console.log(saveFile)
-	return new Promise((resolve) => {
-		const $w = $DialogWindow(dialogTitle);
-		$w.addClass("save-as");
+// function save_as_prompt({
+// 	dialogTitle = localize("Save As"),
+// 	defaultFileName = "",
+// 	defaultFileFormatID,
+// 	formats,
+// 	promptForName = true,
+// }) {
+// 	//	console.log(saveFile)
+// 	return new Promise((resolve) => {
+// 		const $w = $DialogWindow(dialogTitle);
+// 		$w.addClass("save-as");
 
-		// This is needed to prevent the keyboard from closing when you tap the file name input! in FF mobile
-		// @TODO: Investigate this in os-gui.js; is it literally just the browser default behavior to focus a div with tabindex that's the parent of an input?
-		// That'd be crazy, right?
-		$w.$content.attr("tabIndex", null);
+// 		// This is needed to prevent the keyboard from closing when you tap the file name input! in FF mobile
+// 		// @TODO: Investigate this in os-gui.js; is it literally just the browser default behavior to focus a div with tabindex that's the parent of an input?
+// 		// That'd be crazy, right?
+// 		$w.$content.attr("tabIndex", null);
 
-		// @TODO: hotkeys (N, T, S, Enter, Esc)
-		if (promptForName) {
-			$w.$main.append(`
-				<label>
-					File name:
-					<input type="text" class="file-name inset-deep"/>
-				</label>
-			`);
-		}
-		$w.$main.append(`
-			<label>
-				Save as type:
-				<select class="file-type-select inset-deep"></select>
-			</label>
-		`);
-		const $file_type = $w.$main.find(".file-type-select");
-		const $file_name = $w.$main.find(".file-name");
+// 		// @TODO: hotkeys (N, T, S, Enter, Esc)
+// 		if (promptForName) {
+// 			$w.$main.append(`
+// 				<label>
+// 					File name:
+// 					<input type="text" class="file-name inset-deep"/>
+// 				</label>
+// 			`);
+// 		}
+// 		$w.$main.append(`
+// 			<label>
+// 				Save as type:
+// 				<select class="file-type-select inset-deep"></select>
+// 			</label>
+// 		`);
+// 		const $file_type = $w.$main.find(".file-type-select");
+// 		const $file_name = $w.$main.find(".file-name");
 
-		for (const format of formats) {
-			$file_type.append(
-				$("<option>").val(format.formatID).text(format.nameWithExtensions),
-			);
-		}
+// 		for (const format of formats) {
+// 			$file_type.append(
+// 				$("<option>").val(format.formatID).text(format.nameWithExtensions),
+// 			);
+// 		}
 
-		if (promptForName) {
-			$file_name.val(defaultFileName);
-		}
+// 		if (promptForName) {
+// 			$file_name.val(defaultFileName);
+// 		}
 
-		const get_selected_format = () => {
-			const selected_format_id = $file_type.val();
-			for (const format of formats) {
-				if (format.formatID === selected_format_id) {
-					return format;
-				}
-			}
-		};
+// 		const get_selected_format = () => {
+// 			const selected_format_id = $file_type.val();
+// 			for (const format of formats) {
+// 				if (format.formatID === selected_format_id) {
+// 					return format;
+// 				}
+// 			}
+// 		};
 
-		// Select file type when typing file name
-		const select_file_type_from_file_name = () => {
-			const extension_match = (
-				promptForName ? String($file_name.val()) : defaultFileName
-			).match(/\.([\w\d]+)$/);
-			if (extension_match) {
-				const selected_format = get_selected_format();
-				const matched_ext = extension_match[1].toLowerCase();
-				if (
-					selected_format &&
-					selected_format.extensions.includes(matched_ext)
-				) {
-					// File extension already matches selected file type.
-					// Don't select a different file type with the same extension.
-					return;
-				}
-				for (const format of formats) {
-					if (format.extensions.includes(matched_ext)) {
-						$file_type.val(format.formatID);
-					}
-				}
-			}
-		};
-		if (promptForName) {
-			$file_name.on("input", select_file_type_from_file_name);
-		}
-		if (
-			defaultFileFormatID &&
-			formats.some((format) => format.formatID === defaultFileFormatID)
-		) {
-			$file_type.val(defaultFileFormatID);
-		} else {
-			select_file_type_from_file_name();
-		}
+// 		// Select file type when typing file name
+// 		const select_file_type_from_file_name = () => {
+// 			const extension_match = (
+// 				promptForName ? String($file_name.val()) : defaultFileName
+// 			).match(/\.([\w\d]+)$/);
+// 			if (extension_match) {
+// 				const selected_format = get_selected_format();
+// 				const matched_ext = extension_match[1].toLowerCase();
+// 				if (
+// 					selected_format &&
+// 					selected_format.extensions.includes(matched_ext)
+// 				) {
+// 					// File extension already matches selected file type.
+// 					// Don't select a different file type with the same extension.
+// 					return;
+// 				}
+// 				for (const format of formats) {
+// 					if (format.extensions.includes(matched_ext)) {
+// 						$file_type.val(format.formatID);
+// 					}
+// 				}
+// 			}
+// 		};
+// 		if (promptForName) {
+// 			$file_name.on("input", select_file_type_from_file_name);
+// 		}
+// 		if (
+// 			defaultFileFormatID &&
+// 			formats.some((format) => format.formatID === defaultFileFormatID)
+// 		) {
+// 			$file_type.val(defaultFileFormatID);
+// 		} else {
+// 			select_file_type_from_file_name();
+// 		}
 
-		// Change file extension when selecting file type
-		// allowing non-default extension like .dib vs .bmp, .jpg vs .jpeg to stay
-		const update_extension_from_file_type = (add_extension_if_absent) => {
-			if (!promptForName) {
-				return;
-			}
-			let file_name = /** @type {string} */ ($file_name.val());
-			const selected_format = get_selected_format();
-			if (!selected_format) {
-				return;
-			}
-			const extensions_for_type = selected_format.extensions;
-			const primary_extension_for_type = extensions_for_type[0];
-			// This way of removing the file extension doesn't scale very well! But I don't want to delete text the user wanted like in case of a version number...
-			const without_extension = file_name.replace(
-				/\.(\w{1,3}|apng|jpeg|jfif|tiff|webp|psppalette|sketchpalette|gimp|colors|scss|sass|less|styl|html|theme|themepack)$/i,
-				"",
-			);
-			const extension_present = without_extension !== file_name;
-			const extension = file_name
-				.slice(without_extension.length + 1)
-				.toLowerCase(); // without dot
-			if (
-				(add_extension_if_absent || extension_present) &&
-				extensions_for_type.indexOf(extension) === -1
-			) {
-				file_name = `${without_extension}.${primary_extension_for_type}`;
-				$file_name.val(file_name);
-			}
-		};
-		$file_type.on("change", () => {
-			update_extension_from_file_type(false);
-		});
-		// and initially
-		update_extension_from_file_type(false);
+// 		// Change file extension when selecting file type
+// 		// allowing non-default extension like .dib vs .bmp, .jpg vs .jpeg to stay
+// 		const update_extension_from_file_type = (add_extension_if_absent) => {
+// 			if (!promptForName) {
+// 				return;
+// 			}
+// 			let file_name = /** @type {string} */ ($file_name.val());
+// 			const selected_format = get_selected_format();
+// 			if (!selected_format) {
+// 				return;
+// 			}
+// 			const extensions_for_type = selected_format.extensions;
+// 			const primary_extension_for_type = extensions_for_type[0];
+// 			// This way of removing the file extension doesn't scale very well! But I don't want to delete text the user wanted like in case of a version number...
+// 			const without_extension = file_name.replace(
+// 				/\.(\w{1,3}|apng|jpeg|jfif|tiff|webp|psppalette|sketchpalette|gimp|colors|scss|sass|less|styl|html|theme|themepack)$/i,
+// 				"",
+// 			);
+// 			const extension_present = without_extension !== file_name;
+// 			const extension = file_name
+// 				.slice(without_extension.length + 1)
+// 				.toLowerCase(); // without dot
+// 			if (
+// 				(add_extension_if_absent || extension_present) &&
+// 				extensions_for_type.indexOf(extension) === -1
+// 			) {
+// 				file_name = `${without_extension}.${primary_extension_for_type}`;
+// 				$file_name.val(file_name);
+// 			}
+// 		};
+// 		$file_type.on("change", () => {
+// 			update_extension_from_file_type(false);
+// 		});
+// 		// and initially
+// 		update_extension_from_file_type(false);
 
-		const $save = $w.$Button(
-			localize("Save"),
-			() => {
-				$w.close();
-				update_extension_from_file_type(true);
-				resolve({
-					newFileName: promptForName
-						? String($file_name.val())
-						: defaultFileName,
-					newFileFormatID: String($file_type.val()),
-				});
-			},
-			{ type: "submit" },
-		);
-		$w.$Button(localize("Cancel"), () => {
-			$w.close();
-		});
+// 		const $save = $w.$Button(
+// 			localize("Save"),
+// 			() => {
+// 				$w.close();
+// 				update_extension_from_file_type(true);
+// 				resolve({
+// 					newFileName: promptForName
+// 						? String($file_name.val())
+// 						: defaultFileName,
+// 					newFileFormatID: String($file_type.val()),
+// 				});
+// 			},
+// 			{ type: "submit" },
+// 		);
+// 		$w.$Button(localize("Cancel"), () => {
+// 			$w.close();
+// 		});
 
-		$w.center();
-		// For mobile devices with on-screen keyboards, move the window to the top
-		if (window.innerWidth < 500 || window.innerHeight < 700) {
-			$w.css({ top: 20 });
-		}
+// 		$w.center();
+// 		// For mobile devices with on-screen keyboards, move the window to the top
+// 		if (window.innerWidth < 500 || window.innerHeight < 700) {
+// 			$w.css({ top: 20 });
+// 		}
 
-		if (promptForName) {
-			$file_name.focus().select();
-		} else {
-			// $file_type.focus(); // most of the time you don't want to change the type from PNG
-			$save.focus();
-		}
-	});
-}
+// 		if (promptForName) {
+// 			$file_name.focus().select();
+// 		} else {
+// 			// $file_type.focus(); // most of the time you don't want to change the type from PNG
+// 			$save.focus();
+// 		}
+// 	});
+// }
 
 /**
  * Writes an image file to a blob, in the given format.
@@ -3612,9 +3610,9 @@ export {
 	go_to_history_node,
 	handle_keyshortcuts,
 	image_attributes,
-	image_flip_and_rotate,
+	//image_flip_and_rotate,
 	image_invert_colors,
-	image_stretch_and_skew,
+	//image_stretch_and_skew,
 	load_image_from_uri,
 	load_theme_from_text,
 	make_history_node,
@@ -3633,13 +3631,13 @@ export {
 	resize_canvas_and_save_dimensions,
 	resize_canvas_without_saving_dimensions,
 	sanity_check_blob,
-	save_as_prompt,
+	//save_as_prompt,
 	save_selection_to_file,
 	select_all,
 	select_tool,
 	select_tools,
 	set_magnification,
-	show_convert_to_black_and_white,
+	//show_convert_to_black_and_white,
 	show_error_message,
 	show_file_format_errors,
 	show_resource_load_error_message,

@@ -53,4 +53,8 @@ export async function initApp(canvasAreaQuery) {
     PaintJSState.$layer_area[0].getBoundingClientRect(); // cached for performance, updated later
 
   init_webgl_stuff();
+
+  // 실행 완료
+  PaintJSState.init = true;
+  console.log('실행완료!')
 }

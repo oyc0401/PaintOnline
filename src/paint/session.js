@@ -63,22 +63,19 @@ export async function getDBCanvas() {
     return;
   }
 
-  make_or_update_undoable(
-    {
-      match: (history_node) => history_node.name === localize("New"),
-      name: "Resize Canvas For New Document",
-    },
-    async () => {
-      // 레이어 데이터를 캔버스UI로 바꾸기
-      const layers = await layerListToLayerCanvas(canvasInfo, layerList);
+  console.log("파일 불러오기 완료!");
 
-      // 레이어를 레이어영역에 추가
-      setLayer(layers);
+  // 레이어 데이터를 캔버스UI로 바꾸기
+  const layers = await layerListToLayerCanvas(canvasInfo, layerList);
+  console.log("레이어 바꾸기 완료");
 
-      // 기본세팅 하기
-      initSetting();
-    },
-  );
+  // 레이어를 레이어영역에 추가
+  setLayer(layers);
+  console.log("레이어 추가 완료");
+
+  // 기본세팅 하기
+  initSetting();
+  console.log("캔버스 제작 완료!");
 }
 
 async function createNewFile() {
