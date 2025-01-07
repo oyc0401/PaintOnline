@@ -4,6 +4,24 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-78" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="640.0000000000002" y="1240" width="200" height="920" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-79" value="" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};size=0;" vertex="1" parent="AAlg2MMWl-rsjKI6dOD7-78">
+          <mxGeometry y="40" width="200" height="880" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-80" value="createNewFile" style="html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="AAlg2MMWl-rsjKI6dOD7-78">
+          <mxGeometry width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-73" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="320.0000000000002" y="1240" width="200" height="840" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-74" value="" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};size=0;" vertex="1" parent="AAlg2MMWl-rsjKI6dOD7-73">
+          <mxGeometry y="40" width="200" height="800" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-75" value="getDBCanvas" style="html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="AAlg2MMWl-rsjKI6dOD7-73">
+          <mxGeometry width="200" height="40" as="geometry" />
+        </mxCell>
         <mxCell id="ijIBmjhym2byQwiykt7W-40" value="PaintJSState" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="-10" y="41.5" width="120" height="60" as="geometry" />
         </mxCell>
@@ -174,6 +192,76 @@
         </mxCell>
         <mxCell id="AAlg2MMWl-rsjKI6dOD7-32" value="키 저장" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="-220" y="1090" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-38" value="새로운 키 만들기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1320" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-39" value="새로운 레이어 만들기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1560" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-40" value="기본세팅 하기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1920" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-41" value="레이어를 레이어영역에 추가" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1800" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-42" value="현재 상태를 DB에 저장" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="2040" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-43" value="새로운 파일 만들기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1440" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-77" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="AAlg2MMWl-rsjKI6dOD7-46" target="AAlg2MMWl-rsjKI6dOD7-75">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-46" value="앱 시작" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1120" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-89" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="AAlg2MMWl-rsjKI6dOD7-48" target="AAlg2MMWl-rsjKI6dOD7-80">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="1470" />
+              <mxPoint x="580" y="1260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-48" value="파일키를 통해 파일 불러오기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1440" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-90" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="AAlg2MMWl-rsjKI6dOD7-49" target="AAlg2MMWl-rsjKI6dOD7-80">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="1590" />
+              <mxPoint x="580" y="1260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-49" value="파일에 있는 레이어 불러오기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1560" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-50" value="레이어 데이터를 캔버스UI로 바꾸기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1680" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-51" value="레이어를 레이어영역에 추가" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1800" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-52" value="기본세팅 하기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1920" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-81" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="AAlg2MMWl-rsjKI6dOD7-64" target="AAlg2MMWl-rsjKI6dOD7-80">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-64" value="최근 파일 키 불러오기" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1320" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-94" value="Error" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1570" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-96" value="Error" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1450" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AAlg2MMWl-rsjKI6dOD7-97" value="Error" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1330" width="80" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
