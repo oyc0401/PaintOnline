@@ -1,11 +1,12 @@
 import $ from "jquery";
+
+import { PaintJSState } from "./state.js";
+import { keyStore } from "./repository/keyStorage.js";
+import { layerRepository } from "./repository/layerRepository.js";
+import { canvasRepository } from "./repository/canvasRepository.js";
+import { localize } from "../localize/localize.js";
 import { debounce } from "./src/helpers.js";
 
-import { keyStore } from "./keyStorage.js";
-import { PaintJSState } from "./state.js";
-import { layerRepository } from "./layerRepository.js";
-import { canvasRepository } from "./canvasRepository.js";
-import { localize } from "../localize/localize.js";
 import {
   make_or_update_undoable,
   reset_file,
@@ -20,6 +21,16 @@ import {
   layerListToLayerCanvas,
   setLayer,
 } from "./layer.js";
+
+export function initSession() {
+  console.log("initSession");
+
+  // 레이어 변경(그리기 등) 시에 저장
+  $(window).on("session-update.session-hook", () => {
+    // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
+    saveFileSoon();
+  });
+}
 
 let currentFileId = null;
 
@@ -158,16 +169,6 @@ async function saveFileImmediately() {
 }
 
 // --------------------------- 세션 종료 / 새 파일 ---------------------------
-
-export function initSession() {
-  console.log("initSession");
-
-  // 레이어 변경(그리기 등) 시에 저장
-  $(window).on("session-update.session-hook", () => {
-    // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
-    saveFileSoon();
-  });
-}
 
 export async function newLocalFile() {
   endSession();

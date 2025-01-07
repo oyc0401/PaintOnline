@@ -1,7 +1,7 @@
 import { get_tool_by_id, make_history_node } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
 import { default_palette } from "./src/color-data.js";
-import { setDefaultCanvas ,make_canvas} from "./src/helpers.js";
+import { make_canvas } from "./src/helpers.js";
 import $ from "jquery";
 
 export function defaultState() {
@@ -21,17 +21,16 @@ export function defaultState() {
 
   /** @type {PixelCanvas} */
   const main_canvas = make_canvas(default_canvas_width, default_canvas_height);
- main_canvas.classList.add("main-canvas");
+  main_canvas.classList.add("main-canvas");
 
   /** @type {PixelContext} */
   const main_ctx = main_canvas.ctx;
 
-  const $layer_area = $('.layer-area');
- 
+  const $layer_area = $(".layer-area");
 
   /** @type {PixelCanvas} */
- // const mask_canvas =setDefaultCanvas($('.mask-canvas')[0])
- // mask_canvas.classList.add("mask-canvas");
+  // const mask_canvas =setDefaultCanvas($('.mask-canvas')[0])
+  // mask_canvas.classList.add("mask-canvas");
 
   /** @type {(string | CanvasPattern)[]} */
   let palette = default_palette;
@@ -187,13 +186,11 @@ export function defaultState() {
   let fill = false;
   let stroke = true;
 
-  let pinchAllowed=false;
+  let pinchAllowed = false;
 
-let touchCount=0;
+  let touchCount = 0;
   let first_pointer_time;
-  const discard_quick_undo_period=500;
-  
-
+  const discard_quick_undo_period = 500;
 
   let position_mouse_active = false;
   let position_mouse_x;
@@ -205,8 +202,8 @@ let touchCount=0;
   let position_object_x;
   let position_object_y;
 
-   let layers= [];
-  let activeLayerIndex= 0;
+  let layers = [];
+  let activeLayerIndex = 0;
 
   return {
     default_magnification,
@@ -275,11 +272,12 @@ let touchCount=0;
     touchCount,
     first_pointer_time,
     discard_quick_undo_period,
-     position_mouse_x,
-     position_mouse_y,
-     position_canvas_active,
-     position_canvas_x,
-     position_canvas_y,
+    position_mouse_active,
+    position_mouse_x,
+    position_mouse_y,
+    position_canvas_active,
+    position_canvas_x,
+    position_canvas_y,
     position_object_active,
     position_object_x,
     position_object_y,
@@ -289,7 +287,6 @@ let touchCount=0;
   };
 }
 
-
-export function defaultMobXState(){
-  return{};
+export function defaultMobXState() {
+  return {};
 }

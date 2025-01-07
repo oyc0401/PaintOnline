@@ -36,6 +36,8 @@ import {
 	tools,
 } from "./tools.js";
 import $ from "jquery";
+
+import { update_fill_and_stroke_colors_and_lineWidth } from "../event.js";
 import { PaintJSState, PaintMobXState } from "../state";
 // `sessions.js` must be loaded after `app.js`
 // This would cause it to be loaded earlier, and error trying to access `undos`
@@ -265,7 +267,7 @@ function render_canvas_view(
 	is_helper_layer,
 ) {
 	//console.log('render',is_helper_layer);
-	PaintJSState.update_fill_and_stroke_colors_and_lineWidth(
+	update_fill_and_stroke_colors_and_lineWidth(
 		PaintJSState.selected_tool,
 	);
 
