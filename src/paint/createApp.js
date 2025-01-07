@@ -7,7 +7,7 @@ import { PaintJSState } from "./state.js";
 export async function createApp(canvasAreaQuery = '.canvas-area') {
     initState();
    
-    initApp(canvasAreaQuery);
+    await initApp(canvasAreaQuery);
      await initSession();
   //      initSessions();
     

@@ -2246,6 +2246,7 @@ tools.forEach((tool) => {
 			// 	brush.shape,
 			// 	brush.size
 			// );
+			
 
 			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
 			tool.mask_canvas.ctx.globalCompositeOperation = "destination-out";

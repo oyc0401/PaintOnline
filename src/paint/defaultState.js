@@ -12,8 +12,6 @@ export function defaultState() {
 
   const default_canvas_width = 330;
   const default_canvas_height = 450;
-  let my_canvas_width = default_canvas_width;
-  let my_canvas_height = default_canvas_height;
 
   let aliasing = true;
   let transparency = false;
@@ -215,8 +213,6 @@ let touchCount=0;
     default_tool,
     default_canvas_width,
     default_canvas_height,
-    my_canvas_width,
-    my_canvas_height,
     aliasing,
     transparency,
     magnification,

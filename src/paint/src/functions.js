@@ -34,7 +34,6 @@ import {
 	threshold_black_and_white,
 } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
-import { localStore } from "./storage.js";
 import {
 	TOOL_CURVE,
 	TOOL_FREE_FORM_SELECT,
@@ -50,7 +49,10 @@ import { PaintJSState, PaintMobXState } from "../state";
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-import { newLocalFile, makeLayer, makeBackgroundLayer,setLayer } from "../session.js";
+import {
+	newLocalFile,
+	reset_canvas,
+} from "../session.js";
 
 // expresses order in the URL as well as type
 const param_types = {
@@ -248,8 +250,6 @@ function update_helper_layer_immediately() {
 		);
 	}
 
-	// PaintJSState.helper_layer.canvas.width = Math.max(1, PaintJSState.my_canvas_width);
-	// PaintJSState.helper_layer.canvas.height = Math.max(1, PaintJSState.my_canvas_height);
 	if (
 		PaintJSState.helper_layer.canvas.width != PaintJSState.main_canvas.width ||
 		PaintJSState.helper_layer.canvas.height != PaintJSState.main_canvas.height
@@ -547,7 +547,7 @@ function set_magnification(new_scale, anchor_point) {
 		y: PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification,
 	};
 
-	// 확대/축소 전(old) 앵커의 픽셀 좌표 (스크롤 기준)
+	// 확대/축소 w��(old) 앵커의 픽셀 좌표 (스크롤 기준)
 	const anchor_old_x_px = anchor_point.x * PaintJSState.magnification;
 	const anchor_old_y_px = anchor_point.y * PaintJSState.magnification;
 
@@ -605,7 +605,7 @@ function reset_file() {
 	update_title();
 }
 
-function reset_canvas_and_history() {
+export function reset_history() {
 	PaintJSState.undos.length = 0;
 	PaintJSState.redos.length = 0;
 	PaintMobXState.undo_length = PaintJSState.undos.length;
@@ -617,16 +617,7 @@ function reset_canvas_and_history() {
 		});
 	PaintJSState.history_node_to_cancel_to = null;
 
-	console.log("캔버스 리셋!");
-
-	// 모든 캔버스 초기화
-	// 레이어 만들기
-
-	const back = makeBackgroundLayer(PaintJSState.layers);
-	const la = makeLayer(PaintJSState.layers);
-	PaintJSState.layers = [back, la];
-
-	PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
+	console.log("히스토리 현재 레이어로 리셋!");
 
 	// 히스토리
 	let layers = [];
@@ -954,7 +945,8 @@ function open_from_image_info(
 
 			reset_file();
 			reset_selected_colors();
-			reset_canvas_and_history(); // (with newly reset colors)
+			reset_canvas();
+			reset_history();
 			set_magnification(PaintJSState.default_magnification);
 			drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
 			apply_file_format_and_palette_info(info);
@@ -1098,14 +1090,6 @@ function load_theme_from_text(fileText) {
 function file_new() {
 	deselect();
 	cancel();
-
-	$(window).triggerHandler("session-update"); // autosave old session
-
-	reset_file();
-	reset_selected_colors();
-	reset_canvas_and_history(); // (with newly reset colors)
-	setLayer();
-	set_magnification(PaintJSState.default_magnification);
 
 	newLocalFile();
 
@@ -3843,7 +3827,6 @@ export {
 	read_image_file,
 	redo,
 	render_canvas_view,
-	reset_canvas_and_history,
 	reset_file,
 	reset_selected_colors,
 	resize_canvas_and_save_dimensions,

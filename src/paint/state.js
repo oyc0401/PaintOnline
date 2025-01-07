@@ -1,5 +1,5 @@
 import { observable, configure } from "mobx";
-import $ from "jquery";
+
 configure({ enforceActions: "never" }); // strict-mode 비활성화
 
 const stateStore = {};
@@ -30,11 +30,6 @@ const handler = {
 
   set(target, prop, value) {
     // 특정 속성('undos', 'redos')은 PaintMobXState에 설정
-    if (["undos", "redos"].includes(prop)) {
-      //console.error(`[SET] Updating MobX state: ${prop} =`, value);
-      //Reflect.set(PaintMobXState, prop, value);
-      //return true;
-    }
 
     // 나머지는 기존 target에 설정
     return Reflect.set(target, prop, value);
@@ -46,4 +41,5 @@ export const PaintJSState = new Proxy(stateStore, handler);
 export const PaintMobXState = observable({
   undo_length: 0,
   redo_length: 0,
+  activeLayerIndex:1,
 });

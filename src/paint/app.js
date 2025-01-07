@@ -25,9 +25,6 @@ import {
   paste,
   paste_image_from_file,
   redo,
-  reset_canvas_and_history,
-  reset_file,
-  reset_selected_colors,
   resize_canvas_and_save_dimensions,
   resize_canvas_without_saving_dimensions,
   save_as_prompt,
@@ -76,13 +73,12 @@ import {
 
 import { PaintJSState } from "./state.js";
 
-import { setLayer } from "./session.js";
+import { getDBCanvas } from "./session.js";
 
 const MIN_MAGNIFICATION = 0.12;
 const MAX_MAGNIFICATION = 78;
 
-
-export function initApp(canvasAreaQuery) {
+export async function initApp(canvasAreaQuery) {
   const $canvas_area = $(canvasAreaQuery);
   const $layer_area = $(".layer-area");
 
@@ -124,67 +120,7 @@ export function initApp(canvasAreaQuery) {
 
   setEvent();
 
-  reset_file();
-  reset_selected_colors();
-  reset_canvas_and_history(); // (with newly reset colors)
-  setLayer();
-  set_magnification(PaintJSState.default_magnification);
-
-
-  // 파일들 DB에서 불러오기
-  function manageStorage() {
-    // this is synchronous for now, but @TODO: handle possibility of loading a document before callback
-    // when switching to asynchronous storage, e.g. with localforage
-
-    localStore.get(
-      {
-        width: PaintJSState.default_canvas_width,
-        height: PaintJSState.default_canvas_height,
-      },
-      (err, stored_values) => {
-        if (err) {
-          return;
-        }
-        PaintJSState.my_canvas_width = Number(stored_values.width);
-        PaintJSState.my_canvas_height = Number(stored_values.height);
-
-        make_or_update_undoable(
-          {
-            match: (history_node) => history_node.name === localize("New"),
-            name: "Resize Canvas For New Document",
-            icon: get_help_folder_icon("p_stretch_both.png"),
-          },
-          () => {
-            PaintJSState.main_canvas.width = Math.max(
-              1,
-              PaintJSState.my_canvas_width,
-            );
-            PaintJSState.main_canvas.height = Math.max(
-              1,
-              PaintJSState.my_canvas_height,
-            );
-            if (canvas.className == "layer background") {
-              PaintJSState.main_ctx.fillStyle =
-                PaintJSState.selected_colors.background;
-              PaintJSState.main_ctx.fillRect(
-                0,
-                0,
-                PaintJSState.main_canvas.width,
-                PaintJSState.main_canvas.height,
-              );
-            }
-            if (canvas.className == "layer background") {
-              ctx.fillStyle = PaintJSState.selected_colors.background;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              ctx.clearRect(0, 0, beforeWidth, beforeHeight);
-            }
-            $canvas_area.trigger("resize");
-          },
-        );
-      },
-    );
-  }
-  // manageStorage();
+  await getDBCanvas();
 
   init_webgl_stuff();
 }
@@ -243,7 +179,7 @@ function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
 function setEvent() {
   const $canvas_area = PaintJSState.$canvas_area;
   const $layer_area = PaintJSState.$layer_area;
-  
+
   $canvas_area.on("resize", () => {
     update_magnified_canvas_size();
   });
@@ -265,94 +201,91 @@ function setEvent() {
     window.scrollTo(0, 0);
   });
   // jQuery's multiple event handling is not that useful in the first place, but when adding type info... it's downright ugly.
-  $("body")
-    .on(
-      "dragover dragenter",
-      (/** @type {JQuery.DragOverEvent | JQuery.DragEnterEvent} */ event) => {
-        const dt = event.originalEvent.dataTransfer;
-        const has_files = dt && Array.from(dt.types).includes("Files");
-        if (has_files) {
-          event.preventDefault();
-        }
-      },
-    )
-    .on("drop", async (event) => {
-      if (event.isDefaultPrevented()) {
-        return;
-      }
-      const dt = event.originalEvent.dataTransfer;
-      const has_files = dt && Array.from(dt.types).includes("Files");
-      if (has_files) {
-        event.preventDefault();
-        // @TODO: sort files/items in priority of image, theme, palette
-        // and then try loading them in series, with async await to avoid race conditions?
-        // or maybe support opening multiple documents in tabs
-        // Note: don't use FS Access API in Electron app because:
-        // 1. it's faulty (permissions problems, 0 byte files maybe due to the perms problems)
-        // 2. we want to save the file.path, which the dt.files code path takes care of
-        if (window.FileSystemHandle) {
-          for (const item of dt.items) {
-            // kind will be "file" for file/directory entries.
-            if (item.kind === "file") {
-              let handle;
+  $("body").on("dragover dragenter", (event) => {
+    const dt = event.originalEvent.dataTransfer;
+    const has_files = dt && Array.from(dt.types).includes("Files");
+    if (has_files) {
+      event.preventDefault();
+    }
+  });
+
+  $("body").on("drop", async (event) => {
+    if (event.isDefaultPrevented()) {
+      return;
+    }
+    const dt = event.originalEvent.dataTransfer;
+    const has_files = dt && Array.from(dt.types).includes("Files");
+    if (has_files) {
+      event.preventDefault();
+      // @TODO: sort files/items in priority of image, theme, palette
+      // and then try loading them in series, with async await to avoid race conditions?
+      // or maybe support opening multiple documents in tabs
+      // Note: don't use FS Access API in Electron app because:
+      // 1. it's faulty (permissions problems, 0 byte files maybe due to the perms problems)
+      // 2. we want to save the file.path, which the dt.files code path takes care of
+      if (window.FileSystemHandle) {
+        for (const item of dt.items) {
+          // kind will be "file" for file/directory entries.
+          if (item.kind === "file") {
+            let handle;
+            try {
+              // Experimental API, not supported on Firefox as of 2024-02-17
+              if ("getAsFileSystemHandle" in item) {
+                // @ts-ignore
+                handle = await item.getAsFileSystemHandle();
+              }
+            } catch (error) {
+              // I'm not sure when this happens.
+              // should this use "An invalid file handle was associated with %1." message?
+              show_error_message(localize("File not found."), error);
+              return;
+            }
+            if (!handle || handle.kind === "file") {
+              let file;
               try {
-                // Experimental API, not supported on Firefox as of 2024-02-17
-                if ("getAsFileSystemHandle" in item) {
-                  // @ts-ignore
-                  handle = await item.getAsFileSystemHandle();
+                // instanceof is for the type checker; it should be guaranteed since kind is "file"
+                if (handle && handle instanceof FileSystemFileHandle) {
+                  file = await handle.getFile();
+                } else {
+                  file = item.getAsFile();
                 }
               } catch (error) {
-                // I'm not sure when this happens.
-                // should this use "An invalid file handle was associated with %1." message?
+                // NotFoundError can happen when the file was moved or deleted,
+                // then dragged and dropped via the browser's downloads bar, or some other outdated file listing.
                 show_error_message(localize("File not found."), error);
                 return;
               }
-              if (!handle || handle.kind === "file") {
-                let file;
-                try {
-                  // instanceof is for the type checker; it should be guaranteed since kind is "file"
-                  if (handle && handle instanceof FileSystemFileHandle) {
-                    file = await handle.getFile();
-                  } else {
-                    file = item.getAsFile();
-                  }
-                } catch (error) {
-                  // NotFoundError can happen when the file was moved or deleted,
-                  // then dragged and dropped via the browser's downloads bar, or some other outdated file listing.
-                  show_error_message(localize("File not found."), error);
-                  return;
-                }
-                open_from_file(file, handle);
-                if (window._open_images_serially) {
-                  // For testing a suite of files:
-                  await new Promise((resolve) => setTimeout(resolve, 500));
-                } else {
-                  // Normal behavior: only open one file.
-                  return;
-                }
+              open_from_file(file, handle);
+              if (window._open_images_serially) {
+                // For testing a suite of files:
+                await new Promise((resolve) => setTimeout(resolve, 500));
+              } else {
+                // Normal behavior: only open one file.
+                return;
               }
-              // else if (handle.kind === "directory") {}
             }
-          }
-        } else if (dt.files && dt.files.length) {
-          if (window._open_images_serially) {
-            // For testing a suite of files, such as http://www.schaik.com/pngsuite/
-            let i = 0;
-            const iid = setInterval(() => {
-              console.log("opening", dt.files[i].name);
-              open_from_file(dt.files[i]);
-              i++;
-              if (i >= dt.files.length) {
-                clearInterval(iid);
-              }
-            }, 1500);
-          } else {
-            // Normal behavior: only open one file.
-            open_from_file(dt.files[0]);
+            // else if (handle.kind === "directory") {}
           }
         }
+      } else if (dt.files && dt.files.length) {
+        if (window._open_images_serially) {
+          // For testing a suite of files, such as http://www.schaik.com/pngsuite/
+          let i = 0;
+          const iid = setInterval(() => {
+            console.log("opening", dt.files[i].name);
+            open_from_file(dt.files[i]);
+            i++;
+            if (i >= dt.files.length) {
+              clearInterval(iid);
+            }
+          }, 1500);
+        } else {
+          // Normal behavior: only open one file.
+          open_from_file(dt.files[0]);
+        }
       }
-    });
+    }
+  });
 
   // #region Keyboard Shortcuts
   $(window).on("keydown", (e) => {
@@ -1168,8 +1101,6 @@ function setEvent() {
   }
   managePointer();
 
-
-
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
   $(window).on("blur", () => {
     $(window).triggerHandler("pointerup");
@@ -1203,5 +1134,3 @@ function setEvent() {
   });
   // #endregion
 }
-
-

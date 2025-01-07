@@ -11,7 +11,7 @@ export const canvasRepository = {
   async getCanvas(fileId) {
     const db = await dbPromise;
     const record = await db.get('canvas', fileId);
-    return record ? { width: record.width, height: record.height } : null;
+    return record;
   },
 
   /**

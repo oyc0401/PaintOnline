@@ -1,248 +1,127 @@
 import $ from "jquery";
-import { debounce, make_canvas } from "./src/helpers.js";
+import { debounce } from "./src/helpers.js";
 
 import { keyStore } from "./keyStorage.js";
 import { PaintJSState } from "./state.js";
 import { layerRepository } from "./layerRepository.js";
 import { canvasRepository } from "./canvasRepository.js";
-import { make_or_update_undoable } from "./src/functions.js";
 import { localize } from "../localize/localize.js";
+import {
+  make_or_update_undoable,
+  reset_file,
+  reset_selected_colors,
+  set_magnification,
+  reset_history,
+} from "./src/functions.js";
 
-/**
- * 전역으로 현재 파일 ID
- */
+import {
+  crateDefaultCanvas,
+  createDefaultLayer,
+  layerListToLayerCanvas,
+  setLayer,
+} from "./layer.js";
+
 let currentFileId = null;
 
-// --------------------------- 세션 초기화 ---------------------------
-
-/**
- * 세션을 초기화하는 비동기 함수
- * @returns {Promise<void>}
- */
-export async function initSession() {
-  console.log("initSession");
-
-  try {
-    // 1) 최근에 사용하던 fileId 불러오기
-    let storedFileId = await keyStore.get("recent_key");
-
-    if (!storedFileId) {
-      // 저장된게 없으면 새 파일 ID
-      storedFileId = generateFileId();
-      // 다시 recent_key 갱신
-      await keyStore.set("recent_key", storedFileId);
-      currentFileId = storedFileId;
-
-      // 키가 없으니깐 레이어 만들기!
-
-      await createDefaultCanvas();
-    } else {
-      // 전역 변수에 현재 파일 ID 저장
-      currentFileId = storedFileId;
-      // 키가 있으니깐 레이어 불러오기!
-      // 2) 파일 로드
-
-      await loadFileFromRepositories(storedFileId);
-    }
-
-    // 레이어 변경(그리기 등) 시에 저장
-    $(window).on("session-update.session-hook", () => {
-      // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
-      saveFileSoon();
-    });
-  } catch (error) {
-    console.error("An unexpected error occurred in initSession:", error);
-  }
-}
-
-/**
- * 파일 ID에 해당하는 레이어 목록과 캔버스 데이터를 로드 후,
- * PaintJSState에 반영
- * @param {string} fileId
- */
-async function loadFileFromRepositories(fileId) {
-  try {
-    // 1) 캔버스 정보 로드
-    let canvasInfo = await canvasRepository.getCanvas(fileId);
-    console.log("canvasInfo", canvasInfo);
-
-    if (!canvasInfo) {
-      console.error("캔버스 다시만들어요");
-      return await createDefaultCanvas();
-    }
-
-    // console.log(canvasInfo);
-    const width = canvasInfo.width;
-    const height = canvasInfo.height;
-
-    // 2) 레이어 메타데이터 로드
-    let layerList = await layerRepository.getLayers(fileId);
-    if (!layerList || layerList.length === 0) {
-      console.error("캔버스 다시만들어요");
-      return await createDefaultCanvas();
-    }
-
-    make_or_update_undoable(
-      {
-        match: (history_node) => history_node.name === localize("New"),
-        name: "Resize Canvas For New Document",
-      },
-      async () => {
-        console.log("layerList", layerList);
-
-        PaintJSState.my_canvas_width = width;
-        PaintJSState.my_canvas_height = height;
-
-        // 3) PaintJSState.layers 초기화
-        PaintJSState.layers = [];
-
-        // 4) 각 레이어 처리
-        for (const layerMeta of layerList) {
-          const layerWidth = width;
-          const layerHeight = height;
-          const canvas = make_canvas(layerWidth, layerHeight);
-          const ctx = canvas.ctx;
-
-          if (layerMeta.dataURL) {
-            try {
-              const image = await loadImage(layerMeta.dataURL);
-              ctx.drawImage(image, 0, 0);
-            } catch (imgErr) {
-              console.error("Failed to load image:", imgErr);
-              ctx.fillStyle = "#ffffff";
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-          } else {
-            // 기본 흰색으로 채우기
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
-
-          PaintJSState.layers.push({
-            canvas,
-            ctx,
-            name: layerMeta.name,
-            layerId:layerMeta.layerId,
-            priority: layerMeta.priority,
-          });
-        }
-
-        // 5) 레이어 설정 및 활성화
-        setLayer();
-        PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
-
-        PaintJSState.$canvas_area.trigger("resize");
-      },
-    );
-  } catch (error) {
-    console.error("An unexpected error occurred:", error);
-  }
-}
-
-// 이미지 로드를 위한 헬퍼 함수
-function loadImage(dataURL) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = dataURL;
-  });
-}
-
-/**
- * 화면에 레이어 canvas들을 배치
- */
-export function setLayer() {
-  // console.log("viewLayers", PaintJSState.layers.length);
-  // console.log('PaintJSState.$layer_area',PaintJSState.$layer_area)
-  PaintJSState.$layer_area.empty();
-  for (let i = 0; i < PaintJSState.layers.length; i++) {
-    const layer = PaintJSState.layers[i];
-    // console.log("layer", layer.canvas);
-    const zIndex = i + 2; // zIndex는 2부터 시작 (1은 background-canvas)
-    if (i == 0) {
-      $(layer.canvas)
-        .css({ zIndex })
-        .addClass("layer background")
-        .appendTo(PaintJSState.$layer_area);
-    } else {
-      $(layer.canvas)
-        .css({ zIndex })
-        .addClass("layer")
-        .appendTo(PaintJSState.$layer_area);
-    }
+export async function getDBCanvas() {
+  // 최근 파일 키 불러오기
+  const key = await getRecentKey();
+  if (!key) {
+    createNewFile();
+    return;
   }
 
-  PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
-  PaintJSState.$canvas_area.trigger("resize");
-}
+  // 파일키를 통해 파일 불러오기
+  const canvasInfo = await getCanvas(key);
+  console.log("canvasInfo:", canvasInfo);
+  currentFileId = canvasInfo.fileId;
+  if (!canvasInfo) {
+    // await deleteCanvas(key);
+    //await deleteLayers(key);
+    createNewFile();
+    return;
+  }
 
-// --------------------------- 기본 레이어 생성 ---------------------------
+  // 파일에 있는 레이어 불러오기
+  const layerList = await getLayers(key);
+  console.log("layerList:", layerList);
+  if (!layerList || layerList.length == 0) {
+    //await deleteCanvas(key);
+    //await deleteLayers(key);
+    createNewFile();
+    return;
+  }
 
-async function createDefaultCanvas() {
-  console.log("지금 있는 레이어를 기본레이어로 하고 DB에 저장하기");
+  make_or_update_undoable(
+    {
+      match: (history_node) => history_node.name === localize("New"),
+      name: "Resize Canvas For New Document",
+    },
+    async () => {
+      // 레이어 데이터를 캔버스UI로 바꾸기
+      const layers = await layerListToLayerCanvas(canvasInfo, layerList);
 
-  // 생성 직후 저장
-  saveFileImmediately();
-}
+      // 레이어를 레이어영역에 추가
+      setLayer(layers);
 
-export function makeBackgroundLayer() {
-  const canvas = make_canvas(
-    PaintJSState.default_canvas_width,
-    PaintJSState.default_canvas_height,
+      // 기본세팅 하기
+      initSetting();
+    },
   );
-  const ctx = canvas.ctx;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  return {
-    layerId: generateLayerId(),
-    canvas,
-    ctx,
-    name: "BackgroundLayer",
-    priority: 0,
-  };
 }
 
-export function makeLayer() {
-  const canvas = make_canvas(
-    PaintJSState.default_canvas_width,
-    PaintJSState.default_canvas_height,
-  );
-  const ctx = canvas.ctx;
+async function createNewFile() {
+  // 새로운 키 만들기
+  const key = generateFileId();
+  currentFileId = key;
 
-  return {
-    layerId: generateLayerId(),
-    canvas,
-    ctx,
-    name: "Layer1",
-    priority: 1,
-  };
+  // 키 저장
+  await keyStore.set("recent_key", currentFileId);
+
+  // 새로운 파일 만들기
+  const canvasInfo = crateDefaultCanvas(key);
+  currentFileId = canvasInfo.fileId;
+
+  // 새로운 레이어 만들기
+  const layers = createDefaultLayer(canvasInfo);
+
+  // 레이어를 레이어영역에 추가
+  setLayer(layers);
+
+  // 기본세팅 하기
+  initSetting();
+
+  //현재 상태를 DB에 저장
+  await saveFileImmediately();
+}
+
+function initSetting() {
+  reset_file();
+  reset_selected_colors();
+  reset_history();
+  set_magnification(PaintJSState.default_magnification);
 }
 
 // --------------------------- 저장 로직 ---------------------------
 
+async function getRecentKey() {
+  return await keyStore.get("recent_key");
+}
+
+async function getCanvas(key) {
+  let canvasInfo = await canvasRepository.getCanvas(key);
+  return canvasInfo;
+}
+
+async function getLayers(key) {
+  let layerList = await layerRepository.getLayers(key);
+  return layerList;
+}
+
 const saveFileSoon = debounce(saveFileImmediately, 100);
 
-/**
- * 실제로 IndexedDB에 즉시 저장
- * - canvasRepository를 통해 캔버스 정보 저장
- * - layerRepository를 통해 각 레이어별 그림과 크기 저장
- * @returns {Promise<void>}
- */
 async function saveFileImmediately() {
   try {
-    // 현재 파일 ID가 없는 경우 생성 및 저장
-    if (!currentFileId) {
-      currentFileId = generateFileId();
-      try {
-        await keyStore.set("recent_key", currentFileId);
-      } catch (err) {
-        console.error("Failed to set recent_key:", err);
-        // 필요에 따라 추가적인 에러 처리 로직을 여기에 추가할 수 있습니다.
-      }
-    }
-
     console.log("saveFileImmediately for fileId =", currentFileId);
 
     // 1) 캔버스 정보 저장
@@ -280,6 +159,22 @@ async function saveFileImmediately() {
 
 // --------------------------- 세션 종료 / 새 파일 ---------------------------
 
+export function initSession() {
+  console.log("initSession");
+
+  // 레이어 변경(그리기 등) 시에 저장
+  $(window).on("session-update.session-hook", () => {
+    // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
+    saveFileSoon();
+  });
+}
+
+export async function newLocalFile() {
+  endSession();
+  console.log("Creating new file...");
+  await createNewFile();
+}
+
 export function endSession() {
   saveFileSoon.cancel();
   saveFileImmediately();
@@ -293,265 +188,15 @@ function generateFileId() {
   return Math.random().toString(36).substr(2, 9);
 }
 
-/**
- * 고유한 layerId 생성
- */
-function generateLayerId() {
-  return `layer_${Math.random().toString(36).substr(2, 9)}`;
+// --------------------------- function.js ---------------------------
+
+export function reset_canvas() {
+  const canvasInfo = crateDefaultCanvas(currentFileId);
+  currentFileId = canvasInfo.fileId;
+
+  // 새로운 레이어 만들기
+  const layers = createDefaultLayer(canvasInfo);
+
+  // 레이어를 레이어영역에 추가
+  setLayer(layers);
 }
-
-export function newLocalFile() {
-  endSession();
-  console.log("Creating new file...");
-  currentFileId = generateFileId();
-  keyStore.set("recent_key", currentFileId, (err) => {
-    if (err) {
-      console.error("Failed to set recent_key:", err);
-    }
-  });
-}
-
-////////////////////////////////////////////////////////
-
-// export function initSessions() {
-//    console.log("initSesstion");
-
-//    const log = (...args) => window.console?.log(...args);
-
-//    let localStorageAvailable = false;
-//    try {
-//       localStorage._available = true;
-//       localStorageAvailable = localStorage._available;
-//       delete localStorage._available;
-//    } catch (_error) {
-//       /* ignore */
-//    }
-
-//    // @TODO: keep other data in addition to the image data
-//    // such as the file_name and other state
-//    // (maybe even whether it's considered saved? idk about that)
-//    // I could have the image in one storage slot and the state in another
-
-//    const match_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
-//    const canvas_has_any_apparent_image_data = () =>
-//       PaintJSState.main_canvas.ctx
-//          .getImageData(
-//             0,
-//             0,
-//             PaintJSState.main_canvas.width,
-//             PaintJSState.main_canvas.height,
-//          )
-//          .data.some((v) => v > match_threshold);
-
-//    let $recovery_window;
-
-//    let last_undos_length = PaintJSState.undos.length;
-//    function handle_data_loss() {
-//       const window_is_open = $recovery_window && !$recovery_window.closed;
-//       let save_paused = false;
-//       if (!canvas_has_any_apparent_image_data()) {
-//          if (!window_is_open) {
-//             alert("show_recovery_window();");
-//          }
-//          save_paused = true;
-//       } else if (window_is_open) {
-//          if (PaintJSState.undos.length > last_undos_length) {
-//             alert("show_recovery_window(true);");
-//          }
-//          save_paused = true;
-//       }
-//       last_undos_length = PaintJSState.undos.length;
-//       return save_paused;
-//    }
-
-//    class LocalSession {
-//       constructor(session_id) {
-//          this.id = session_id;
-//          const ls_key = `image#${session_id}`;
-//          log(`Local storage key: ${ls_key}`);
-//          // save image to storage
-//          this.save_image_to_storage_immediately = () => {
-//             const save_paused = handle_data_loss();
-//             if (save_paused) {
-//                return;
-//             }
-//             log(`Saving image to storage: ${ls_key}`);
-//             localStore.set(
-//                ls_key,
-//                PaintJSState.main_canvas.toDataURL("image/png"),
-//                (err) => {
-//                   if (err) {
-//                      // @ts-ignore (quotaExceeded is added by storage.js)
-//                      // if (err.quotaExceeded) {
-//                      // 	storage_quota_exceeded();
-//                      // } else {
-//                      // 	// e.g. localStorage is disabled
-//                      // 	// (or there's some other error?)
-//                      // 	// @TODO: show warning with "Don't tell me again" type option
-//                      // }
-//                   }
-//                },
-//             );
-//          };
-//          this.save_image_to_storage_soon = debounce(
-//             this.save_image_to_storage_immediately,
-//             100,
-//          );
-//          localStore.get(ls_key, (err, uri) => {
-//             if (err) {
-//                if (localStorageAvailable) {
-//                   show_error_message(
-//                      "Failed to retrieve image from local storage.",
-//                      err,
-//                   );
-//                } else {
-//                   // @TODO: DRY with storage manager message
-//                   showMessageBox({
-//                      message:
-//                         "Please enable local storage in your browser's settings for local backup. It may be called Cookies, Storage, or Site Data.",
-//                   });
-//                }
-//             } else if (uri) {
-//                load_image_from_uri(uri).then(
-//                   (info) => {
-//                      console.log("info");
-//                      console.log(info);
-//                      open_from_image_info(info, null, null, true, true);
-//                   },
-//                   (error) => {
-//                      show_error_message(
-//                         "Failed to open image from local storage.",
-//                         error,
-//                      );
-//                   },
-//                );
-//             } else {
-//                // no uri so lets save the blank canvas
-//                this.save_image_to_storage_soon();
-//             }
-//          });
-//          $(window).on("session-update.session-hook", () => {
-//             this.save_image_to_storage_soon();
-//          });
-//       }
-//       end() {
-//          // Skip debounce and save immediately
-//          this.save_image_to_storage_soon.cancel();
-//          this.save_image_to_storage_immediately();
-//          // Remove session-related hooks
-//          $(window).off(".session-hook");
-//       }
-//    }
-
-//    // Handle the starting, switching, and ending of sessions from the location.hash
-
-//    const update_session_from_location_hash = () => {
-//       const session_match = location.hash.match(
-//          /^#?(?:.*,)?(session|local):(.*)$/i,
-//       );
-//       const load_from_url_match = location.hash.match(
-//          /^#?(?:.*,)?(load):(.*)$/i,
-//       );
-//       if (session_match) {
-//          const local = session_match[1].toLowerCase() === "local";
-//          const session_id = session_match[2];
-//          if (session_id === "") {
-//             log("Invalid session ID; session ID cannot be empty");
-//             end_current_session();
-//          } else if (!local && session_id.match(/[./[\]#$]/)) {
-//             log(
-//                "Session ID is not a valid Firebase location; it cannot contain any of ./[]#$",
-//             );
-//             end_current_session();
-//          } else if (
-//             !session_id.match(
-//                /[-0-9A-Za-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02af\u1d00-\u1d25\u1d62-\u1d65\u1d6b-\u1d77\u1d79-\u1d9a\u1e00-\u1eff\u2090-\u2094\u2184-\u2184\u2488-\u2490\u271d-\u271d\u2c60-\u2c7c\u2c7e-\u2c7f\ua722-\ua76f\ua771-\ua787\ua78b-\ua78c\ua7fb-\ua7ff\ufb00-\ufb06]+/,
-//             )
-//          ) {
-//             log(
-//                "Invalid session ID; it must consist of 'alphanumeric-esque' characters",
-//             );
-//             end_current_session();
-//          } else if (
-//             current_session &&
-//             current_session.id === session_id &&
-//             local === current_session instanceof LocalSession
-//          ) {
-//             log(
-//                "Hash changed but the session ID and session type are the same",
-//             );
-//          } else {
-//             // @TODO: Ask if you want to save before starting a new session
-//             end_current_session();
-
-//             if (local) {
-//                log(`Starting a new LocalSession, ID: ${session_id}`);
-//                current_session = new LocalSession(session_id);
-//             }
-//          }
-//       } else if (load_from_url_match) {
-//          const url = decodeURIComponent(load_from_url_match[2]);
-
-//          const uris = get_uris(url);
-//          if (uris.length === 0) {
-//             show_error_message(
-//                "Invalid URL to load (after #load: in the address bar). It must include a protocol (https:// or http://)",
-//             );
-//             return;
-//          }
-
-//          log(
-//             "Switching to new session from #load: URL (to #local: URL with session ID)",
-//          );
-//          // Note: could use into_existing_session=false on open_from_image_info instead of creating the new session beforehand
-//          end_current_session();
-//          change_url_param("local", generate_session_id());
-
-//          console.log("A");
-//          load_image_from_uri(url).then((info) => {
-//             open_from_image_info(info, null, null, true, true);
-//          }, show_resource_load_error_message);
-//       } else {
-//          log("No session ID in hash");
-//          const old_hash = location.hash;
-//          end_current_session();
-//          change_url_param("local", generate_session_id(), {
-//             replace_history_state: true,
-//          });
-//          log("After replaceState:", location.hash);
-//          if (old_hash === location.hash) {
-//             // e.g. on Wayback Machine
-//             show_error_message(
-//                "Autosave is disabled. Failed to update URL to start session.",
-//             );
-//          } else {
-//             update_session_from_location_hash();
-//          }
-//       }
-//    };
-
-//    $(window).on("hashchange popstate change-url-params", (e) => {
-//       log(e.type, location.hash);
-//       update_session_from_location_hash();
-//    });
-
-//    log("Initializing with location hash:", location.hash);
-//    update_session_from_location_hash();
-// }
-
-// let current_session;
-// const end_current_session = () => {
-//    if (current_session) {
-//       console.log("Ending current session");
-//       current_session.end();
-//       current_session = null;
-//    }
-// };
-// const generate_session_id = () =>
-//    (Math.random() * 2 ** 32).toString(16).replace(".", "");
-
-// export const new_local_session = () => {
-//    end_current_session();
-//    console.log("Changing URL to start new session...");
-//    change_url_param("local", generate_session_id());
-// };
