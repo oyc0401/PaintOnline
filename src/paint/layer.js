@@ -33,9 +33,9 @@ export function setLayer(layers) {
   PaintJSState.$canvas_area.trigger("resize");
 }
 
-export function crateDefaultCanvas(key) {
+export function crateDefaultCanvas(paintId) {
   return {
-    fileId: key,
+    paintId,
     width: PaintJSState.default_canvas_width,
     height: PaintJSState.default_canvas_height,
   };

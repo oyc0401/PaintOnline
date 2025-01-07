@@ -3,7 +3,7 @@ import $ from "jquery";
 import { PaintJSState } from "./state.js";
 import { keyStore } from "./repository/keyStorage.js";
 import { layerRepository } from "./repository/layerRepository.js";
-import { canvasRepository } from "./repository/canvasRepository.js";
+import { paintRepository } from "./repository/paintRepository.js";
 import { localize } from "../localize/localize.js";
 import { debounce } from "./src/helpers.js";
 
@@ -32,7 +32,7 @@ export function initSession() {
   });
 }
 
-let currentFileId = null;
+let currentPaintId = null;
 
 export async function getDBCanvas() {
   // 최근 파일 키 불러오기
@@ -43,10 +43,10 @@ export async function getDBCanvas() {
   }
 
   // 파일키를 통해 파일 불러오기
-  const canvasInfo = await getCanvas(key);
-  console.log("canvasInfo:", canvasInfo);
-  currentFileId = canvasInfo.fileId;
-  if (!canvasInfo) {
+  const paintInfo = await getPaint(key);
+  console.log("paintInfo:", paintInfo);
+  currentPaintId = paintInfo.paintId;
+  if (!paintInfo) {
     // await deleteCanvas(key);
     //await deleteLayers(key);
     createNewFile();
@@ -66,7 +66,7 @@ export async function getDBCanvas() {
   console.log("파일 불러오기 완료!");
 
   // 레이어 데이터를 캔버스UI로 바꾸기
-  const layers = await layerListToLayerCanvas(canvasInfo, layerList);
+  const layers = await layerListToLayerCanvas(paintInfo, layerList);
   console.log("레이어 바꾸기 완료");
 
   // 레이어를 레이어영역에 추가
@@ -80,18 +80,18 @@ export async function getDBCanvas() {
 
 async function createNewFile() {
   // 새로운 키 만들기
-  const key = generateFileId();
-  currentFileId = key;
+  const key = generatepaintId();
+  currentPaintId = key;
 
   // 키 저장
-  await keyStore.set("recent_key", currentFileId);
+  await keyStore.set("recent_key", currentPaintId);
 
   // 새로운 파일 만들기
-  const canvasInfo = crateDefaultCanvas(key);
-  currentFileId = canvasInfo.fileId;
+  const paintInfo = crateDefaultCanvas(key);
+  currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
-  const layers = createDefaultLayer(canvasInfo);
+  const layers = createDefaultLayer(paintInfo);
 
   // 레이어를 레이어영역에 추가
   setLayer(layers);
@@ -116,9 +116,9 @@ async function getRecentKey() {
   return await keyStore.get("recent_key");
 }
 
-async function getCanvas(key) {
-  let canvasInfo = await canvasRepository.getCanvas(key);
-  return canvasInfo;
+async function getPaint(key) {
+  let paintInfo = await paintRepository.getPaint(key);
+  return paintInfo;
 }
 
 async function getLayers(key) {
@@ -130,7 +130,7 @@ const saveFileSoon = debounce(saveFileImmediately, 100);
 
 async function saveFileImmediately() {
   try {
-    console.log("saveFileImmediately for fileId =", currentFileId);
+    console.log("saveFileImmediately for paintId =", currentPaintId);
 
     // 1) 캔버스 정보 저장
     const activeCanvas = PaintJSState.layers[0]; // 예: 첫 번째 레이어가 배경 캔버스
@@ -140,7 +140,7 @@ async function saveFileImmediately() {
       return;
     }
 
-    await canvasRepository.setCanvas(currentFileId, {
+    await paintRepository.setPaint(currentPaintId, {
       width: activeCanvas.canvas.width,
       height: activeCanvas.canvas.height,
     });
@@ -150,12 +150,12 @@ async function saveFileImmediately() {
     const layerList = PaintJSState.layers.map((layer) => ({
       layerId: layer.layerId,
       name: layer.name,
-      fileId: currentFileId,
+      paintId: currentPaintId,
       dataURL: layer.canvas.toDataURL("image/png"),
       priority: layer.priority,
     }));
 
-    await layerRepository.setLayers(currentFileId, layerList);
+    await layerRepository.setLayers(currentPaintId, layerList);
     console.log("Layers metadata saved.");
   } catch (error) {
     console.error(
@@ -180,20 +180,20 @@ export function endSession() {
 }
 
 /**
- * 새 fileId 생성
+ * 새 paintId 생성
  */
-function generateFileId() {
+function generatepaintId() {
   return Math.random().toString(36).substr(2, 9);
 }
 
 // --------------------------- function.js ---------------------------
 
 export function reset_canvas() {
-  const canvasInfo = crateDefaultCanvas(currentFileId);
-  currentFileId = canvasInfo.fileId;
+  const paintInfo = crateDefaultCanvas(currentPaintId);
+  currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
-  const layers = createDefaultLayer(canvasInfo);
+  const layers = createDefaultLayer(paintInfo);
 
   // 레이어를 레이어영역에 추가
   setLayer(layers);
