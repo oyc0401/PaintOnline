@@ -12,25 +12,18 @@ import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
 import {
 	E,
-	TAU,
 	debounce,
 	get_help_folder_icon,
 	get_icon_for_tool,
-	get_rgba_from_color,
 	make_canvas,
 	render_access_key,
-	to_canvas_coords,
 	to_canvas_coords_magnification,
 	drawcopy,
 } from "./helpers.js";
 import {
 	apply_image_transformation,
 	draw_selection_box,
-	flip_horizontal,
-	flip_vertical,
 	invert_rgb,
-	rotate,
-	stretch_and_skew,
 	threshold_black_and_white,
 } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
@@ -53,101 +46,6 @@ import {
 	newLocalFile,
 	reset_canvas,
 } from "../session.js";
-
-// expresses order in the URL as well as type
-const param_types = {
-	// settings
-	"eye-gaze-mode": "bool",
-	"vertical-color-box-mode": "bool",
-	"speech-recognition-mode": "bool",
-	// sessions
-	local: "string",
-	session: "string",
-	load: "string",
-};
-
-const exclusive_params = ["local", "session", "load"];
-
-function get_all_url_params() {
-	/** @type {Record<string, string | boolean>} */
-	const params = {};
-	location.hash
-		.replace(/^#/, "")
-		.split(/,/)
-		.forEach((param_decl) => {
-			// colon is used in param value for URLs so split(":") isn't good enough
-			const colon_index = param_decl.indexOf(":");
-			if (colon_index === -1) {
-				// boolean value, implicitly true because it's in the URL
-				const param_name = param_decl;
-				params[param_name] = true;
-			} else {
-				const param_name = param_decl.slice(0, colon_index);
-				const param_value = param_decl.slice(colon_index + 1);
-				params[param_name] = decodeURIComponent(param_value);
-			}
-		});
-	for (const [param_name, param_type] of Object.entries(param_types)) {
-		if (param_type === "bool" && !params[param_name]) {
-			params[param_name] = false;
-		}
-	}
-	return params;
-}
-
-function get_url_param(param_name) {
-	return get_all_url_params()[param_name];
-}
-
-/**
- * @param {string} param_name
- * @param {string | boolean} value
- * @param {object} [options]
- * @param {boolean} [options.replace_history_state=false]
- */
-function change_url_param(
-	param_name,
-	value,
-	{ replace_history_state = false } = {},
-) {
-	set_all_url_params({ [param_name]: value });
-}
-
-/**
- * @param {Record<string, string | boolean>} params
- * @param {object} [options]
- * @param {boolean} [options.replace_history_state=false]
- */
-function set_all_url_params(params) {
-	console.log("params:", params);
-	let new_hash = "";
-	for (const [param_name, param_type] of Object.entries(param_types)) {
-		if (params[param_name]) {
-			if (new_hash.length) {
-				new_hash += ",";
-			}
-			new_hash += encodeURIComponent(param_name);
-			if (param_type !== "bool") {
-				new_hash += ":" + encodeURIComponent(params[param_name]);
-			}
-		}
-	}
-	let query_string = location.search;
-
-	const new_url = `${location.origin}${location.pathname}${query_string}#${new_hash}`;
-	try {
-		// can fail when running from file: protocol
-		if (true) {
-			history.replaceState(null, document.title, new_url);
-		} else {
-			history.pushState(null, document.title, new_url);
-		}
-	} catch (_error) {
-		location.hash = new_hash;
-	}
-
-	$(window).triggerHandler("change-url-params");
-}
 
 function update_magnified_canvas_size() {
 	PaintJSState.$layer_area.css(
@@ -950,7 +848,7 @@ function open_from_image_info(
 			set_magnification(PaintJSState.default_magnification);
 			drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
 			apply_file_format_and_palette_info(info);
-			PaintJSState.transparency = has_any_transparency(PaintJSState.main_ctx);
+			PaintJSState.transparency = false; // has_any_transparency(PaintJSState.main_ctx);
 			PaintJSState.$canvas_area.trigger("resize");
 
 			PaintJSState.current_history_node.name = localize("Open");
@@ -1936,9 +1834,6 @@ function undo() {
 	return true;
 }
 
-// @TODO: use Clippy.js instead for potentially annoying tips
-/** @type {OSGUI$Window} */
-let $document_history_prompt_window;
 function redo() {
 	console.log("press redo!");
 	if (PaintJSState.redos.length < 1) {
@@ -2548,9 +2443,9 @@ function get_tool_by_id(id) {
  */
 function select_tools(tools) {
 	// for (let i = 0; i < tools.length; i++) {
-	// 	select_tool(tools[i], i > 0);
+		select_tool(tools[i], i > 0);
 	// }
-	// update_helper_layer();
+	  update_helper_layer();
 }
 
 /**
@@ -2601,96 +2496,6 @@ function select_tool(tool, toggle) {
 	}
 
 	// // $toolbox2.update_selected_tool();
-}
-
-/**
- * @param {CanvasRenderingContext2D} ctx
- * @returns {boolean} whether the canvas has any translucent pixels (with a stupid margin of error)
- */
-function has_any_transparency(ctx) {
-	// @TODO Optimization: Assume JPEGs and some other file types are opaque.
-	// Raster file formats that SUPPORT transparency include GIF, PNG, BMP and TIFF
-	// (Yes, even BMPs support transparency!)
-	const id = ctx.getImageData(
-		0,
-		0,
-		PaintJSState.main_canvas.width,
-		PaintJSState.main_canvas.height,
-	);
-	for (let i = 0, l = id.data.length; i < l; i += 4) {
-		// I've seen firefox give [ 254, 254, 254, 254 ] for get_rgba_from_color("#fff")
-		// or other values
-		if (id.data[i + 3] < 253) {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * @param {boolean} reverse
- * @param {string[]} colors
- * @param {number=} stripe_size
- * @returns {CanvasPattern}
- */
-function make_stripe_pattern(reverse, colors, stripe_size = 4) {
-	const rgba_colors = colors.map(get_rgba_from_color);
-
-	const pattern_canvas = document.createElement("canvas");
-	const pattern_ctx = pattern_canvas.getContext("2d");
-
-	pattern_canvas.width = colors.length * stripe_size;
-	pattern_canvas.height = colors.length * stripe_size;
-
-	const pattern_image_data = PaintJSState.main_ctx.createImageData(
-		pattern_canvas.width,
-		pattern_canvas.height,
-	);
-
-	for (let x = 0; x < pattern_canvas.width; x += 1) {
-		for (let y = 0; y < pattern_canvas.height; y += 1) {
-			const pixel_index = (y * pattern_image_data.width + x) * 4;
-			// +1000 to avoid remainder on negative numbers
-			const pos = reverse ? x - y : x + y;
-			const color_index =
-				Math.floor((pos + 1000) / stripe_size) % colors.length;
-			const rgba = rgba_colors[color_index];
-			pattern_image_data.data[pixel_index + 0] = rgba[0];
-			pattern_image_data.data[pixel_index + 1] = rgba[1];
-			pattern_image_data.data[pixel_index + 2] = rgba[2];
-			pattern_image_data.data[pixel_index + 3] = rgba[3];
-		}
-	}
-
-	pattern_ctx.putImageData(pattern_image_data, 0, 0);
-
-	return PaintJSState.main_ctx.createPattern(pattern_canvas, "repeat");
-}
-
-function switch_to_polychrome_palette() {}
-
-function make_opaque() {
-	// undoable(
-	// 	{
-	// 		name: "Make Opaque",
-	// 		icon: get_help_folder_icon("p_make_opaque.png"),
-	// 	},
-	// 	() => {
-	// 		PaintJSState.main_ctx.save();
-	// 		PaintJSState.main_ctx.globalCompositeOperation = "destination-atop";
-	// 		PaintJSState.main_ctx.fillStyle = "white";
-	// 		PaintJSState.main_ctx.fillRect(
-	// 			0,
-	// 			0,
-	// 			PaintJSState.main_canvas.width,
-	// 			PaintJSState.main_canvas.height,
-	// 		);
-	// 		// in case the selected background color is transparent/translucent
-	// 		// PaintJSState.main_ctx.fillStyle = "white";
-	// 		// PaintJSState.main_ctx.fillRect(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-	// 		PaintJSState.main_ctx.restore();
-	// 	},
-	// );
 }
 
 /**
@@ -3783,7 +3588,6 @@ export {
 	apply_file_format_and_palette_info,
 	are_you_sure,
 	cancel,
-	change_url_param,
 	choose_file_to_paste,
 	cleanup_bitmap_view,
 	clear,
@@ -3800,14 +3604,11 @@ export {
 	file_save,
 	file_save_as,
 	getSelectionText,
-	get_all_url_params,
 	get_history_ancestors,
 	get_tool_by_id,
 	get_uris,
-	get_url_param,
 	go_to_history_node,
 	handle_keyshortcuts,
-	has_any_transparency,
 	image_attributes,
 	image_flip_and_rotate,
 	image_invert_colors,
@@ -3815,9 +3616,7 @@ export {
 	load_image_from_uri,
 	load_theme_from_text,
 	make_history_node,
-	make_opaque,
 	make_or_update_undoable,
-	make_stripe_pattern,
 	meld_selection_into_canvas,
 	open_from_file,
 	open_from_image_info,
@@ -3837,13 +3636,11 @@ export {
 	select_all,
 	select_tool,
 	select_tools,
-	set_all_url_params,
 	set_magnification,
 	show_convert_to_black_and_white,
 	show_error_message,
 	show_file_format_errors,
 	show_resource_load_error_message,
-	switch_to_polychrome_palette,
 	try_exec_command,
 	undo,
 	undoable,

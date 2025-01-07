@@ -88,6 +88,16 @@ export async function initApp(canvasAreaQuery) {
     cursor: make_css_cursor(...PaintJSState.default_tool.cursor),
   });
 
+  PaintJSState.update_fill_and_stroke_colors_and_lineWidth =
+    update_fill_and_stroke_colors_and_lineWidth;
+  PaintJSState.$canvas_area = $canvas_area;
+  PaintJSState.$layer_area = $layer_area;
+  PaintJSState.$canvas = $layer_area;
+
+  setEvent();
+
+  await getDBCanvas();
+
   const canvas_handles = new Handles({
     $handles_container: $canvas_area,
     $object_container: $canvas_area,
@@ -110,17 +120,9 @@ export async function initApp(canvasAreaQuery) {
     size_only: true,
     is_canvas: true,
   });
-
-  PaintJSState.update_fill_and_stroke_colors_and_lineWidth =
-    update_fill_and_stroke_colors_and_lineWidth;
-  PaintJSState.$canvas_area = $canvas_area;
-  PaintJSState.$layer_area = $layer_area;
-  PaintJSState.$canvas = $layer_area;
   PaintJSState.canvas_handles = canvas_handles;
-
-  setEvent();
-
-  await getDBCanvas();
+  PaintJSState.canvas_bounding_client_rect =
+    PaintJSState.$layer_area[0].getBoundingClientRect(); // cached for performance, updated later
 
   init_webgl_stuff();
 }

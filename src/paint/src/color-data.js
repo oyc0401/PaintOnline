@@ -1,8 +1,6 @@
 console.log('JS 실행:','color-data.js')
 // @ts-check
 
-import { make_stripe_pattern } from "./functions.js";
-
 const default_palette = [
 	"rgb(0,0,0)", // Black
 	"rgb(128,128,128)", // Dark Gray
@@ -79,84 +77,8 @@ const color_ramp = (num_colors, start_hsla, end_hsla) =>
 /**
  * @returns {(string | CanvasPattern)[]}  A palette of colors and patterns for the Winter theme.
  */
-const get_winter_palette = () => {
-	const make_stripe_patterns = (reverse) => [
-		make_stripe_pattern(reverse, [
-			"hsl(166, 93%, 38%)",
-			"white",
-		]),
-		make_stripe_pattern(reverse, [
-			"white",
-			"hsl(355, 78%, 46%)",
-		]),
-		make_stripe_pattern(reverse, [
-			"hsl(355, 78%, 46%)",
-			"white",
-			"white",
-			"hsl(355, 78%, 46%)",
-			"hsl(355, 78%, 46%)",
-			"hsl(355, 78%, 46%)",
-			"white",
-			"white",
-			"hsl(355, 78%, 46%)",
-			"white",
-		], 2),
-		make_stripe_pattern(reverse, [
-			"hsl(166, 93%, 38%)",
-			"white",
-			"white",
-			"hsl(166, 93%, 38%)",
-			"hsl(166, 93%, 38%)",
-			"hsl(166, 93%, 38%)",
-			"white",
-			"white",
-			"hsl(166, 93%, 38%)",
-			"white",
-		], 2),
-		make_stripe_pattern(reverse, [
-			"hsl(166, 93%, 38%)",
-			"white",
-			"hsl(355, 78%, 46%)",
-			"white",
-		], 2),
-	];
-	return [
-		"black",
-		// green
-		"hsl(91, 55%, 81%)",
-		"hsl(142, 57%, 64%)",
-		"hsl(166, 93%, 38%)",
-		"#04ce1f", // elf green
-		"hsl(159, 93%, 16%)",
-		// red
-		"hsl(2, 77%, 27%)",
-		"hsl(350, 100%, 50%)",
-		"hsl(356, 97%, 64%)",
-		// brown
-		"#ad4632",
-		"#5b3b1d",
-		// stripes
-		...make_stripe_patterns(false),
-		// white to blue
-		...color_ramp(
-			6,
-			[200, 100, 100, 100],
-			[200, 100, 10, 100],
-		),
-		// pink
-		"#fcbaf8",
-		// silver
-		"hsl(0, 0%, 90%)",
-		"hsl(22, 5%, 71%)",
-		// gold
-		"hsl(48, 82%, 54%)",
-		"hsl(49, 82%, 72%)",
-		// stripes
-		...make_stripe_patterns(true),
-	];
-};
 
 
 export {
-	basic_colors, custom_colors, default_palette, get_winter_palette
+	basic_colors, custom_colors, default_palette
 };
