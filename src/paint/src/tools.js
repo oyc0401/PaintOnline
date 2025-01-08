@@ -276,7 +276,6 @@ function SELECT() {
 		cursor: ["precise", [16, 16], "crosshair"],
 		selectBox(rect_x, rect_y, rect_width, rect_height) {
 			if (rect_width > 1 && rect_height > 1) {
-				var free_form_selection = PaintJSState.selection;
 				if (PaintJSState.selection) {
 					// for silly multitools feature
 					meld_selection_into_canvas();
@@ -293,65 +292,6 @@ function SELECT() {
 						PaintJSState.canvas_handles.show();
 						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
-				} else if (free_form_selection) {
-					// for silly multitools feature,
-					// create a selection that's the Free-Form selection XOR the normal selection
-
-					var x_min = Math.min(free_form_selection.x, rect_x);
-					var y_min = Math.min(free_form_selection.y, rect_y);
-					var x_max = Math.max(
-						free_form_selection.x + free_form_selection.width,
-						rect_x + rect_width,
-					);
-					var y_max = Math.max(
-						free_form_selection.y + free_form_selection.height,
-						rect_y + rect_height,
-					);
-
-					var contents_canvas = make_canvas(x_max - x_min, y_max - y_min);
-					var rect_canvas = make_canvas(x_max - x_min, y_max - y_min);
-					rect_canvas.ctx.drawImage(
-						PaintJSState.main_canvas,
-						// source:
-						rect_x,
-						rect_y,
-						rect_width,
-						rect_height,
-						// dest:
-						rect_x - x_min,
-						rect_y - y_min,
-						rect_width,
-						rect_height,
-					);
-
-					contents_canvas.ctx.drawImage(
-						free_form_selection.canvas,
-						free_form_selection.x - x_min,
-						free_form_selection.y - y_min,
-					);
-					contents_canvas.ctx.globalCompositeOperation = "xor";
-					contents_canvas.ctx.drawImage(rect_canvas, 0, 0);
-
-					undoable(
-						{
-							name: `${localize("Free-Form Select")}⊕${localize("Select")}`,
-							icon: get_icon_for_tools([
-								get_tool_by_id(TOOL_FREE_FORM_SELECT),
-								get_tool_by_id(TOOL_SELECT),
-							]),
-							soft: true,
-						},
-						() => {
-							PaintJSState.selection = new OnCanvasSelection(
-								x_min,
-								y_min,
-								x_max - x_min,
-								y_max - y_min,
-								contents_canvas,
-							);
-							PaintJSState.cut_out_background();
-						},
-					);
 				} else {
 					undoable(
 						{
@@ -1588,18 +1528,15 @@ function setting_selectBox(tool) {
 			translate_x,
 			translate_y,
 		) => {
-			if (!PaintJSState.pointer_active) {
-				return;
-			}
-			if (!pointer_has_moved) {
-				return;
-			}
+			// if (!PaintJSState.pointer_active) {
+			// 	return;
+			// }
+			// if (!pointer_has_moved) {
+			// 	return;
+			// }
 
-			ctx.scale(scale, scale);
-			ctx.translate(translate_x, translate_y);
-
-			// make the document canvas part of the helper canvas so that inversion can apply to it
-			ctx.drawImage(PaintJSState.main_canvas, 0, 0);
+			// // ctx.scale(scale, scale);
+			// // ctx.translate(translate_x, translate_y);
 		};
 		tool.drawPreviewAboveGrid = (
 			ctx,
@@ -1616,6 +1553,8 @@ function setting_selectBox(tool) {
 			if (!pointer_has_moved) {
 				return;
 			}
+
+			console.warn(ctx);
 
 			draw_selection_box(
 				ctx,

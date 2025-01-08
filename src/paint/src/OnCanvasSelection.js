@@ -1,15 +1,25 @@
-console.log('JS 실행:','OnCanvasSelection.js')
+console.log("JS 실행:", "OnCanvasSelection.js");
 // @ts-check
 /* global $canvas_area, $status_position, $status_size, main_canvas, PaintJSState.main_ctx, PaintJSState.selected_colors, tool_transparent_mode, transparency */
 import { Handles } from "./Handles.js";
 import { OnCanvasObject } from "./OnCanvasObject.js";
-import { get_tool_by_id, make_or_update_undoable, undoable, update_helper_layer } from "./functions.js";
-import {  get_icon_for_tool, get_rgba_from_color, make_canvas, make_css_cursor, to_canvas_coords } from "./helpers.js";
+import {
+	get_tool_by_id,
+	make_or_update_undoable,
+	undoable,
+	update_helper_layer,
+} from "./functions.js";
+import {
+	get_icon_for_tool,
+	get_rgba_from_color,
+	make_canvas,
+	make_css_cursor,
+	to_canvas_coords,
+} from "./helpers.js";
 import { replace_colors_with_swatch } from "./image-manipulation.js";
 import { TOOL_SELECT } from "./tools.js";
-import $ from 'jquery'
-import {PaintJSState} from '../state';
-
+import $ from "jquery";
+import { PaintJSState } from "../state";
 
 class OnCanvasSelection extends OnCanvasObject {
 	/**
@@ -23,21 +33,6 @@ class OnCanvasSelection extends OnCanvasObject {
 		super(x, y, width, height, true);
 
 		this.$el.addClass("selection");
-		let last_tool_transparent_mode = PaintJSState.tool_transparent_mode;
-		let last_background_color = PaintJSState.selected_colors.background;
-		this._on_option_changed = () => {
-			if (!this.source_canvas) {
-				return;
-			}
-			if (last_tool_transparent_mode !== PaintJSState.tool_transparent_mode ||
-				last_background_color !== PaintJSState.selected_colors.background) {
-				last_tool_transparent_mode = PaintJSState.tool_transparent_mode;
-				last_background_color = PaintJSState.selected_colors.background;
-				this.update_tool_transparent_mode();
-			}
-		};
-		$(window).on("option-changed", this._on_option_changed);
-
 		this.instantiate(image_source);
 	}
 	position() {
@@ -64,75 +59,105 @@ class OnCanvasSelection extends OnCanvasObject {
 				// @TODO: is this width/height code needed? probably not! wouldn't it clear the canvas anyways?
 				// but maybe we should assert in some way that the widths are the same, or resize the selection?
 				if (this.source_canvas.width !== this.width) {
-					this.source_canvas.width = this.width;
+					console.error("선택한 영역의 width가 이상함");
 				}
 				if (this.source_canvas.height !== this.height) {
-					this.source_canvas.height = this.height;
+					console.error("선택한 영역의 height 이상함");
 				}
 				this.canvas = make_canvas(this.source_canvas);
 			} else {
 				this.source_canvas = make_canvas(this.width, this.height);
-				this.source_canvas.ctx.drawImage(PaintJSState.main_canvas, this.x, this.y, this.width, this.height, 0, 0, this.width, this.height);
+				this.source_canvas.ctx.drawImage(
+					PaintJSState.main_canvas,
+					this.x,
+					this.y,
+					this.width,
+					this.height,
+					0,
+					0,
+					this.width,
+					this.height,
+				);
 				this.canvas = make_canvas(this.source_canvas);
 				this.cut_out_background();
 			}
-			
+
 			this.$el.append(this.canvas);
 			this.handles = new Handles({
 				$handles_container: this.$el,
 				$object_container: PaintJSState.$canvas_area,
 				outset: 2,
-				get_rect: () => ({ x: this.x, y: this.y, width: this.width, height: this.height }),
+				get_rect: () => ({
+					x: this.x,
+					y: this.y,
+					width: this.width,
+					height: this.height,
+				}),
 				set_rect: ({ x, y, width, height }) => {
-					undoable({
-						name: "Resize Selection",
-						icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-						soft: true,
-					}, () => {
-						this.x = x;
-						this.y = y;
-						this.width = width;
-						this.height = height;
-						this.position();
-						this.resize();
-					});
+					undoable(
+						{
+							name: "Resize Selection",
+							icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+							soft: true,
+						},
+						() => {
+							this.x = x;
+							this.y = y;
+							this.width = width;
+							this.height = height;
+							this.position();
+							this.resize();
+						},
+					);
 				},
-				get_ghost_offset_left: () => parseFloat(PaintJSState.$canvas_area.css("padding-left")) + 1,
-				get_ghost_offset_top: () => parseFloat(PaintJSState.$canvas_area.css("padding-top")) + 1,
+				get_ghost_offset_left: () =>
+					parseFloat(PaintJSState.$canvas_area.css("padding-left")) + 1,
+				get_ghost_offset_top: () =>
+					parseFloat(PaintJSState.$canvas_area.css("padding-top")) + 1,
 			});
 			let mox, moy;
 			const pointermove = (e) => {
-				make_or_update_undoable({
-					// XXX: Localization hazard: logic based on English action names
-					match: (history_node) =>
-						(e.shiftKey && /^(Smear|Stamp|Move) Selection$/.test(history_node.name)) ||
-						(!e.shiftKey && /^Move Selection$/.test(history_node.name)),
-					name: e.shiftKey ? "Smear Selection" : "Move Selection",
-					update_name: true,
-					icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-					soft: true,
-				}, () => {
-					const m = to_canvas_coords(e);
-					this.x = Math.max(Math.min(m.x - mox, PaintJSState.main_canvas.width), -this.width);
-					this.y = Math.max(Math.min(m.y - moy, PaintJSState.main_canvas.height), -this.height);
-					this.position();
-					if (e.shiftKey) {
-						// Smear selection
-						this.draw();
-					}
-				});
+				make_or_update_undoable(
+					{
+						// XXX: Localization hazard: logic based on English action names
+						match: (history_node) =>
+							(e.shiftKey &&
+								/^(Smear|Stamp|Move) Selection$/.test(history_node.name)) ||
+							(!e.shiftKey && /^Move Selection$/.test(history_node.name)),
+						name: e.shiftKey ? "Smear Selection" : "Move Selection",
+						update_name: true,
+						icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+						soft: true,
+					},
+					() => {
+						const m = to_canvas_coords(e);
+						this.x = Math.max(
+							Math.min(m.x - mox, PaintJSState.main_canvas.width),
+							-this.width,
+						);
+						this.y = Math.max(
+							Math.min(m.y - moy, PaintJSState.main_canvas.height),
+							-this.height,
+						);
+						this.position();
+						if (e.shiftKey) {
+							// Smear selection
+							this.draw();
+						}
+					},
+				);
 			};
 			this.canvas_pointerdown = (e) => {
 				e.preventDefault();
 				// 핀지줌을 할때 선택이 안되게 하기
-				if(PaintJSState.pinchAllowed){
+				if (PaintJSState.pinchAllowed) {
 					return;
 				}
 				const rect = this.canvas.getBoundingClientRect();
 				const cx = e.clientX - rect.left;
 				const cy = e.clientY - rect.top;
-				mox = ~~(cx / rect.width * this.canvas.width);
-				moy = ~~(cy / rect.height * this.canvas.height);
+				mox = ~~((cx / rect.width) * this.canvas.width);
+				moy = ~~((cy / rect.height) * this.canvas.height);
 				$(window).on("pointermove", pointermove);
 				this.dragging = true;
 				update_helper_layer(); // for thumbnail, which draws textbox outline if it's not being dragged
@@ -143,22 +168,29 @@ class OnCanvasSelection extends OnCanvasObject {
 				});
 				if (e.shiftKey) {
 					// Stamp or start to smear selection
-					undoable({
-						name: "Stamp Selection",
-						icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-						soft: true,
-					}, () => {
-						this.draw();
-					});
-				} else if (e.ctrlKey) { // @TODO: how should this work for macOS? where ctrl+click = secondary click?
+					undoable(
+						{
+							name: "Stamp Selection",
+							icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+							soft: true,
+						},
+						() => {
+							this.draw();
+						},
+					);
+				} else if (e.ctrlKey) {
+					// @TODO: how should this work for macOS? where ctrl+click = secondary click?
 					// Stamp selection
-					undoable({
-						name: "Stamp Selection",
-						icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-						soft: true,
-					}, () => {
-						this.draw();
-					});
+					undoable(
+						{
+							name: "Stamp Selection",
+							icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+							soft: true,
+						},
+						() => {
+							this.draw();
+						},
+					);
 				}
 			};
 			$(this.canvas).on("pointerdown", this.canvas_pointerdown);
@@ -174,22 +206,27 @@ class OnCanvasSelection extends OnCanvasObject {
 	cut_out_background() {
 		const cutout = this.canvas;
 		// doc/this or canvas/cutout, either of those pairs would result in variable names of equal length which is nice :)
-		const canvasImageData = PaintJSState.main_ctx.getImageData(this.x, this.y, this.width, this.height);
-		const cutoutImageData = cutout.ctx.getImageData(0, 0, this.width, this.height);
-		// cutoutImageData is initialized with the shape to be cut out (whether rectangular or polygonal)
-		// and should end up as the cut out image data for the selection
-		// canvasImageData is initially the portion of image data on the canvas,
-		// and should end up as... the portion of image data on the canvas that it should end up as.
-		// @TODO: could simplify by making the later (shared) condition just if (colored_cutout)
-		// but might change how it works anyways so whatever
-		// if (!transparency) { // now if !transparency or if tool_transparent_mode
-		// this is mainly in order to support patterns as the background color
-		// NOTE: must come before cutout canvas is modified
+		const canvasImageData = PaintJSState.main_ctx.getImageData(
+			this.x,
+			this.y,
+			this.width,
+			this.height,
+		);
+		const cutoutImageData = cutout.ctx.getImageData(
+			0,
+			0,
+			this.width,
+			this.height,
+		);
+
 		const colored_cutout = make_canvas(cutout);
-		replace_colors_with_swatch(colored_cutout.ctx, PaintJSState.selected_colors.background, this.x, this.y);
-		// const colored_cutout_image_data = colored_cutout.ctx.getImageData(0, 0, this.width, this.height);
-		// }
-		const backgroundRGB=get_rgba_from_color(PaintJSState.selected_colors.background);
+		replace_colors_with_swatch(
+			colored_cutout.ctx,
+			PaintJSState.selected_colors.background,
+			this.x,
+			this.y,
+		);
+
 		for (let i = 0; i < cutoutImageData.data.length; i += 4) {
 			const in_cutout = cutoutImageData.data[i + 3] > 0;
 			if (in_cutout) {
@@ -197,33 +234,11 @@ class OnCanvasSelection extends OnCanvasObject {
 				cutoutImageData.data[i + 1] = canvasImageData.data[i + 1];
 				cutoutImageData.data[i + 2] = canvasImageData.data[i + 2];
 				cutoutImageData.data[i + 3] = canvasImageData.data[i + 3];
-				if(PaintJSState.transparency){
-					if(PaintJSState.tool_transparent_mode ){
-						if(canvasImageData.data[i + 0] == backgroundRGB[0]
-							&& canvasImageData.data[i + 1] == backgroundRGB[1]
-							&& canvasImageData.data[i + 2] == backgroundRGB[2]
-							&& canvasImageData.data[i + 3] == backgroundRGB[3]){
-							// 해당부분이 배경색과 같다면 바닥을 투명으로 칠하지 않아야 함.
-					
-							}else{
-								canvasImageData.data[i + 0] = 0
-								canvasImageData.data[i + 1] = 0
-								canvasImageData.data[i + 2] = 0
-								canvasImageData.data[i + 3] = 0
-							}
-					}else{
-						// 투명모드이면 무조건 배경색은 투명이여야함
-						canvasImageData.data[i + 0] = 0
-						canvasImageData.data[i + 1] = 0
-						canvasImageData.data[i + 2] = 0
-						canvasImageData.data[i + 3] = 0
-					}
-				}else{
-					canvasImageData.data[i + 0] = backgroundRGB[0];
-					canvasImageData.data[i + 1] = backgroundRGB[1];
-					canvasImageData.data[i + 2] = backgroundRGB[2];
-					canvasImageData.data[i + 3] = backgroundRGB[3];
-				}
+
+				canvasImageData.data[i + 0] = 0;
+				canvasImageData.data[i + 1] = 0;
+				canvasImageData.data[i + 2] = 0;
+				canvasImageData.data[i + 3] = 0;
 			} else {
 				cutoutImageData.data[i + 0] = 0;
 				cutoutImageData.data[i + 1] = 0;
@@ -233,63 +248,11 @@ class OnCanvasSelection extends OnCanvasObject {
 		}
 		PaintJSState.main_ctx.putImageData(canvasImageData, this.x, this.y);
 		cutout.ctx.putImageData(cutoutImageData, 0, 0);
-		this.update_tool_transparent_mode();
-		// NOTE: in case you want to use the tool_transparent_mode
-		// in a document with transparency (for an operation in an area where there's a local background color)
-		// (and since currently switching to the opaque document mode makes the image opaque)
-		// (and it would be complicated to make it update the canvas when switching tool options (as opposed to just the selection))
-		// I'm having it use the tool_transparent_mode option here, so you could at least choose beforehand
-		// (and this might actually give you more options, although it could be confusingly inconsistent)
-		// @FIXME: yeah, this is confusing; if you have both transparency modes on and you try to clear an area to transparency, it doesn't work
-		// and there's no indication that you should try the other selection transparency mode,
-		// and even if you do, if you do it after creating a selection, it still won't work,
-		// because you will have already *not cut out* the selection from the canvas
-		//if (!PaintJSState.transparency || PaintJSState.tool_transparent_mode) {
-			//PaintJSState.main_ctx.drawImage(colored_cutout, this.x, this.y);
-	//	}
 
 		$(window).triggerHandler("session-update"); // autosave
 		update_helper_layer();
 	}
-	update_tool_transparent_mode() {
-		const sourceImageData = this.source_canvas.ctx.getImageData(0, 0, this.width, this.height);
-		const cutoutImageData = this.canvas.ctx.createImageData(this.width, this.height);
-		const background_color_rgba = get_rgba_from_color(PaintJSState.selected_colors.background);
-		// NOTE: In b&w mode, mspaint treats the transparency color as white,
-		// regardless of the pattern selected, even if the selected background color is pure black.
-		// We allow any kind of image data while in our "b&w mode".
-		// Our b&w mode is essentially 'patterns in the palette'.
-		const match_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
-		for (let i = 0; i < cutoutImageData.data.length; i += 4) {
-			let in_cutout = sourceImageData.data[i + 3] > 1;
-			if (PaintJSState.tool_transparent_mode) {
-				// @FIXME: work with transparent selected background color
-				// (support treating partially transparent background colors as transparency)
-				if (
-					Math.abs(sourceImageData.data[i + 0] - background_color_rgba[0]) <= match_threshold &&
-					Math.abs(sourceImageData.data[i + 1] - background_color_rgba[1]) <= match_threshold &&
-					Math.abs(sourceImageData.data[i + 2] - background_color_rgba[2]) <= match_threshold &&
-					Math.abs(sourceImageData.data[i + 3] - background_color_rgba[3]) <= match_threshold
-				) {
-					in_cutout = false;
-				}
-			}
-			if (in_cutout) {
-				cutoutImageData.data[i + 0] = sourceImageData.data[i + 0];
-				cutoutImageData.data[i + 1] = sourceImageData.data[i + 1];
-				cutoutImageData.data[i + 2] = sourceImageData.data[i + 2];
-				cutoutImageData.data[i + 3] = sourceImageData.data[i + 3];
-			} else {
-				// cutoutImageData.data[i+0] = 0;
-				// cutoutImageData.data[i+1] = 0;
-				// cutoutImageData.data[i+2] = 0;
-				// cutoutImageData.data[i+3] = 0;
-			}
-		}
-		this.canvas.ctx.putImageData(cutoutImageData, 0, 0);
 
-		update_helper_layer();
-	}
 	// @TODO: should Image > Invert apply to this.source_canvas or to this.canvas (replacing this.source_canvas with the result)?
 	/**
 	 * @param {PixelCanvas} new_source_canvas
@@ -317,18 +280,29 @@ class OnCanvasSelection extends OnCanvasObject {
 		this.position();
 		$(this.canvas).on("pointerdown", this.canvas_pointerdown);
 		this.$el.triggerHandler("resize"); //?
-		this.update_tool_transparent_mode();
 	}
 	resize() {
 		const new_source_canvas = make_canvas(this.width, this.height);
-		new_source_canvas.ctx.drawImage(this.source_canvas, 0, 0, this.width, this.height);
+		new_source_canvas.ctx.drawImage(
+			this.source_canvas,
+			0,
+			0,
+			this.width,
+			this.height,
+		);
 		this.replace_source_canvas(new_source_canvas);
 	}
 	scale(factor) {
 		const new_width = Math.max(1, this.width * factor);
 		const new_height = Math.max(1, this.height * factor);
 		const new_source_canvas = make_canvas(new_width, new_height);
-		new_source_canvas.ctx.drawImage(this.source_canvas, 0, 0, new_source_canvas.width, new_source_canvas.height);
+		new_source_canvas.ctx.drawImage(
+			this.source_canvas,
+			0,
+			0,
+			new_source_canvas.width,
+			new_source_canvas.height,
+		);
 		this.replace_source_canvas(new_source_canvas);
 	}
 	draw() {
@@ -340,10 +314,8 @@ class OnCanvasSelection extends OnCanvasObject {
 	}
 	destroy() {
 		super.destroy();
-		$(window).off("option-changed", this._on_option_changed);
 		update_helper_layer(); // @TODO: under-grid specific helper layer?
 	}
 }
 
 export { OnCanvasSelection };
-
