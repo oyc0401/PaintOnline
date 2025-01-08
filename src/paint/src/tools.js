@@ -46,112 +46,7 @@ import {
 } from "./image-manipulation.js";
 
 import $ from "jquery";
-// This is for linting stuff at the bottom.
-// It has to be defined per file, so I'm defining it up top and immediately disabling it.
-// It's re-enabled below to disallow the use of `this` in functions that are added to the tool objects
-// based on properties of the tool objects.
-/* eslint no-restricted-syntax: ["error", "ThisExpression"] */
-/* eslint-disable no-restricted-syntax */
 
-// Note that the way tool objects are defined and extended is a bit unconventional,
-// and makes type checking less useful (see `interface Tool`).
-// It would be better to define the tool objects using either:
-// - classes and inheritance (e.g. `class EllipseTool extends ShapeTool`), or
-// - functional composition (e.g. `const ellipseTool = shapeTool((ctx, x, y, w, h) => { ... })`).
-
-// Notes about tool status indicators:
-//
-// In MS Paint in Windows 98:
-// - Free-Form Select:
-//   - Shows the difference between the start and current mouse position, NOT the bounding box
-//   - Disappears when done making selection; does not show while dragging selection
-//   - Shows the absolute size while resizing selection (but not with using Numpad +/- or menu commands)
-// - Select:
-//   - Shows the absolute size of the selection
-//   - Disappears when done making selection; does not show while dragging selection
-//   - Shows the absolute size while resizing selection (but not with using Numpad +/- or menu commands)
-// - Eraser: N/A
-// - Fill With Color: N/A
-// - Eraser: N/A
-// - Pick Color: N/A
-// - Magnifier: N/A
-// - Pencil: N/A
-// - Brush: N/A
-// - Text:
-//   - Absolute size shown while making box
-//   - Stays after making box
-//   - Not affected when resizing the box or snapping to min width/height; it just shows the size of the box you originally "asked for"
-// - Line:
-//   - Relative to mouse down point
-//   - Disappears when finalizing or canceling
-// - Curve:
-//   - Relative to first point defining the curve
-//   - Disappears when finalizing or canceling
-// - Rectangle:
-//   - Relative to mouse down point
-//   - Disappears when finalizing or canceling
-// - Polygon:
-//   - Shows absolute bounding box of polygon
-//   - Always at least 2x2 for some reason (maybe takes a starting point and then finds the min/max from there, each at least 1?)
-//   - Disappears when finalizing or canceling
-// - Ellipse:
-//   - Relative to mouse down point
-//   - 3 wide or 3 tall is the smallest visible oval, and it's rendered 2px wide or tall respectively
-//   - Disappears when finalizing or canceling
-// - Rounded Rectangle:
-//   - Relative to mouse down point
-//   - 3 wide or 3 tall is the smallest visible rounded rectangle, and it's rendered 2px wide or tall respectively
-//   - Disappears when finalizing or canceling
-//
-// When showing relative sizes, MS Paint is afraid to show the number 0, so it shows 1 instead,
-// while it's happy to show negative numbers.
-// I've tentatively copied this behavior in JS Paint, although it feels like conflating
-// the visual (assuming a 1x1 brush) with the logical (the geometry defining the shape).
-// It's not affected by the chosen line width... EXCEPT for the Polygon tool!
-// (The Ellipse, Rectangle, and Rounded Rectangle tools show the outline inside, so they're ambiguous,
-// but the Polygon tool is definitely inconsistent with the Line and Curve tools.)
-//
-// The size shown is affected by holding Shift to constrain proportions.
-// The position indicator is actually locked into showing the first point defining a shape,
-// while the mouse is down, thus, Shift doesn't come into play.
-//
-// In JS Paint:
-//
-// - Free-Form Select:
-//   - (Tracks a `points` array)
-//   - I've made it show the bounding box
-//   - Updates after resizing the box; TODO: show while resizing the box
-// - Select:
-//   - (Implements `selectBox()`)
-//   - Shows the absolute size of the selection
-//   - Updates after resizing the box; TODO: show while resizing the box
-// - Text:
-//   - (Implements `selectBox()`)
-//   - Shows the absolute size of the box while making it
-//   - Shows actual size of the box after making it and snapping to min width/height
-//   - Updates after resizing the box; TODO: show while resizing the box (even though MS Paint doesn't)
-// - Line:
-//   - (Implements `shape()`)
-//   - Relative to mouse down point
-// - Curve:
-//   - (Tracks a `points` array)
-//   - Relative to first point
-// - Rectangle:
-//   - (Implements `shape()`)
-//   - Relative to mouse down point
-// - Polygon:
-//   - (Tracks a `points` array)
-//   - Shows absolute size of the bounding box
-// - Ellipse:
-//   - (Implements `shape()`)
-//   - Relative to mouse down point
-// - Rounded Rectangle:
-//   - (Implements `shape()`)
-//   - Relative to mouse down point
-//
-// The size shown is affected by holding Shift to constrain proportions.
-// TODO: either make Shift affect the position indicator, or do what MS Paint does
-// and lock it into showing the first point defining a shape while the mouse is down.
 function getRGBAFromColor(color) {
 	// Canvas 생성
 	const canvas = document.createElement("canvas");
@@ -188,11 +83,11 @@ const TOOL_ELLIPSE = "TOOL_ELLIPSE";
 const TOOL_ROUNDED_RECTANGLE = "TOOL_ROUNDED_RECTANGLE";
 
 /** @type {Tool[]} */
-const tools = [
-	{
+
+function FREE_FORM_SELECT() {
+	return {
 		id: TOOL_FREE_FORM_SELECT,
 		name: localize("Free-Form Select"),
-		speech_recognition: [],
 		help_icon: "p_free.gif",
 		description: localize(
 			"Selects a free-form part of the picture to move, copy, or edit.",
@@ -367,11 +262,13 @@ const tools = [
 
 			ctx.drawImage(this.preview_canvas, 0, 0);
 		},
-	},
-	{
+	};
+}
+
+function SELECT() {
+	return {
 		id: TOOL_SELECT,
 		name: localize("Select"),
-		speech_recognition: [],
 		help_icon: "p_sel.gif",
 		description: localize(
 			"Selects a rectangular part of the picture to move, copy, or edit.",
@@ -392,12 +289,11 @@ const tools = [
 							-rect_x,
 							-rect_y,
 						);
-						drawcopy(PaintJSState.main_ctx,cropped_canvas)
+						drawcopy(PaintJSState.main_ctx, cropped_canvas);
 						PaintJSState.canvas_handles.show();
 						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
 					});
-				}
-				else if (free_form_selection) {
+				} else if (free_form_selection) {
 					// for silly multitools feature,
 					// create a selection that's the Free-Form selection XOR the normal selection
 
@@ -456,8 +352,7 @@ const tools = [
 							PaintJSState.cut_out_background();
 						},
 					);
-				}
-				else {
+				} else {
 					undoable(
 						{
 							name: localize("Select"),
@@ -476,11 +371,13 @@ const tools = [
 				}
 			}
 		},
-	},
-	{
+	};
+}
+
+function ERASER() {
+	return {
 		id: TOOL_ERASER,
 		name: localize("Eraser/Color Eraser"),
-		speech_recognition: [],
 		help_icon: "p_erase.gif",
 		description: localize(
 			"Erases a portion of the picture, using the selected eraser shape.",
@@ -510,6 +407,7 @@ const tools = [
 			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
+			//console.log('drawPreviewUnderGrid')
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
 
 			ctx.scale(scale, scale);
@@ -534,7 +432,7 @@ const tools = [
 			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
-
+			//console.log('drawPreviewAboveGrid')
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
 
 			ctx.scale(scale, scale);
@@ -559,39 +457,18 @@ const tools = [
 				);
 			}
 		},
+
 		pointerdown() {
-			this.mask_canvas = PaintJSState.draw_layer.canvas;
-			this.laterCanvas = new OffscreenCanvas(
-				this.mask_canvas.width,
-				this.mask_canvas.height,
-			);
-			this.laterCtx = this.laterCanvas.getContext("2d");
+			console.log("pointerdown");
+			this.mask_canvas = new OffscreenCanvas(1, 1);
 		},
-		render_from_mask(ctx, previewing) {
-			ctx.save();
-			ctx.globalCompositeOperation = "destination-out";
-			ctx.drawImage(this.mask_canvas, 0, 0);
-			ctx.restore();
-
-			/** @type {string | CanvasPattern | CanvasGradient} */
-			let color = PaintJSState.selected_colors.background;
-
-			const translucent = get_rgba_from_color(color)[3] < 1;
-
-			if (translucent) {
-				color = previewing
-					? "rgba(255, 0, 0, 0.25)"
-					: PaintJSState.selected_colors.background;
-			}
-
-			//const mask_fill_canvas = make_canvas(this.mask_canvas);
-			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-			//ctx.drawImage(mask_fill_canvas, 0, 0);
-		},
+		render_from_mask(ctx, previewing) {},
 		pointerup() {
+			console.log("pointerup");
 			if (!this.mask_canvas) {
 				return; // not sure why this would happen per se
 			}
+
 			undoable(
 				{
 					name: get_language().match(/^en\b/)
@@ -602,34 +479,16 @@ const tools = [
 					icon: get_icon_for_tool(this),
 				},
 				() => {
-					// 메인 캔버스에 그 만든캔버스를 사용하여 투명도 제거
-					PaintJSState.main_ctx.globalCompositeOperation = "destination-out";
-					PaintJSState.main_ctx.drawImage(this.laterCanvas, 0, 0);
-
-					// 지워진 이후
-					let color = PaintJSState.selected_colors.background;
-
-					const translucent = get_rgba_from_color(color)[3] < 1;
-
-					PaintJSState.main_ctx.globalCompositeOperation = "source-over";
-
-					if (translucent) {
-						// 투명지우개면 안 칠해도 됌
-					} else {
-						PaintJSState.main_ctx.drawImage(this.mask_canvas, 0, 0);
-					}
-
 					this.mask_canvas.width = 1;
-					this.laterCanvas.width = 1;
-					//console.log('반영완료!')
 				},
 			);
 		},
 		cancel() {
+			//console.log("cancel");
 			this.mask_canvas.width = 1;
-			this.laterCanvas.width = 1;
 		},
 		paint(ctx, _x, _y) {
+			//console.log("paint");
 			const eraser_size = PaintJSState.eraser_size / 2;
 
 			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
@@ -652,13 +511,15 @@ const tools = [
 			const width = endX - startX + eraser_size * 2;
 			const height = endY - startY + eraser_size * 2;
 
-			const tempCanvas = new OffscreenCanvas(width, height);
-			const tempCtx = tempCanvas.getContext("2d");
-			tempCtx.imageSmoothingEnabled = false;
+			this.mask_canvas.width = width;
+			this.mask_canvas.height = height;
+			const mask_ctx = this.mask_canvas.getContext("2d");
+
+			mask_ctx.imageSmoothingEnabled = false;
 
 			// 1. 임시 캔버스에 흰색으로 도형 그리기
-			tempCtx.fillStyle = "black";
-			tempCtx.globalCompositeOperation = "source-over";
+			mask_ctx.fillStyle = "black";
+			mask_ctx.globalCompositeOperation = "source-over";
 			bresenham_line(
 				PaintJSState.pointer_previous.x - startX,
 				PaintJSState.pointer_previous.y - startY,
@@ -669,50 +530,20 @@ const tools = [
 						ctx,
 						x + eraser_size,
 						y + eraser_size,
-						tempCtx,
+						mask_ctx,
 						startX - eraser_size,
 						startY - eraser_size,
 					);
 				},
 			);
-			// 이건 다 그리고 나중에 메인캔버스 지울때 필요
-			this.laterCtx.drawImage(
-				tempCanvas,
-				startX - eraser_size,
-				startY - eraser_size,
-			);
 
 			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
-			this.mask_canvas.ctx.globalCompositeOperation = "destination-out";
-			this.mask_canvas.ctx.drawImage(
-				tempCanvas,
+			PaintJSState.main_canvas.ctx.globalCompositeOperation = "destination-out";
+			PaintJSState.main_canvas.ctx.drawImage(
+				this.mask_canvas,
 				startX - eraser_size,
 				startY - eraser_size,
 			);
-
-			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
-			// 투명색이면 붉은색으로 바꾸기
-			// let color='black'
-			let color = PaintJSState.selected_colors.background;
-			const translucent = get_rgba_from_color(color)[3] < 1;
-
-			if (translucent) {
-				color = "rgba(255, 0, 0, 0.3)";
-			}
-			tempCtx.fillStyle = color;
-
-			tempCtx.globalCompositeOperation = "source-in";
-			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
-			this.mask_canvas.ctx.globalCompositeOperation = "source-over";
-			this.mask_canvas.ctx.drawImage(
-				tempCanvas,
-				startX - eraser_size,
-				startY - eraser_size,
-			);
-			console.log("헬퍼 그리기 완료!");
-			//////////////////
 		},
 		eraser_paint_iteration(ctx, x, y, drawCtx, startX, startY) {
 			const { rect_x, rect_y, rect_w, rect_h } = this.get_rect(x, y);
@@ -767,11 +598,13 @@ const tools = [
 				drawCtx.putImageData(result_image_data, rect_x, rect_y);
 			}
 		},
-	},
-	{
+	};
+}
+
+function FILL() {
+	return {
 		id: TOOL_FILL,
 		name: localize("Fill With Color"),
-		speech_recognition: [],
 		help_icon: "p_paint.gif",
 		description: "Fills an area with the selected drawing color.",
 		cursor: ["fill-bucket", [8, 22], "crosshair"],
@@ -800,11 +633,14 @@ const tools = [
 				);
 			}
 		},
-	},
-	{
+	};
+}
+
+function PICK_COLOR() {
+	return {
 		id: TOOL_PICK_COLOR,
 		name: localize("Pick Color"),
-		speech_recognition: [],
+
 		help_icon: "p_eye.gif",
 		description: localize("Picks up a color from the picture for drawing."),
 		cursor: ["eye-dropper", [9, 22], "crosshair"],
@@ -843,11 +679,14 @@ const tools = [
 				this.current_color;
 			$(window).trigger("option-changed");
 		},
-	},
-	{
+	};
+}
+
+function MAGNIFIER() {
+	return {
 		id: TOOL_MAGNIFIER,
 		name: localize("Magnifier"),
-		speech_recognition: [],
+
 		help_icon: "p_zoom.gif",
 		description: localize("Changes the magnification."),
 		cursor: ["magnifier", [16, 16], "zoom-in"], // overridden below
@@ -1073,11 +912,14 @@ const tools = [
 				PaintJSState.$canvas_area.trigger("scroll");
 			}
 		},
-	},
-	{
+	};
+}
+
+function PENCIL() {
+	return {
 		id: TOOL_PENCIL,
 		name: localize("Pencil"),
-		speech_recognition: [],
+
 		help_icon: "p_pencil.gif",
 		description: localize("Draws a free-form line one pixel wide."),
 		cursor: ["pencil", [13, 23], "crosshair"],
@@ -1085,11 +927,14 @@ const tools = [
 		get_brush() {
 			return { size: PaintJSState.pencil_size, shape: "circle" };
 		},
-	},
-	{
+	};
+}
+
+function BRUSH() {
+	return {
 		id: TOOL_BRUSH,
 		name: localize("Brush"),
-		speech_recognition: [],
+
 		help_icon: "p_brush.gif",
 		description: localize(
 			"Draws using a brush with the selected shape and size.",
@@ -1099,11 +944,14 @@ const tools = [
 		get_brush() {
 			return { size: PaintJSState.brush_size, shape: PaintJSState.brush_shape };
 		},
-	},
-	{
+	};
+}
+
+function AIRBRUSH() {
+	return {
 		id: TOOL_AIRBRUSH,
 		name: localize("Airbrush"),
-		speech_recognition: [],
+
 		help_icon: "p_airb.gif",
 		description: localize("Draws using an airbrush of the selected size."),
 		cursor: ["airbrush", [7, 22], "crosshair"],
@@ -1120,18 +968,13 @@ const tools = [
 			}
 			update_helper_layer();
 		},
-	},
-	{
+	};
+}
+
+function LINE() {
+	return {
 		id: TOOL_LINE,
 		name: localize("Line"),
-		speech_recognition: [
-			"line",
-			"line segment",
-			"straight line",
-			"lines",
-			"line segments",
-			"straight lines",
-		],
 		help_icon: "p_line.gif",
 		description: localize(
 			"Draws a straight line with the selected line width.",
@@ -1142,31 +985,13 @@ const tools = [
 			update_brush_for_drawing_lines(PaintJSState.stroke_size);
 			draw_line(ctx, x, y, x + w, y + h, PaintJSState.stroke_size);
 		},
-	},
-	{
+	};
+}
+
+function CURVE() {
+	return {
 		id: TOOL_CURVE,
 		name: localize("Curve"),
-		speech_recognition: [
-			"curve",
-			"curved line",
-			"curvy",
-			"curvy line",
-			"Bezier",
-			"Bezier curve",
-			"spline",
-			"curves",
-			"splines",
-			"curved",
-			"curving",
-			"wave",
-			"wavy line",
-			"rounded line",
-			"round line",
-			"oscilloscope",
-			"sine wave",
-			"cosine",
-			"cosine wave",
-		],
 		help_icon: "p_curve.gif",
 		description: localize("Draws a curved line with the selected line width."),
 		cursor: ["precise", [16, 16], "crosshair"],
@@ -1310,53 +1135,13 @@ const tools = [
 			//$status_size.text("");
 			//PaintJSState.position_object_active = false;
 		},
-	},
-	{
+	};
+}
+
+function RECTANGLE() {
+	return {
 		id: TOOL_RECTANGLE,
 		name: localize("Rectangle"),
-		speech_recognition: [
-			"rectangle",
-			"square",
-			"box",
-			"rect",
-			"sharp rectangle",
-			"sharp square",
-			"sharp box",
-			"sharp rect",
-			"sharp corners rectangle",
-			"sharp corners square",
-			"sharp corners box",
-			"sharp corners rect",
-			"sharp cornered rectangle",
-			"sharp cornered square",
-			"sharp cornered box",
-			"sharp cornered rect",
-			"rectangle with sharp corners",
-			"square with sharp corners",
-			"box with sharp corners",
-			"rect with sharp corners",
-
-			"rectangles",
-			"squares",
-			"boxes",
-			"rects",
-			"sharp rectangles",
-			"sharp squares",
-			"sharp boxes",
-			"sharp rects",
-			"sharp corners rectangles",
-			"sharp corners squares",
-			"sharp corners boxes",
-			"sharp corners rects",
-			"sharp cornered rectangles",
-			"sharp cornered squares",
-			"sharp cornered boxes",
-			"sharp cornered rects",
-			"rectangles with sharp corners",
-			"squares with sharp corners",
-			"boxes with sharp corners",
-			"rects with sharp corners",
-		],
 		help_icon: "p_rect.gif",
 		description: localize("Draws a rectangle with the selected fill style."),
 		cursor: ["precise", [16, 16], "crosshair"],
@@ -1403,47 +1188,13 @@ const tools = [
 				}
 			}
 		},
-	},
-	{
+	};
+}
+
+function POLYGON() {
+	return {
 		id: TOOL_POLYGON,
 		name: localize("Polygon"),
-		speech_recognition: [
-			"polygon",
-			"poly",
-			"shape",
-			"n-gon",
-			"free-form polygon",
-			"freeform polygon",
-			"free form polygon",
-			"triangle",
-			"quadrangle",
-			"pentagon",
-			"hexagon",
-			"heptagon",
-			"octagon",
-			"nonagon",
-			"decagon",
-			"undecagon",
-			"dodecagon",
-
-			"polygons",
-			"polys",
-			"shapes",
-			"n-gons",
-			"free-form polygons",
-			"freeform polygons",
-			"free form polygons",
-			"triangles",
-			"quadrangles",
-			"pentagons",
-			"hexagons",
-			"heptagons",
-			"octagons",
-			"nonagons",
-			"decagons",
-			"undecagons",
-			"dodecagons",
-		],
 		help_icon: "p_poly.gif",
 		description: localize("Draws a polygon with the selected fill style."),
 		cursor: ["precise", [16, 16], "crosshair"],
@@ -1657,36 +1408,13 @@ const tools = [
 			this.preview_canvas.height = 1;
 		},
 		shape_colors: true,
-	},
-	{
+	};
+}
+
+function ELLIPSE() {
+	return {
 		id: TOOL_ELLIPSE,
 		name: localize("Ellipse"),
-		speech_recognition: [
-			"ellipse",
-			"circle",
-			"oval",
-			"ovoid",
-			"ovaloid",
-			"oviform",
-			"elliptical",
-			"oblong circle",
-			"stretched circle",
-			"ball",
-			"sphere",
-			"round tool",
-			"rounded tool",
-			"ellipses",
-			"circles",
-			"ovals",
-			"ovoids",
-			"ovaloids",
-			"oviforms",
-			"ellipticals",
-			"oblong circles",
-			"stretched circles",
-			"balls",
-			"spheres",
-		],
 		help_icon: "p_oval.gif",
 		description: localize("Draws an ellipse with the selected fill style."),
 		cursor: ["precise", [16, 16], "crosshair"],
@@ -1700,110 +1428,30 @@ const tools = [
 				h = -h;
 			}
 
-			if (w < PaintJSState.stroke_size || h < PaintJSState.stroke_size) {
-				ctx.fillStyle = ctx.strokeStyle;
-				draw_ellipse(ctx, x, y, w, h, false, true);
-			} else {
-				draw_ellipse(
-					ctx,
-					x + ~~(PaintJSState.stroke_size / 2),
-					y + ~~(PaintJSState.stroke_size / 2),
-					w - PaintJSState.stroke_size,
-					h - PaintJSState.stroke_size,
-					PaintJSState.stroke,
-					PaintJSState.fill,
-				);
+			if (PaintJSState.fill || PaintJSState.stroke) {
+				if (w < PaintJSState.stroke_size || h < PaintJSState.stroke_size) {
+					ctx.fillStyle = ctx.strokeStyle;
+					draw_ellipse(ctx, x, y, w, h, false, true);
+				} else {
+					draw_ellipse(
+						ctx,
+						x + ~~(PaintJSState.stroke_size / 2),
+						y + ~~(PaintJSState.stroke_size / 2),
+						w - PaintJSState.stroke_size,
+						h - PaintJSState.stroke_size,
+						PaintJSState.stroke,
+						PaintJSState.fill,
+					);
+				}
 			}
 		},
-	},
-	{
+	};
+}
+
+function ROUNDED_RECTANGLE() {
+	return {
 		id: TOOL_ROUNDED_RECTANGLE,
 		name: localize("Rounded Rectangle"),
-		speech_recognition: [
-			"rounded rectangle",
-			"rounded square",
-			"rounded box",
-			"round rectangle",
-			"round square",
-			"round box",
-			"rounded corners rectangle",
-			"rounded corners square",
-			"rounded corners box",
-			"round cornered rectangle",
-			"round cornered square",
-			"round cornered box",
-			"rounded cornered rectangle",
-			"rounded cornered square",
-			"rounded cornered box",
-			"rounded corner rectangle",
-			"rounded corner square",
-			"rounded corner box",
-			"rectangle with round corners",
-			"square with round corners",
-			"box with round corners",
-			"rectangle with rounded corners",
-			"square with rounded corners",
-			"box with rounded corners",
-			"soft rectangle",
-			"soft square",
-			"soft box",
-			"soft corners rectangle",
-			"soft corners square",
-			"soft corners box",
-			"soft cornered rectangle",
-			"soft cornered square",
-			"soft cornered box",
-			"soft corner rectangle",
-			"soft corner square",
-			"soft corner box",
-			"rectangle with soft corners",
-			"square with soft corners",
-			"box with soft corners",
-			"round rect",
-			"roundrect",
-
-			"rounded rectangles",
-			"rounded squares",
-			"rounded boxes",
-			"round rectangles",
-			"round squares",
-			"round boxes",
-			"rounded corners rectangles",
-			"rounded corners squares",
-			"rounded corners boxes",
-			"round cornered rectangles",
-			"round cornered squares",
-			"round cornered boxes",
-			"rounded cornered rectangles",
-			"rounded cornered squares",
-			"rounded cornered boxes",
-			"rounded corner rectangles",
-			"rounded corner squares",
-			"rounded corner boxes",
-			"rectangles with round corners",
-			"squares with round corners",
-			"boxes with round corners",
-			"rectangles with rounded corners",
-			"squares with rounded corners",
-			"boxes with rounded corners",
-			"soft rectangles",
-			"soft squares",
-			"soft boxes",
-			"soft corners rectangles",
-			"soft corners squares",
-			"soft corners boxes",
-			"soft cornered rectangles",
-			"soft cornered squares",
-			"soft cornered boxes",
-			"soft corner rectangles",
-			"soft corner squares",
-			"soft corner boxes",
-			"rectangles with soft corners",
-			"squares with soft corners",
-			"boxes with soft corners",
-			"round rects",
-			"roundrects",
-		],
 		help_icon: "p_rrect.gif",
 		description: localize(
 			"Draws a rounded rectangle with the selected fill style.",
@@ -1858,12 +1506,28 @@ const tools = [
 				);
 			}
 		},
-	},
+	};
+}
+
+const tools = [
+	FREE_FORM_SELECT(),
+	SELECT(),
+	ERASER(),
+	FILL(),
+	PICK_COLOR(),
+	MAGNIFIER(),
+	PENCIL(),
+	BRUSH(),
+	AIRBRUSH(),
+	LINE(),
+	CURVE(),
+	RECTANGLE(),
+	POLYGON(),
+	ELLIPSE(),
+	ROUNDED_RECTANGLE(),
 ];
 
-/* eslint-enable no-restricted-syntax */
-
-tools.forEach((tool) => {
+function setting_selectBox(tool) {
 	if (tool.selectBox) {
 		// TODO: is drag_start_x/y redundant with PaintJSState.pointer_start.x/y?
 		let drag_start_x = 0;
@@ -1901,11 +1565,10 @@ tools.forEach((tool) => {
 				) - rect_y;
 			//$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 			//if(rect_width > 1 && rect_height > 1){
-				PaintJSState.position_object_active = true;
-				PaintJSState.position_object_x = rect_width;
-				PaintJSState.position_object_y = rect_height;
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = rect_width;
+			PaintJSState.position_object_y = rect_height;
 			//}
-			
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
@@ -1966,6 +1629,9 @@ tools.forEach((tool) => {
 			);
 		};
 	}
+}
+
+function setting_shape(tool) {
 	if (tool.shape) {
 		tool.shape_canvas = null;
 		tool.pointerdown = () => {
@@ -1997,11 +1663,10 @@ tools.forEach((tool) => {
 				PaintJSState.pointer.y - PaintJSState.pointer_start.y || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
 			//if(signed_width > 1 && signed_height > 1){
-				PaintJSState.position_object_active = true;
-				PaintJSState.position_object_x = signed_width;
-				PaintJSState.position_object_y = signed_height;
+			PaintJSState.position_object_active = true;
+			PaintJSState.position_object_x = signed_width;
+			PaintJSState.position_object_y = signed_height;
 			//}
-			
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key
@@ -2042,6 +1707,9 @@ tools.forEach((tool) => {
 			ctx.drawImage(tool.shape_canvas, 0, 0);
 		};
 	}
+}
+
+function setting_paint_mask(tool) {
 	if (tool.paint_mask) {
 		// binary mask of the drawn area, either opaque white or transparent
 		tool.mask_canvas = null;
@@ -2141,19 +1809,23 @@ tools.forEach((tool) => {
 			}
 		};
 	}
+}
+
+function setting_get_brush(tool) {
 	if (tool.get_brush) {
 		// binary mask of the drawn area, either opaque white or transparent
 		tool.mask_canvas = null;
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
 			if (!tool.mask_canvas) {
-				tool.mask_canvas = PaintJSState.draw_layer.canvas;
+				tool.draw_canvas = PaintJSState.draw_layer.canvas;
+				tool.mask_canvas = new OffscreenCanvas(1, 1);
 			}
-			if (tool.mask_canvas.width !== PaintJSState.main_canvas.width) {
-				tool.mask_canvas.width = PaintJSState.main_canvas.width;
+			if (tool.draw_canvas.width !== PaintJSState.main_canvas.width) {
+				tool.draw_canvas.width = PaintJSState.main_canvas.width;
 			}
-			if (tool.mask_canvas.height !== PaintJSState.main_canvas.height) {
-				tool.mask_canvas.height = PaintJSState.main_canvas.height;
+			if (tool.draw_canvas.height !== PaintJSState.main_canvas.height) {
+				tool.draw_canvas.height = PaintJSState.main_canvas.height;
 			}
 		};
 		tool.pointerdown = (_ctx, _x, _y) => {
@@ -2166,27 +1838,26 @@ tools.forEach((tool) => {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					PaintJSState.main_ctx.drawImage(tool.mask_canvas, 0, 0);
+					PaintJSState.main_ctx.globalCompositeOperation = "source-over";
+					PaintJSState.main_ctx.drawImage(tool.draw_canvas, 0, 0);
 					//tool.render_from_mask(PaintJSState.main_ctx);
-
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
+
+					tool.draw_canvas.width = PaintJSState.main_canvas.width;
+					tool.draw_canvas.height = PaintJSState.main_canvas.height;
 				},
 			);
 		};
 
 		tool.paint = () => {
-			//console.warn('paint')
 			const brush = tool.get_brush();
-			const circumference_points = get_circumference_points_for_brush(
-				brush.shape,
-				brush.size,
-			);
-			tool.mask_canvas.ctx.fillStyle = PaintJSState.stroke_color;
-			//console.log('draw',PaintJSState.pointer.x,PaintJSState.pointer.y)
+			const draw_canvas = PaintJSState.draw_layer.canvas;
+			const draw_ctx = draw_canvas.ctx;
+
+			draw_ctx.fillStyle = PaintJSState.stroke_color;
 			const iterate_line =
 				brush.size > 1 ? bresenham_dense_line : bresenham_line;
-			////////////
 
 			// 0. 시작점과 끝점 기준으로 임시 캔버스 생성
 			const startX = Math.min(
@@ -2208,13 +1879,16 @@ tools.forEach((tool) => {
 			const width = endX - startX + brush.size * 2;
 			const height = endY - startY + brush.size * 2;
 
-			const tempCanvas = new OffscreenCanvas(width, height);
-			const tempCtx = tempCanvas.getContext("2d");
-			tempCtx.imageSmoothingEnabled = false;
+			// 마스크 캔버스 초기화
+			const mask_canvas = tool.mask_canvas;
+			const mask_ctx = mask_canvas.getContext("2d");
+			mask_canvas.width = width;
+			mask_canvas.height = height;
+			mask_ctx.imageSmoothingEnabled = false;
 
 			// 1. 임시 캔버스에 흰색으로 도형 그리기
-			tempCtx.fillStyle = "white";
-			tempCtx.globalCompositeOperation = "source-over";
+			mask_ctx.fillStyle = "black";
+			mask_ctx.globalCompositeOperation = "source-over";
 
 			iterate_line(
 				PaintJSState.pointer_previous.x - startX,
@@ -2223,7 +1897,7 @@ tools.forEach((tool) => {
 				PaintJSState.pointer.y - startY,
 				(x, y) => {
 					stamp_brush_canvas(
-						tempCtx,
+						mask_ctx,
 						x + brush.size,
 						y + brush.size,
 						brush.shape,
@@ -2231,58 +1905,38 @@ tools.forEach((tool) => {
 					);
 				},
 			);
-			// stamp_brush_canvas(
-			// 	tempCtx,
-			// 	PaintJSState.pointer_previous.x-startX+brush.size,
-			// 	PaintJSState.pointer_previous.y-startY+brush.size,
-			// 	brush.shape,
-			// 	brush.size
-			// );
-			// stamp_brush_canvas(
-			// 	tempCtx,
-			// 	PaintJSState.pointer.x-startX+brush.size,
-			// 	PaintJSState.pointer.y-startY+brush.size,
-			// 	brush.shape,
-			// 	brush.size
-			// );
-			
 
-			// 2. 메인 캔버스에서 'destination-out'으로 임시 캔버스 적용
-			tool.mask_canvas.ctx.globalCompositeOperation = "destination-out";
-			tool.mask_canvas.ctx.drawImage(
-				tempCanvas,
+			// 2. draw_canvas에서 mask_canvas가 차지하는 영역 지우기
+			tool.draw_canvas.ctx.globalCompositeOperation = "destination-out";
+			tool.draw_canvas.ctx.drawImage(
+				mask_canvas,
 				startX - brush.size,
 				startY - brush.size,
 			);
 
-			// 3. 임시 캔버스에서 'source-in'으로 원하는 색상으로 채우기
-			tempCtx.globalCompositeOperation = "source-in";
-			tempCtx.fillStyle = PaintJSState.stroke_color;
-			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+			// 3. mask_canvas의 투명하지 않은 색을 원하는 색으로 바꾸기
+			// 이렇게 하는 이유는 지우기를 할 땐 투명도가 0이여야하고 그리기를 할떈 투명도가 있어도 되기 때문
+			mask_ctx.globalCompositeOperation = "source-in";
+			mask_ctx.fillStyle = PaintJSState.stroke_color;
+			mask_ctx.fillRect(0, 0, mask_canvas.width, mask_canvas.height);
 
-			// 4. 메인 캔버스에 'source-over'로 임시 캔버스 적용
-			tool.mask_canvas.ctx.globalCompositeOperation = "source-over";
-			tool.mask_canvas.ctx.drawImage(
-				tempCanvas,
+			// 4. draw_canvas에 mask_canvas 그리기
+			tool.draw_canvas.ctx.globalCompositeOperation = "source-over";
+			tool.draw_canvas.ctx.drawImage(
+				mask_canvas,
 				startX - brush.size,
 				startY - brush.size,
 			);
 		};
 
 		tool.cancel = () => {
-			if (tool.mask_canvas) {
-				tool.mask_canvas.width = 1;
-				tool.mask_canvas.height = 1;
-			}
+			tool.mask_canvas.width = 1;
+			tool.mask_canvas.height = 1;
+
+			tool.draw_canvas.width = PaintJSState.main_canvas.width;
+			tool.draw_canvas.height = PaintJSState.main_canvas.height;
 		};
 		tool.render_from_mask = (ctx, previewing) => {
-			// if(PaintJSState.pointer.x == PaintJSState.pointer_float_previous.x
-			// 	&& PaintJSState.pointer.y == PaintJSState.pointer_float_previous.y){
-
-			// 	return false;
-			// }
-			// console.log('helper render')
-
 			if (previewing && tool.dynamic_preview_cursor) {
 				const brush = tool.get_brush();
 				// dynamic cursor preview:
@@ -2297,14 +1951,6 @@ tools.forEach((tool) => {
 				);
 				//console.log('helper',PaintJSState.stroke_color)
 			}
-
-			// console.log(, PaintJSState.pointer.y);
-			// console.log(PaintJSState.pointer_previous.x, PaintJSState.pointer_previous.y);
-			//console.log(PaintJSState.pointer,PaintJSState.pointer_float_previous)
-
-			//replace_colors_with_swatch(mask_fill_canvas.ctx, color, 0, 0);
-			//ctx.drawImage(tool.mask_canvas, 0, 0);
-			// return translucent;
 
 			return true;
 		};
@@ -2338,6 +1984,13 @@ tools.forEach((tool) => {
 			}
 		};
 	}
+}
+
+tools.forEach((tool) => {
+	setting_selectBox(tool);
+	setting_shape(tool);
+	setting_paint_mask(tool);
+	setting_get_brush(tool);
 });
 
 export {

@@ -32,19 +32,6 @@ html, body{
   width: 100%;
   height: 100%;
 }
-.draw-layer{
-  left:300px !important;
-  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
-    repeat;
-  background-size: 8px;
-}
-
-.helper-layer{
-  left:600px !important;
-  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
-    repeat;
-  background-size: 8px;
-}
 
 
 .layer{
@@ -70,4 +57,34 @@ html, body{
   z-index: 0;
   width:800px;
   height: 600px;
+}
+
+
+
+
+/* 디버그 모드 */
+
+.draw-layer{
+  left:350px !important;
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
+    repeat;
+  background-size: 8px;
+   image-rendering: pixelated;
+}
+
+.helper-layer{
+  left:700px !important;
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
+    repeat;
+  background-size: 8px;
+   image-rendering: pixelated;
+}
+.background{
+  top:350px;
+}
+.layer{
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEW9vb3///8EwsWUAAAADElEQVQI12NoYHAAAAHEAMFJRSpJAAAAAElFTkSuQmCC")
+    repeat;
+  background-size: 8px;
+   image-rendering: pixelated;
 }

@@ -1,31 +1,8 @@
 console.log('JS 실행:','OnCanvasObject.js')
-// @ts-check
-/* global $canvas_area, $status_position, $status_size, canvas_handles */
+
 import $ from 'jquery'
 import {  E } from "./helpers.js";
 import {PaintJSState} from '../state';
-// import $ from 'jquery'
-// let{
-// 	update_fill_and_stroke_colors_and_lineWidth ,
-// 	$canvas_area,
-// 	$canvas,
-// 	canvas_bounding_client_rect,
-// 	canvas_handles ,
-// 	$status_position,
-// 	$status_size ,
-// }= PaintJSState;
-function roundDPR(dpr) {
-	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
-	let closest = values[0];
-
-	for (let i = 1; i < values.length; i++) {
-		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
-			closest = values[i];
-		}
-	}
-
-	return closest;
-}
 
 class OnCanvasObject {
 	/**
@@ -62,15 +39,15 @@ class OnCanvasObject {
 	//	const dpr = window.devicePixelRatio;
 	//	const targetDpr = roundDPR(dpr);
 	//const div = targetDpr / dpr;
-		const dprMagnification=PaintJSState.magnification;
+		const scale=PaintJSState.magnification;
 
 		this.$el.css({
 			position: "absolute",
 			// [left_for_ltr]: magnification * (direction === "rtl" ? canvas.width - this.width - this.x : this.x) + offset_left,
-			left: dprMagnification* this.x + offset_left,
-			top: dprMagnification * this.y + offset_top,
-			width: dprMagnification * this.width,
-			height: dprMagnification * this.height,
+			left: scale* this.x + offset_left,
+			top: scale * this.y + offset_top,
+			width: scale * this.width,
+			height: scale * this.height,
 		});
 		if (updateStatus) {
 			//PaintJSState.$status_position.text(`${this.x}, ${this.y}px`);
