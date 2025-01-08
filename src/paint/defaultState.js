@@ -28,24 +28,6 @@ export function defaultState() {
   const $layer_area = $(".layer-area");
 
 
-  // This feature is not ready yet.
-  // It needs to let the user decide when to switch the palette or not, when saving/opening an image.
-  // (maybe there could be a palette undo button? feels weird. MS Paint would probably use a dialog.)
-  // And it needs to handle canvas farbling, where pixel values are slightly different from each other,
-  // and equivalize them, when saving to a file. And maybe at other times.
-  // There are a lot of places in this app where I have to handle canvas farbling. It's obnoxious.
-  let enable_palette_loading_from_indexed_images = false;
-
-  // The File System Access API doesn't provide a way to get the file type selected by the user,
-  // or to automatically append a file extension to the file name.
-  // I'm not sure it's worth it to be able to save over an existing file.
-  // I also like the downloads bar UI to be honest.
-  // So this might need to be optional, but right now I'm disabling it as it's not ready.
-  // There are cases where 0-byte files are created, which is either a serious problem,
-  // it's just from canceling saving when the file name has a problem, and it needs to be cleaned up.
-  // Also, while I've implemented most of the UI, it'd be nice to release this with recent files support.
-  let enable_fs_access_api = false;
-
   /** @type {BrushShape} */
   const default_brush_shape = "circle";
   const default_brush_size = 4;
@@ -97,8 +79,6 @@ export function defaultState() {
   let $thumbnail_window;
   /** @type {PixelCanvas} */
   let thumbnail_canvas;
-  /** @type {boolean} */
-  let show_grid = false;
   /** @type {boolean} */
   let show_thumbnail = false;
   /** @type {TextToolFontOptions} */
@@ -207,8 +187,6 @@ export function defaultState() {
     return_to_magnification,
     main_canvas,
     main_ctx,
-    enable_palette_loading_from_indexed_images,
-    enable_fs_access_api,
     brush_shape,
     brush_size,
     eraser_size,
@@ -227,7 +205,6 @@ export function defaultState() {
     helper_layer,
     $thumbnail_window,
     thumbnail_canvas,
-    show_grid,
     show_thumbnail,
     text_tool_font,
     root_history_node,

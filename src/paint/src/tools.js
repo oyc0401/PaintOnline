@@ -381,21 +381,14 @@ function ERASER() {
 
 			ctx.strokeStyle = "black";
 			ctx.lineWidth = hairline_width;
-			if (grid_visible) {
-				ctx.strokeRect(
-					rect_x + ctx.lineWidth / 2,
-					rect_y + ctx.lineWidth / 2,
-					rect_w,
-					rect_h,
-				);
-			} else {
+			
 				ctx.strokeRect(
 					rect_x + ctx.lineWidth / 2,
 					rect_y + ctx.lineWidth / 2,
 					rect_w - ctx.lineWidth,
 					rect_h - ctx.lineWidth,
 				);
-			}
+			
 		},
 
 		pointerdown() {
@@ -1554,7 +1547,7 @@ function setting_selectBox(tool) {
 				return;
 			}
 
-			console.warn(ctx);
+			//console.warn(ctx);
 
 			draw_selection_box(
 				ctx,
