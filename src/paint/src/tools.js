@@ -381,14 +381,13 @@ function ERASER() {
 
 			ctx.strokeStyle = "black";
 			ctx.lineWidth = hairline_width;
-			
-				ctx.strokeRect(
-					rect_x + ctx.lineWidth / 2,
-					rect_y + ctx.lineWidth / 2,
-					rect_w - ctx.lineWidth,
-					rect_h - ctx.lineWidth,
-				);
-			
+
+			ctx.strokeRect(
+				rect_x + ctx.lineWidth / 2,
+				rect_y + ctx.lineWidth / 2,
+				rect_w - ctx.lineWidth,
+				rect_h - ctx.lineWidth,
+			);
 		},
 
 		pointerdown() {
@@ -943,16 +942,17 @@ function CURVE() {
 					},
 				);
 				this.points = [];
+				this.preview_canvas.width = 1;
 				//$status_size.text("");
 				//PaintJSState.position_object_active = false;
 			}
 		},
 		pointerdown(_ctx, x, y) {
 			if (this.points.length < 1) {
-				this.preview_canvas = make_canvas(
-					PaintJSState.main_canvas.width,
-					PaintJSState.main_canvas.height,
-				);
+				this.preview_canvas = PaintJSState.draw_layer.canvas;
+				this.preview_canvas.width = PaintJSState.main_canvas.width;
+				this.preview_canvas.height = PaintJSState.main_canvas.height;
+
 				this.points.push({ x, y });
 				if (!$("body").hasClass("eye-gaze-mode")) {
 					// second point so first action draws a line
@@ -1050,20 +1050,23 @@ function CURVE() {
 			if (!this.preview_canvas) {
 				return;
 			}
-			ctx.scale(scale, scale);
-			ctx.translate(translate_x, translate_y);
+			// ctx.scale(scale, scale);
+			// ctx.translate(translate_x, translate_y);
 
-			if (this.points.length >= 1) {
-				ctx.drawImage(this.preview_canvas, 0, 0);
-			}
+			// if (this.points.length >= 1) {
+			// 	ctx.drawImage(this.preview_canvas, 0, 0);
+			// }
 		},
 		cancel() {
 			this.points = [];
+			this.preview_canvas.width = 1;
 			//$status_size.text("");
 			//PaintJSState.position_object_active = false;
 		},
 		end() {
+			console.log('end!')
 			this.points = [];
+			//this.preview_canvas.width = 1;
 			update_helper_layer();
 			//$status_size.text("");
 			//PaintJSState.position_object_active = false;
@@ -1174,10 +1177,9 @@ function POLYGON() {
 		},
 		pointerdown(ctx, x, y) {
 			if (this.points.length < 1) {
-				this.preview_canvas = make_canvas(
-					PaintJSState.main_canvas.width,
-					PaintJSState.main_canvas.height,
-				);
+				this.preview_canvas = PaintJSState.draw_layer.canvas;
+				this.preview_canvas.width = PaintJSState.main_canvas.width;
+				this.preview_canvas.height = PaintJSState.main_canvas.height;
 
 				// Add the first point of the polygon
 				this.points.push({ x, y });
@@ -1242,25 +1244,6 @@ function POLYGON() {
 			}
 
 			this.updateStatus();
-		},
-		drawPreviewUnderGrid(
-			ctx,
-			_x,
-			_y,
-			_grid_visible,
-			scale,
-			translate_x,
-			translate_y,
-		) {
-			// if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) { return; }
-			if (!this.preview_canvas) {
-				return;
-			}
-
-			ctx.scale(scale, scale);
-			ctx.translate(translate_x, translate_y);
-
-			ctx.drawImage(this.preview_canvas, 0, 0);
 		},
 		complete(ctx) {
 			if (this.points.length >= 3) {
@@ -1512,25 +1495,6 @@ function setting_selectBox(tool) {
 		tool.cancel = () => {
 			PaintJSState.canvas_handles.show();
 		};
-		tool.drawPreviewUnderGrid = (
-			ctx,
-			_x,
-			_y,
-			_grid_visible,
-			scale,
-			translate_x,
-			translate_y,
-		) => {
-			// if (!PaintJSState.pointer_active) {
-			// 	return;
-			// }
-			// if (!pointer_has_moved) {
-			// 	return;
-			// }
-
-			// // ctx.scale(scale, scale);
-			// // ctx.translate(translate_x, translate_y);
-		};
 		tool.drawPreviewAboveGrid = (
 			ctx,
 			_x,
@@ -1567,12 +1531,12 @@ function setting_shape(tool) {
 	if (tool.shape) {
 		tool.shape_canvas = null;
 		tool.pointerdown = () => {
-			tool.shape_canvas = make_canvas(
-				PaintJSState.main_canvas.width,
-				PaintJSState.main_canvas.height,
-			);
+			tool.shape_canvas = PaintJSState.draw_layer.canvas;
+			tool.shape_canvas.width = PaintJSState.main_canvas.width;
+			tool.shape_canvas.height = PaintJSState.main_canvas.height;
 		};
 		tool.paint = () => {
+			//console.log('paint')
 			tool.shape_canvas.ctx.clearRect(
 				0,
 				0,
@@ -1613,30 +1577,9 @@ function setting_shape(tool) {
 				},
 				() => {
 					PaintJSState.main_ctx.drawImage(tool.shape_canvas, 0, 0);
-					tool.shape_canvas = null;
+					tool.shape_canvas.width = tool.shape_canvas.width;
 				},
 			);
-		};
-		tool.drawPreviewUnderGrid = (
-			ctx,
-			_x,
-			_y,
-			_grid_visible,
-			scale,
-			translate_x,
-			translate_y,
-		) => {
-			if (!PaintJSState.pointer_active) {
-				return;
-			}
-			if (!tool.shape_canvas) {
-				return;
-			}
-
-			ctx.scale(scale, scale);
-			ctx.translate(translate_x, translate_y);
-
-			ctx.drawImage(tool.shape_canvas, 0, 0);
 		};
 	}
 }
@@ -1910,7 +1853,6 @@ function setting_get_brush(tool) {
 				// animate for gradient
 				// TODO: is rAF needed? update_helper_layer uses rAF
 				requestAnimationFrame(() => {
-					//console.log('drawPreviewUnderGrid - update_helper_layer')
 					update_helper_layer();
 				});
 			}

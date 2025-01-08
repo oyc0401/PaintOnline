@@ -1,4 +1,6 @@
 import { make_canvas } from "./src/helpers.js";
+import { OnCanvasDrawLayer } from "./src/OnCanvasDrawLayer.js";
+import { OnCanvasHelperLayer } from "./src/OnCanvasHelperLayer.js";
 
 import { PaintJSState, PaintMobXState } from "./state.js";
 import $ from "jquery";
@@ -57,10 +59,29 @@ function makeBackgroundLayer(canvasInfo) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  const scale = PaintJSState.magnification;
+
+  // if (!PaintJSState.helper_layer) {
+  //   //console.log('make helper-layer')
+  //   PaintJSState.helper_layer = new OnCanvasHelperLayer(
+  //     0,
+  //     0,
+  //     PaintJSState.main_canvas.width,
+  //     PaintJSState.main_canvas.height,
+  //     false,
+  //     scale,
+  //   );
+  // }
+
+ // const helperLayer = new OnCanvasHelperLayer(0, 0, width, height, 0, scale);
+ // const drawLayer = new OnCanvasDrawLayer(0, 0, width, height, false, scale);
+
   return {
     layerId: generateLayerId(),
     canvas,
     ctx,
+    helperLayer,
+    drawLayer,
     name: "BackgroundLayer",
     priority: 0,
   };

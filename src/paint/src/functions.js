@@ -349,35 +349,36 @@ function render_canvas_view(
 		}
 	});
 
-	if (PaintJSState.selection) {
-		hctx.save();
+	// if (PaintJSState.selection) {
+	// 	hctx.save();
 
-		hctx.scale(scale, scale);
-		hctx.translate(-viewport_x, -viewport_y);
+	// 	hctx.scale(scale, scale);
+	// 	hctx.translate(-viewport_x, -viewport_y);
 
-		hctx.drawImage(
-			PaintJSState.selection.canvas,
-			PaintJSState.selection.x,
-			PaintJSState.selection.y,
-		);
+	// 		//PaintJSState.draw_layer.canvas.ctx.drawImage(
+	// 	hctx.drawImage(
+	// 		PaintJSState.selection.canvas,
+	// 		PaintJSState.selection.x,
+	// 		PaintJSState.selection.y,
+	// 	);
 
-		hctx.restore();
+	// 	hctx.restore();
 
-		if (!is_helper_layer && !PaintJSState.selection.dragging) {
-			// Draw the selection outline (for the thumbnail)
-			// (The main canvas view has the OnCanvasSelection object which has its own outline)
-			draw_selection_box(
-				hctx,
-				PaintJSState.selection.x,
-				PaintJSState.selection.y,
-				PaintJSState.selection.width,
-				PaintJSState.selection.height,
-				scale,
-				-viewport_x,
-				-viewport_y,
-			);
-		}
-	}
+	// 	if (!is_helper_layer && !PaintJSState.selection.dragging) {
+	// 		// Draw the selection outline (for the thumbnail)
+	// 		// (The main canvas view has the OnCanvasSelection object which has its own outline)
+	// 		draw_selection_box(
+	// 			hctx,
+	// 			PaintJSState.selection.x,
+	// 			PaintJSState.selection.y,
+	// 			PaintJSState.selection.width,
+	// 			PaintJSState.selection.height,
+	// 			scale,
+	// 			-viewport_x,
+	// 			-viewport_y,
+	// 		);
+	// 	}
+	// }
 
 	tools_to_preview.forEach((tool) => {
 		if (
@@ -2409,9 +2410,9 @@ function get_tool_by_id(id) {
  */
 function select_tools(tools) {
 	// for (let i = 0; i < tools.length; i++) {
-		select_tool(tools[i], i > 0);
+		select_tool(tools[0], false);
 	// }
-	  update_helper_layer();
+	 // update_helper_layer();
 }
 
 /**

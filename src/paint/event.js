@@ -18,7 +18,6 @@ import {
   paste,
   paste_image_from_file,
   redo,
-
   select_all,
   select_tool,
   select_tools,
@@ -62,7 +61,6 @@ import { PaintJSState } from "./state.js";
 
 const MIN_MAGNIFICATION = 0.12;
 const MAX_MAGNIFICATION = 78;
-
 
 export function setEvent() {
   const $canvas_area = PaintJSState.$canvas_area;
@@ -430,8 +428,6 @@ export function setEvent() {
             file_new();
           }
           break;
-      
-       
 
         default:
           return; // don't preventDefault
@@ -667,7 +663,7 @@ export function setEvent() {
     // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
     function setPrimaryPointPosition() {
       $layer_area.on("pointermove", (e) => {
-        if(!PaintJSState.init){
+        if (!PaintJSState.init) {
           return;
         }
         // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
@@ -707,7 +703,9 @@ export function setEvent() {
       });
 
       $layer_area.on("pointerleave", (e) => {
-        // PaintJSState.position_mouse_active=false;
+        if (!PaintJSState.init) {
+          return;
+        }
 
         PaintJSState.pointer_over_canvas = false;
         update_helper_layer(e);

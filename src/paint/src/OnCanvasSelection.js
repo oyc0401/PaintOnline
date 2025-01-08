@@ -7,7 +7,6 @@ import {
 	get_tool_by_id,
 	make_or_update_undoable,
 	undoable,
-	update_helper_layer,
 } from "./functions.js";
 import {
 	get_icon_for_tool,
@@ -37,7 +36,58 @@ class OnCanvasSelection extends OnCanvasObject {
 	}
 	position() {
 		super.position(true);
-		update_helper_layer(); // @TODO: under-grid specific helper layer?
+		
+		//update_helper_layer(); // @TODO: under-grid specific helper layer?
+		this.update_draw_layer();
+	}
+
+	update_draw_layer(){
+		
+		if (!PaintJSState.draw_layer) {
+			//console.log('make draw_layer')
+			PaintJSState.draw_layer = new OnCanvasDrawLayer(
+				0,
+				0,
+				PaintJSState.main_canvas.width,
+				PaintJSState.main_canvas.height,
+				false,
+				scale,
+			);
+		}
+		
+		if (
+			PaintJSState.draw_layer.canvas.width != PaintJSState.main_canvas.width ||
+			PaintJSState.draw_layer.canvas.height != PaintJSState.main_canvas.height
+		) {
+			//console.log('같지않음2')
+
+			PaintJSState.draw_layer.canvas.width = PaintJSState.main_canvas.width;
+			PaintJSState.draw_layer.canvas.height = PaintJSState.main_canvas.height;
+			PaintJSState.draw_layer.width = PaintJSState.main_canvas.width;
+			PaintJSState.draw_layer.height = PaintJSState.main_canvas.height;
+			PaintJSState.draw_layer.x = 0;
+			PaintJSState.draw_layer.y = 0;
+			PaintJSState.draw_layer.position();
+		}
+
+		if(this.canvas){
+			// 초기화
+				PaintJSState.draw_layer.canvas.ctx.clearRect(
+					0,
+					0,
+					PaintJSState.draw_layer.canvas.width,
+					PaintJSState.draw_layer.canvas.height,
+				);
+
+				// 그리기
+				PaintJSState.draw_layer.canvas.ctx.drawImage(
+					this.canvas,
+					this.x,
+					this.y,
+				);
+		}
+		
+	
 	}
 	/**
 	 * @param {HTMLImageElement | HTMLCanvasElement | ImageData=} image_source
@@ -117,6 +167,7 @@ class OnCanvasSelection extends OnCanvasObject {
 			});
 			let mox, moy;
 			const pointermove = (e) => {
+				console.log("끄는중");
 				make_or_update_undoable(
 					{
 						// XXX: Localization hazard: logic based on English action names
@@ -140,10 +191,12 @@ class OnCanvasSelection extends OnCanvasObject {
 							-this.height,
 						);
 						this.position();
-						if (e.shiftKey) {
-							// Smear selection
-							this.draw();
-						}
+						// if (e.shiftKey) {
+						// 	// Smear selection
+						// 	this.draw();
+						// }
+
+					
 					},
 				);
 			};
@@ -160,11 +213,13 @@ class OnCanvasSelection extends OnCanvasObject {
 				moy = ~~((cy / rect.height) * this.canvas.height);
 				$(window).on("pointermove", pointermove);
 				this.dragging = true;
-				update_helper_layer(); // for thumbnail, which draws textbox outline if it's not being dragged
+				//update_helper_layer(); // for thumbnail, which draws textbox outline if it's not being dragged
+				this.update_draw_layer();
 				$(window).one("pointerup", () => {
 					$(window).off("pointermove", pointermove);
 					this.dragging = false;
-					update_helper_layer(); // for thumbnail, which draws selection outline if it's not being dragged
+					//update_helper_layer(); // for thumbnail, which draws selection outline if it's not being dragged
+					this.update_draw_layer();
 				});
 				if (e.shiftKey) {
 					// Stamp or start to smear selection
@@ -250,7 +305,8 @@ class OnCanvasSelection extends OnCanvasObject {
 		cutout.ctx.putImageData(cutoutImageData, 0, 0);
 
 		$(window).triggerHandler("session-update"); // autosave
-		update_helper_layer();
+		//update_helper_layer();
+		this.update_draw_layer();
 	}
 
 	// @TODO: should Image > Invert apply to this.source_canvas or to this.canvas (replacing this.source_canvas with the result)?
@@ -314,7 +370,14 @@ class OnCanvasSelection extends OnCanvasObject {
 	}
 	destroy() {
 		super.destroy();
-		update_helper_layer(); // @TODO: under-grid specific helper layer?
+		//update_helper_layer(); // @TODO: under-grid specific helper layer?
+		this.update_draw_layer();
+		PaintJSState.draw_layer.canvas.ctx.clearRect(
+			0,
+			0,
+			PaintJSState.draw_layer.canvas.width,
+			PaintJSState.draw_layer.canvas.height,
+		);
 	}
 }
 
