@@ -45,88 +45,76 @@ export function crateDefaultCanvas(paintId) {
 
 export function createDefaultLayer(canvasInfo) {
   // 레이어 만들기
-  const back = makeBackgroundLayer(canvasInfo);
-  const la = makeLayer(canvasInfo);
+  const back = make_layer(canvasInfo, {
+    layerId: generateLayerId(),
+    name: "BackgroundLayer",
+    background: "#ffffff",
+    priority: 0,
+  });
+  
+  const la = make_layer(canvasInfo, {
+    layerId: generateLayerId(),
+    name: "Layer1",
+    priority: 1,
+  });
+  
   const layers = [back, la];
 
   return layers;
 }
 
-function makeBackgroundLayer(canvasInfo) {
+async function make_layer(canvasInfo, layerMeta) {
   const { width, height } = canvasInfo;
+  const { layerId, name, priority } = layerMeta;
+
   const canvas = make_canvas(width, height);
   const ctx = canvas.ctx;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (layerMeta.dataURL) {
+    try {
+      const image = await loadImage(layerMeta.dataURL);
+      ctx.drawImage(image, 0, 0);
+    } catch (imgErr) {
+      console.error("Failed to load image:", imgErr);
+    }
+  } else if (layerMeta.background) {
+    ctx.fillStyle = layerMeta.background;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   const scale = PaintJSState.magnification;
 
-  // if (!PaintJSState.helper_layer) {
-  //   //console.log('make helper-layer')
-  //   PaintJSState.helper_layer = new OnCanvasHelperLayer(
-  //     0,
-  //     0,
-  //     PaintJSState.main_canvas.width,
-  //     PaintJSState.main_canvas.height,
-  //     false,
-  //     scale,
-  //   );
-  // }
+  // // if (!PaintJSState.helper_layer) {
+  // //   //console.log('make helper-layer')
+  // //   PaintJSState.helper_layer = new OnCanvasHelperLayer(
+  // //     0,
+  // //     0,
+  // //     PaintJSState.main_canvas.width,
+  // //     PaintJSState.main_canvas.height,
+  // //     false,
+  // //     scale,
+  // //   );
+  // // }
 
- // const helperLayer = new OnCanvasHelperLayer(0, 0, width, height, 0, scale);
- // const drawLayer = new OnCanvasDrawLayer(0, 0, width, height, false, scale);
+  // // const helperLayer = new OnCanvasHelperLayer(0, 0, width, height, 0, scale);
+  const drawLayer = new OnCanvasDrawLayer(0, 0, width, height, false, scale);
 
   return {
-    layerId: generateLayerId(),
+    layerId,
     canvas,
     ctx,
-    helperLayer,
+    name,
+    priority,
     drawLayer,
-    name: "BackgroundLayer",
-    priority: 0,
-  };
-}
-
-function makeLayer(canvasInfo) {
-  const { width, height } = canvasInfo;
-  const canvas = make_canvas(width, height);
-  const ctx = canvas.ctx;
-
-  return {
-    layerId: generateLayerId(),
-    canvas,
-    ctx,
-    name: "Layer1",
-    priority: 1,
   };
 }
 
 export async function layerListToLayerCanvas(canvasInfo, layerList) {
   const layers = [];
-  const width = canvasInfo.width;
-  const height = canvasInfo.height;
 
   for (const layerMeta of layerList) {
-    const canvas = make_canvas(width, height);
-    const ctx = canvas.ctx;
-
-    // 이미지가 없거나 깨져있으면 투명하게 두기
-    if (layerMeta.dataURL) {
-      try {
-        const image = await loadImage(layerMeta.dataURL);
-        ctx.drawImage(image, 0, 0);
-      } catch (imgErr) {
-        console.error("Failed to load image:", imgErr);
-      }
-    }
-
-    layers.push({
-      canvas,
-      ctx,
-      name: layerMeta.name,
-      layerId: layerMeta.layerId,
-      priority: layerMeta.priority,
-    });
+    const layer = await make_layer(canvasInfo, layerMeta);
+    layers.push(layer);
   }
 
   return layers;
