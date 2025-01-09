@@ -8,7 +8,6 @@ import { localize } from "../localize/localize.js";
 import { debounce } from "./src/helpers.js";
 
 import {
-  make_or_update_undoable,
   reset_file,
   reset_selected_colors,
   set_magnification,
@@ -131,8 +130,7 @@ const saveFileSoon = debounce(saveFileImmediately, 100);
 
 async function saveFileImmediately() {
   try {
-    console.log("saveFileImmediately for paintId =", currentPaintId);
-
+  
     // 1) 캔버스 정보 저장
     const activeCanvas = PaintJSState.layers[0]; // 예: 첫 번째 레이어가 배경 캔버스
     if (!activeCanvas) {
@@ -144,19 +142,45 @@ async function saveFileImmediately() {
       width: activeCanvas.canvas.width,
       height: activeCanvas.canvas.height,
     });
-    console.log("Canvas info saved.");
 
     // 2) 레이어 메타데이터 저장
-    const layerList = PaintJSState.layers.map((layer) => ({
-      layerId: layer.layerId,
-      name: layer.name,
-      paintId: currentPaintId,
-      dataURL: layer.canvas.toDataURL("image/png"),
-      priority: layer.priority,
-    }));
+    const layerList = PaintJSState.layers.map((layer) => {
+      if (PaintJSState.selection && PaintJSState.activeLayerIndex == layer.priority) {
+        // 기존 canvas와 동일한 크기의 새로운 canvas 생성
+        const temp_canvas = document.createElement("canvas");
+        temp_canvas.width = layer.canvas.width;
+        temp_canvas.height = layer.canvas.height;
+
+        // 기존 canvas의 내용을 복사
+        const temp_ctx = temp_canvas.getContext("2d");
+        temp_ctx.drawImage(layer.canvas, 0, 0);
+
+        temp_ctx.drawImage(
+          PaintJSState.selection.canvas,
+          PaintJSState.selection.x,
+          PaintJSState.selection.y,
+        );
+        return {
+          layerId: layer.layerId,
+          name: layer.name,
+          paintId: currentPaintId,
+          dataURL: temp_canvas.toDataURL("image/png"),
+          priority: layer.priority,
+        };
+      }
+      return {
+        layerId: layer.layerId,
+        name: layer.name,
+        paintId: currentPaintId,
+        dataURL: layer.canvas.toDataURL("image/png"),
+        priority: layer.priority,
+      };
+    });
 
     await layerRepository.setLayers(currentPaintId, layerList);
-    console.log("Layers metadata saved.");
+    
+    console.warn("Paint saved. paintId =", currentPaintId);
+
   } catch (error) {
     console.error(
       "An unexpected error occurred in saveFileImmediately:",

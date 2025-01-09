@@ -42,10 +42,7 @@ import { PaintJSState, PaintMobXState } from "../state";
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-import {
-	newLocalFile,
-	reset_canvas,
-} from "../session.js";
+import { newLocalFile, reset_canvas } from "../session.js";
 
 function update_magnified_canvas_size() {
 	PaintJSState.$layer_area.css(
@@ -135,7 +132,6 @@ function update_helper_layer_immediately() {
 			scale,
 		);
 	}
-
 
 	if (
 		PaintJSState.helper_layer.canvas.width != PaintJSState.main_canvas.width ||
@@ -239,11 +235,9 @@ function render_canvas_view(
 	is_helper_layer,
 ) {
 	//console.log('render',is_helper_layer);
-	update_fill_and_stroke_colors_and_lineWidth(
-		PaintJSState.selected_tool,
-	);
+	update_fill_and_stroke_colors_and_lineWidth(PaintJSState.selected_tool);
 
-	const grid_visible =false;
+	const grid_visible = false;
 
 	const hctx = hcanvas.ctx;
 
@@ -774,14 +768,13 @@ function open_from_image_info(
 			deselect();
 			cancel();
 
-		console.error('여기 함수 다시 짜야함! 레이어 적용 x')
+			console.error("여기 함수 다시 짜야함! 레이어 적용 x");
 			if (!into_existing_session) {
 				$(window).triggerHandler("session-update"); // autosave old session
 				console.log("세션초기화");
 				// new_local_session();
 				newLocalFile();
 			}
-		
 
 			reset_file();
 			reset_selected_colors();
@@ -878,7 +871,6 @@ function open_from_file(file, source_file_handle) {
 		open_from_image_info(image_info);
 	});
 }
-
 
 /**
  * @param {string} fileText
@@ -1554,7 +1546,6 @@ function go_to_history_node(target_history_node, canceling) {
 		}
 	} else {
 		console.error("error!!!");
-		//drawcopy(PaintJSState.main_ctx, target_history_node.image_data);
 	}
 
 	// 선택 요소 그리기
@@ -1562,9 +1553,6 @@ function go_to_history_node(target_history_node, canceling) {
 		if (PaintJSState.selection) {
 			PaintJSState.selection.destroy();
 		}
-		// @TODO maybe: could store whether a selection is from Free-Form Select
-		// so it selects Free-Form Select when you jump to e.g. Move Selection
-		// (or could traverse history to figure it out)
 		if (target_history_node.name === localize("Free-Form Select")) {
 			select_tool(get_tool_by_id(TOOL_FREE_FORM_SELECT));
 		} else {
@@ -1589,37 +1577,12 @@ function go_to_history_node(target_history_node, canceling) {
  * @param {ActionMetadata} options
  * @param {function=} callback
  */
-function undoable(
-	{ name, icon, use_loose_canvas_changes, soft, assume_saved },
-	callback,
-) {
-	if (!use_loose_canvas_changes) {
-		/* For performance (especially with two finger panning), I'm disabling this safety check that preserves certain document states in the history.
-		const current_image_data = PaintJSState.main_ctx.getImageData(0, 0, PaintJSState.main_canvas.width, PaintJSState.main_canvas.height);
-		if (!PaintJSState.current_history_node.image_data || !image_data_match(PaintJSState.current_history_node.image_data, current_image_data, 5)) {
-			window.console?.log("Canvas image data changed outside of undoable", PaintJSState.current_history_node, "PaintJSState.current_history_node.image_data:", PaintJSState.current_history_node.image_data, "document's current image data:", current_image_data);
-			undoable({name: "Unknown [undoable]", use_loose_canvas_changes: true}, ()=> {});
-		}
-		*/
-	}
-
-	if (!assume_saved) {
-		// flag is used for undoable file reloading on save, for reduction in color depth
-		PaintJSState.saved = false;
-		update_title();
-	}
-
+async function undoable({ name, icon, soft }, callback) {
 	const before_callback_history_node = PaintJSState.current_history_node;
-	callback?.();
+	await callback?.();
 	if (PaintJSState.current_history_node !== before_callback_history_node) {
-		show_error_message(
+		alert(
 			`History node switched during undoable callback for ${name}. This shouldn't happen.`,
-		);
-		window.console?.log(
-			`History node switched during undoable callback for ${name}, from`,
-			before_callback_history_node,
-			"to",
-			PaintJSState.current_history_node,
 		);
 	}
 
@@ -1668,64 +1631,22 @@ function undoable(
 	PaintJSState.current_history_node.futures.push(new_history_node);
 	PaintJSState.current_history_node = new_history_node;
 
+	// soft는 그냥 넘어가는 히스토리임. [1, 2, 3] 에서 2가 soft면 1->3, 3->1
+	// 따라서 [1, 2, 3]에서 3이 soft이면 2->3, 3->2임
+	if (soft) {
+		console.warn("undo soft:", PaintJSState.undos.length);
+	} else {
+		console.warn("undo stack:", PaintJSState.undos.length);
+		PaintJSState.saved = false;
+	}
+
 	$(window).triggerHandler("history-update"); // update history view
 
 	$(window).triggerHandler("session-update"); // autosave
 }
-/**
- * @param {ActionMetadataUpdate} undoable_meta
- * @param {()=> void} undoable_action
- */
-function make_or_update_undoable(undoable_meta, undoable_action) {
-	if (
-		PaintJSState.current_history_node.futures.length === 0 &&
-		undoable_meta.match(PaintJSState.current_history_node)
-	) {
-		undoable_action();
-		// 이미지 데이터 만들기
-		let layers = [];
-		for (let i = 0; i < PaintJSState.layers.length; i++) {
-			const layer = PaintJSState.layers[i];
-			const image_data = layer.ctx.getImageData(
-				0,
-				0,
-				layer.canvas.width,
-				layer.canvas.height,
-			);
-			layers.push({ image_data, id: layer.layerId, name: layer.name });
-		}
-		PaintJSState.current_history_node.layers = layers;
-
-		// PaintJSState.current_history_node.image_data =
-		// 	PaintJSState.main_ctx.getImageData(
-		// 		0,
-		// 		0,
-		// 		PaintJSState.main_canvas.width,
-		// 		PaintJSState.main_canvas.height,
-		// 	);
-		PaintJSState.current_history_node.selection_image_data =
-			PaintJSState.selection &&
-			PaintJSState.selection.canvas.ctx.getImageData(
-				0,
-				0,
-				PaintJSState.selection.canvas.width,
-				PaintJSState.selection.canvas.height,
-			);
-		PaintJSState.current_history_node.selection_x =
-			PaintJSState.selection && PaintJSState.selection.x;
-		PaintJSState.current_history_node.selection_y =
-			PaintJSState.selection && PaintJSState.selection.y;
-		if (undoable_meta.update_name) {
-			PaintJSState.current_history_node.name = undoable_meta.name;
-		}
-		$(window).triggerHandler("history-update"); // update history view
-	} else {
-		undoable(undoable_meta, undoable_action);
-	}
-}
 
 function undo() {
-	console.log("press undo!");
+	console.log("undo!");
 	if (PaintJSState.undos.length < 1) {
 		return false;
 	}
@@ -1737,7 +1658,6 @@ function undo() {
 		PaintJSState.redos.push(target_history_node);
 		target_history_node = PaintJSState.undos.pop();
 	}
-	console.log("end undo!");
 	go_to_history_node(target_history_node);
 
 	PaintMobXState.undo_length = PaintJSState.undos.length;
@@ -1747,7 +1667,7 @@ function undo() {
 }
 
 function redo() {
-	console.log("press redo!");
+	console.log("redo!");
 	if (PaintJSState.redos.length < 1) {
 		return false;
 	}
@@ -1850,18 +1770,22 @@ function cancel(going_to_history_node, discard_document_state) {
  * @param {boolean} [going_to_history_node]
  */
 function meld_selection_into_canvas(going_to_history_node) {
+	const moved = PaintJSState.selection.moved;
+
 	PaintJSState.selection.draw();
 	PaintJSState.selection.destroy();
 	PaintJSState.selection = null;
+
 	if (!going_to_history_node) {
-		undoable(
-			{
-				name: "Deselect",
-				icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-				use_loose_canvas_changes: true, // HACK; @TODO: make OnCanvasSelection not change the canvas outside undoable, same rules as tools
-			},
-			() => {},
-		);
+		if (moved) {
+			undoable(
+				{
+					name: "Deselect",
+					icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+				},
+				() => {},
+			);
+		}
 	}
 }
 
@@ -2355,9 +2279,9 @@ function get_tool_by_id(id) {
  */
 function select_tools(tools) {
 	// for (let i = 0; i < tools.length; i++) {
-		select_tool(tools[0], false);
+	select_tool(tools[0], false);
 	// }
-	 // update_helper_layer();
+	// update_helper_layer();
 }
 
 /**
@@ -2563,274 +2487,6 @@ image_attributes.$window = null;
  * @type {string}
  */
 image_attributes.unit = "px";
-
-// function show_convert_to_black_and_white() {
-// 	const $w = $DialogWindow("Convert to Black and White");
-// 	$w.addClass("convert-to-black-and-white");
-// 	$w.$main.append(
-// 		"<fieldset><legend>Threshold:</legend><input type='range' min='0' max='1' step='0.01' value='0.5'></fieldset>",
-// 	);
-// 	const $slider = $w.$main.find("input[type='range']");
-// 	const original_canvas = make_canvas(PaintJSState.main_canvas);
-// 	let threshold;
-// 	const update_threshold = () => {
-// 		make_or_update_undoable(
-// 			{
-// 				name: "Make Monochrome",
-// 				match: (history_node) => history_node.name === "Make Monochrome",
-// 				icon: get_help_folder_icon("p_monochrome.png"),
-// 			},
-// 			() => {
-// 				threshold = Number($slider.val());
-// 				drawcopy(PaintJSState.main_ctx, original_canvas);
-// 				threshold_black_and_white(PaintJSState.main_ctx, threshold);
-// 			},
-// 		);
-// 	};
-// 	update_threshold();
-// 	const update_threshold_soon = debounce(update_threshold, 100);
-// 	$slider.on("input", update_threshold_soon);
-
-// 	$w.$Button(
-// 		localize("OK"),
-// 		() => {
-// 			$w.close();
-// 		},
-// 		{ type: "submit" },
-// 	).focus();
-// 	$w.$Button(localize("Cancel"), () => {
-// 		if (PaintJSState.current_history_node.name === "Make Monochrome") {
-// 			undo();
-// 		} else {
-// 			undoable(
-// 				{
-// 					name: "Cancel Make Monochrome",
-// 					icon: get_help_folder_icon("p_color.png"),
-// 				},
-// 				() => {
-// 					drawcopy(PaintJSState.main_ctx, original_canvas);
-// 				},
-// 			);
-// 		}
-// 		$w.close();
-// 	});
-// 	$w.center();
-// }
-
-// function image_flip_and_rotate() {
-// 	const $w = $DialogWindow(localize("Flip and Rotate"));
-// 	$w.addClass("flip-and-rotate");
-
-// 	const $fieldset = $(E("fieldset")).appendTo($w.$main);
-// 	$fieldset.append(`
-// 		<legend>${localize("Flip or rotate")}</legend>
-// 	// 	<div class="radio-wrapper">
-// 	// 		<input
-// 	// 			type="radio"
-// 	// 			name="flip-or-rotate"
-// 	// 			id="flip-horizontal"
-// 	// 			value="flip-horizontal"
-// 	// 			aria-keyshortcuts="Alt+F"
-// 	// 			checked
-// 	// 		/><label for="flip-horizontal">${render_access_key(localize("&Flip horizontal"))}</label>
-// 	// 	</div>
-// 	// 	<div class="radio-wrapper">
-// 	// 		<input
-// 	// 			type="radio"
-// 	// 			name="flip-or-rotate"
-// 	// 			id="flip-vertical"
-// 	// 			value="flip-vertical"
-// 	// 			aria-keyshortcuts="Alt+V"
-// 	// 		/><label for="flip-vertical">${render_access_key(localize("Flip &vertical"))}</label>
-// 	// 	</div>
-// 	// 	<div class="radio-wrapper">
-// 	// 		<input
-// 	// 			type="radio"
-// 	// 			name="flip-or-rotate"
-// 	// 			id="rotate-by-angle"
-// 	// 			value="rotate-by-angle"
-// 	// 			aria-keyshortcuts="Alt+R"
-// 	// 		/><label for="rotate-by-angle">${render_access_key(localize("&Rotate by angle"))}</label>
-// 	// 	</div>
-// 	// `);
-
-// 	// const $rotate_by_angle = $(E("div")).appendTo($fieldset);
-// 	// $rotate_by_angle.addClass("sub-options");
-// 	// for (const label_with_hotkey of [
-// 	// 	"&90°",
-// 	// 	"&180°",
-// 	// 	"&270°",
-// 	// ]) {
-// 	// 	const degrees = parseInt(AccessKeys.toText(label_with_hotkey), 10);
-// 	// 	$rotate_by_angle.append(`
-// 	// 		<div class="radio-wrapper">
-// 	// 			<input
-// 	// 				type="radio"
-// 	// 				name="rotate-by-angle"
-// 	// 				value="${degrees}"
-// 	// 				id="rotate-${degrees}"
-// 	// 				aria-keyshortcuts="Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}"
-// 	// 			/><label
-// 	// 				for="rotate-${degrees}"
-// 	// 			>${render_access_key(label_with_hotkey)}</label>
-// 	// 		</div>
-// 	// 	`);
-// 	// }
-// 	// $rotate_by_angle.append(`
-// 	// 	<div class="radio-wrapper">
-// 	// 		<input
-// 	// 			type="radio"
-// 	// 			name="rotate-by-angle"
-// 	// 			value="arbitrary"
-// 	// 		/><input
-// 	// 			type="number"
-// 	// 			min="-360"
-// 	// 			max="360"
-// 	// 			name="rotate-by-arbitrary-angle"
-// 	// 			id="custom-degrees"
-// 	// 			value=""
-// 	// 			class="no-spinner inset-deep"
-// 	// 			style="width: 50px"
-// 	// 		/>
-// 	// 		<label for="custom-degrees">${localize("Degrees")}</label>
-// 	// 	</div>
-// 	// `);
-// 	// $rotate_by_angle.find("#rotate-90").attr({ checked: true });
-// 	// // Disabling inputs makes them not even receive mouse events,
-// 	// // and so pointer-events: none is needed to respond to events on the parent.
-// 	// $rotate_by_angle.find("input").attr({ disabled: true });
-// 	// $fieldset.find("input").on("change", () => {
-// 	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
-// 	// 	$rotate_by_angle.find("input").attr({
-// 	// 		disabled: action !== "rotate-by-angle",
-// 	// 	});
-// 	// });
-// 	// $rotate_by_angle.find(".radio-wrapper").on("click", (e) => {
-// 	// 	// Select "Rotate by angle" and enable subfields
-// 	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
-// 	// 	$fieldset.find("input").triggerHandler("change");
-
-// 	// 	const $wrapper = $(e.target).closest(".radio-wrapper");
-// 	// 	// Focus the numerical input if this field has one
-// 	// 	const num_input = $wrapper.find("input[type='number']")[0];
-// 	// 	if (num_input) {
-// 	// 		num_input.focus();
-// 	// 	}
-// 	// 	// Select the radio for this field
-// 	// 	$wrapper.find("input[type='radio']").prop("checked", true);
-// 	// });
-
-// 	// $fieldset.find("input[name='rotate-by-arbitrary-angle']").on("input", () => {
-// 	// 	$fieldset.find("input[value='rotate-by-angle']").prop("checked", true);
-// 	// 	$fieldset.find("input[value='arbitrary']").prop("checked", true);
-// 	// });
-
-// 	// $w.$Button(localize("OK"), () => {
-// 	// 	const action = $fieldset.find("input[name='flip-or-rotate']:checked").val();
-// 	// 	switch (action) {
-// 	// 		case "flip-horizontal":
-// 	// 			flip_horizontal();
-// 	// 			break;
-// 	// 		case "flip-vertical":
-// 	// 			flip_vertical();
-// 	// 			break;
-// 	// 		case "rotate-by-angle": {
-// 	// 			let angle_val = $fieldset.find("input[name='rotate-by-angle']:checked").val();
-// 	// 			if (angle_val === "arbitrary") {
-// 	// 				angle_val = $fieldset.find("input[name='rotate-by-arbitrary-angle']").val();
-// 	// 			}
-// 	// 			const angle_deg = Number(angle_val);
-// 	// 			const angle = angle_deg / 360 * TAU;
-
-// 	// 			if (isNaN(angle)) {
-// 	// 				please_enter_a_number();
-// 	// 				return;
-// 	// 			}
-// 	// 			rotate(angle);
-// 	// 			break;
-// 	// 		}
-// 	// 	}
-
-// 	// 	$w.close();
-// 	// }, { type: "submit" });
-// 	// $w.$Button(localize("Cancel"), () => {
-// 	// 	$w.close();
-// 	// });
-
-// 	// $fieldset.find("input[type='radio']").first().focus();
-
-// 	// $w.center();
-
-// 	// handle_keyshortcuts($w);
-// }
-
-// function image_stretch_and_skew() {
-// 	// 	const $w = $DialogWindow(localize("Stretch and Skew"));
-// 	// 	$w.addClass("stretch-and-skew");
-// 	// 	const $fieldset_stretch = $(E("fieldset")).appendTo($w.$main);
-// 	// 	$fieldset_stretch.append(`<legend>${localize("Stretch")}</legend><table></table>`);
-// 	// 	const $fieldset_skew = $(E("fieldset")).appendTo($w.$main);
-// 	// 	$fieldset_skew.append(`<legend>${localize("Skew")}</legend><table></table>`);
-// 	// 	const $RowInput = ($table, img_src, label_with_hotkey, default_value, label_unit, min, max) => {
-// 	// 		const $tr = $(E("tr")).appendTo($table);
-// 	// 		const $img = $(E("img")).attr({
-// 	// 			src: `images/transforms/${img_src}.png`,
-// 	// 			width: 32,
-// 	// 			height: 32,
-// 	// 		}).css({
-// 	// 			marginRight: "20px",
-// 	// 		});
-// 	// 		const input_id = ("input" + Math.random() + Math.random()).replace(/\./, "");
-// 	// 		const $input = $(E("input")).attr({
-// 	// 			type: "number",
-// 	// 			min,
-// 	// 			max,
-// 	// 			value: default_value,
-// 	// 			id: input_id,
-// 	// 			"aria-keyshortcuts": `Alt+${AccessKeys.get(label_with_hotkey).toUpperCase()}`,
-// 	// 		}).css({
-// 	// 			width: "40px",
-// 	// 		}).addClass("no-spinner inset-deep");
-// 	// 		$(E("td")).appendTo($tr).append($img);
-// 	// 		$(E("td")).appendTo($tr).append($(E("label")).html(render_access_key(label_with_hotkey)).attr("for", input_id));
-// 	// 		$(E("td")).appendTo($tr).append($input);
-// 	// 		$(E("td")).appendTo($tr).text(label_unit);
-// 	// 		return $input;
-// 	// 	};
-// 	// 	const stretch_x = $RowInput($fieldset_stretch.find("table"), "stretch-x", localize("&Horizontal:"), 100, "%", 1, 5000);
-// 	// 	const stretch_y = $RowInput($fieldset_stretch.find("table"), "stretch-y", localize("&Vertical:"), 100, "%", 1, 5000);
-// 	// 	const skew_x = $RowInput($fieldset_skew.find("table"), "skew-x", localize("H&orizontal:"), 0, localize("Degrees"), -90, 90);
-// 	// 	const skew_y = $RowInput($fieldset_skew.find("table"), "skew-y", localize("V&ertical:"), 0, localize("Degrees"), -90, 90);
-// 	// 	$w.$Button(localize("OK"), () => {
-// 	// 		const x_scale = parseFloat(stretch_x.val()) / 100;
-// 	// 		const y_scale = parseFloat(stretch_y.val()) / 100;
-// 	// 		const h_skew = parseFloat(skew_x.val()) / 360 * TAU;
-// 	// 		const v_skew = parseFloat(skew_y.val()) / 360 * TAU;
-// 	// 		if (isNaN(x_scale) || isNaN(y_scale) || isNaN(h_skew) || isNaN(v_skew)) {
-// 	// 			please_enter_a_number();
-// 	// 			return;
-// 	// 		}
-// 	// 		try {
-// 	// 			stretch_and_skew(x_scale, y_scale, h_skew, v_skew);
-// 	// 		} catch (exception) {
-// 	// 			if (exception.name === "NS_ERROR_FAILURE") {
-// 	// 				// or localize("There is not enough memory or resources to complete operation.")
-// 	// 				show_error_message(localize("Insufficient memory to perform operation."), exception);
-// 	// 			} else {
-// 	// 				show_error_message(localize("An unknown error has occurred."), exception);
-// 	// 			}
-// 	// 			// @TODO: undo and clean up undoable
-// 	// 			return;
-// 	// 		}
-// 	// 		$w.close();
-// 	// 	}, { type: "submit" });
-// 	// 	$w.$Button(localize("Cancel"), () => {
-// 	// 		$w.close();
-// 	// 	});
-// 	// 	$w.$main.find("input").first().focus().select();
-// 	// 	$w.center();
-// 	// 	handle_keyshortcuts($w);
-// }
 
 /**
  * @param {JQuery<HTMLElement>} $container
@@ -3237,7 +2893,7 @@ function update_from_saved_file(blob) {
 			);
 			return;
 		}
-	//	apply_file_format_and_palette_info(info);
+		//	apply_file_format_and_palette_info(info);
 		const format = image_formats.find(
 			({ mimeType }) => mimeType === info.file_format,
 		);
@@ -3245,7 +2901,6 @@ function update_from_saved_file(blob) {
 			{
 				name: `${localize("Save As")} ${format ? format.name : info.file_format}`,
 				icon: get_help_folder_icon("p_save.png"),
-				assume_saved: true, // prevent setting saved to false
 			},
 			() => {
 				drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
@@ -3357,7 +3012,6 @@ export {
 	load_image_from_uri,
 	load_theme_from_text,
 	make_history_node,
-	make_or_update_undoable,
 	meld_selection_into_canvas,
 	open_from_file,
 	open_from_image_info,

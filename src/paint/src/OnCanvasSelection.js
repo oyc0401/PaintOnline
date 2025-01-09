@@ -5,7 +5,6 @@ import { Handles } from "./Handles.js";
 import { OnCanvasObject } from "./OnCanvasObject.js";
 import {
 	get_tool_by_id,
-	make_or_update_undoable,
 	undoable,
 } from "./functions.js";
 import {
@@ -54,6 +53,9 @@ class OnCanvasSelection extends OnCanvasObject {
 	 * @param {HTMLImageElement | HTMLCanvasElement | ImageData=} image_source
 	 */
 	instantiate(image_source) {
+		// 움직여야지만 히스토리 기록되게
+		this.moved=false;
+		
 		this.$el.css({
 			cursor: make_css_cursor("move", [8, 8], "move"),
 			touchAction: "none",
@@ -128,36 +130,25 @@ class OnCanvasSelection extends OnCanvasObject {
 			});
 			let mox, moy;
 			const pointermove = (e) => {
+				// 움직였으니깐 선택 종료하면 히스토리 생김
+				this.moved=true;
+				
 				console.log("끄는중");
-				make_or_update_undoable(
-					{
-						// XXX: Localization hazard: logic based on English action names
-						match: (history_node) =>
-							(e.shiftKey &&
-								/^(Smear|Stamp|Move) Selection$/.test(history_node.name)) ||
-							(!e.shiftKey && /^Move Selection$/.test(history_node.name)),
-						name: e.shiftKey ? "Smear Selection" : "Move Selection",
-						update_name: true,
-						icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-						soft: true,
-					},
-					() => {
-						const m = to_canvas_coords(e);
-						this.x = Math.max(
-							Math.min(m.x - mox, PaintJSState.main_canvas.width),
-							-this.width,
-						);
-						this.y = Math.max(
-							Math.min(m.y - moy, PaintJSState.main_canvas.height),
-							-this.height,
-						);
-						this.position();
-						// if (e.shiftKey) {
-						// 	// Smear selection
-						// 	this.draw();
-						// }
-					},
+				
+				const m = to_canvas_coords(e);
+				this.x = Math.max(
+					Math.min(m.x - mox, PaintJSState.main_canvas.width),
+					-this.width,
 				);
+				this.y = Math.max(
+					Math.min(m.y - moy, PaintJSState.main_canvas.height),
+					-this.height,
+				);
+				this.position();
+				// if (e.shiftKey) {
+				// 	// Smear selection
+				// 	this.draw();
+				// }
 			};
 			this.canvas_pointerdown = (e) => {
 				e.preventDefault();
@@ -178,7 +169,20 @@ class OnCanvasSelection extends OnCanvasObject {
 					$(window).off("pointermove", pointermove);
 					this.dragging = false;
 					//update_helper_layer(); // for thumbnail, which draws selection outline if it's not being dragged
-					this.update_draw_layer();
+				
+
+					undoable(
+						{
+							name: "Selection Move",
+							icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+							soft: true,
+						},
+						() => {
+							this.update_draw_layer();
+						},
+					);
+					
+					$(window).triggerHandler("session-update"); // 옮기면 저장
 				});
 				if (e.shiftKey) {
 					// Stamp or start to smear selection
@@ -321,11 +325,7 @@ class OnCanvasSelection extends OnCanvasObject {
 		this.replace_source_canvas(new_source_canvas);
 	}
 	draw() {
-		try {
 			PaintJSState.main_ctx.drawImage(this.canvas, this.x, this.y);
-		} catch (_error) {
-			// ignore
-		}
 	}
 	destroy() {
 		super.destroy();
