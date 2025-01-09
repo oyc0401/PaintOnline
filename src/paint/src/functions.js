@@ -136,17 +136,17 @@ function update_helper_layer_immediately() {
 		);
 	}
 
-	if (!PaintJSState.draw_layer) {
-		//console.log('make draw_layer')
-		PaintJSState.draw_layer = new OnCanvasDrawLayer(
-			0,
-			0,
-			PaintJSState.main_canvas.width,
-			PaintJSState.main_canvas.height,
-			false,
-			scale,
-		);
-	}
+	// if (!PaintJSState.draw_layer) {
+	// 	//console.log('make draw_layer')
+	// 	PaintJSState.draw_layer = new OnCanvasDrawLayer(
+	// 		0,
+	// 		0,
+	// 		PaintJSState.main_canvas.width,
+	// 		PaintJSState.main_canvas.height,
+	// 		false,
+	// 		scale,
+	// 	);
+	// }
 
 	if (
 		PaintJSState.helper_layer.canvas.width != PaintJSState.main_canvas.width ||
@@ -163,20 +163,20 @@ function update_helper_layer_immediately() {
 		PaintJSState.helper_layer.position();
 	}
 
-	if (
-		PaintJSState.draw_layer.canvas.width != PaintJSState.main_canvas.width ||
-		PaintJSState.draw_layer.canvas.height != PaintJSState.main_canvas.height
-	) {
-		//console.log('같지않음2')
+	// if (
+	// 	PaintJSState.draw_layer.canvas.width != PaintJSState.main_canvas.width ||
+	// 	PaintJSState.draw_layer.canvas.height != PaintJSState.main_canvas.height
+	// ) {
+	// 	//console.log('같지않음2')
 
-		PaintJSState.draw_layer.canvas.width = PaintJSState.main_canvas.width;
-		PaintJSState.draw_layer.canvas.height = PaintJSState.main_canvas.height;
-		PaintJSState.draw_layer.width = PaintJSState.main_canvas.width;
-		PaintJSState.draw_layer.height = PaintJSState.main_canvas.height;
-		PaintJSState.draw_layer.x = 0;
-		PaintJSState.draw_layer.y = 0;
-		PaintJSState.draw_layer.position();
-	}
+	// 	PaintJSState.draw_layer.canvas.width = PaintJSState.main_canvas.width;
+	// 	PaintJSState.draw_layer.canvas.height = PaintJSState.main_canvas.height;
+	// 	PaintJSState.draw_layer.width = PaintJSState.main_canvas.width;
+	// 	PaintJSState.draw_layer.height = PaintJSState.main_canvas.height;
+	// 	PaintJSState.draw_layer.x = 0;
+	// 	PaintJSState.draw_layer.y = 0;
+	// 	PaintJSState.draw_layer.position();
+	// }
 
 	render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
 
@@ -831,12 +831,14 @@ function open_from_image_info(
 			deselect();
 			cancel();
 
+		console.error('여기 함수 다시 짜야함! 레이어 적용 x')
 			if (!into_existing_session) {
 				$(window).triggerHandler("session-update"); // autosave old session
 				console.log("세션초기화");
 				// new_local_session();
 				newLocalFile();
 			}
+		
 
 			reset_file();
 			reset_selected_colors();

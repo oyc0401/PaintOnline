@@ -12,6 +12,16 @@ function getMainCtx() {
  // console.log('ctx:',stateStore.layers[stateStore.activeLayerIndex].ctx);
   return stateStore.layers[stateStore.activeLayerIndex].ctx;
 }
+
+function getDrawLayer() {
+  const canvas=stateStore.layers[stateStore.activeLayerIndex].drawLayer;
+  return canvas;
+}
+// function getDrawCtx() {
+//  // console.log('ctx:',stateStore.layers[stateStore.activeLayerIndex].ctx);
+//   return stateStore.layers[stateStore.activeLayerIndex].draw_layer.canvas.ctx;
+// }
+
 const handler = {
   get(target, prop) {
     // 특정 속성('undos', 'redos')은 PaintMobXState에서 가져옴
@@ -23,6 +33,11 @@ const handler = {
       //console.error(`[GET] Accessing MobX state: ${prop}`);
       return getMainCtx();
     }
+    if (["draw_layer"].includes(prop)) {
+      //console.error(`[GET] Accessing MobX state: ${prop}`);
+      return getDrawLayer();
+    }
+
 
     // 나머지는 기존 target에서 가져옴
     return Reflect.get(target, prop);

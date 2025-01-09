@@ -14,18 +14,24 @@ export function setLayer(layers) {
   PaintJSState.$layer_area.empty();
   for (let i = 0; i < PaintJSState.layers.length; i++) {
     const layer = PaintJSState.layers[i];
-    // console.log("layer", layer.canvas);
+    console.log("layer", layer);
     const zIndex = i + 2; // zIndex는 2부터 시작 (1은 background-canvas)
     if (i == 0) {
-      $(layer.canvas)
-        .css({ zIndex })
-        .addClass("layer background")
-        .appendTo(PaintJSState.$layer_area);
+      const div = $(document.createElement("div"));
+      div.css({ zIndex }).addClass("layer background");
+
+      $(layer.canvas).css({ zIndex: 1 }).addClass("inner-layer").appendTo(div);
+      $(layer.drawLayer.canvas).css({ zIndex: 2 }).addClass("inner-layer draw-layer").appendTo(div);
+
+      div.appendTo(PaintJSState.$layer_area);
     } else {
-      $(layer.canvas)
-        .css({ zIndex })
-        .addClass("layer")
-        .appendTo(PaintJSState.$layer_area);
+      const div = $(document.createElement("div"));
+      div.css({ zIndex }).addClass("layer");
+
+      $(layer.canvas).css({ zIndex: 1 }).addClass("inner-layer").appendTo(div);
+      $(layer.drawLayer.canvas).css({ zIndex: 2 }).addClass("inner-layer draw-layer").appendTo(div);
+
+      div.appendTo(PaintJSState.$layer_area);
     }
   }
 
@@ -43,22 +49,23 @@ export function crateDefaultCanvas(paintId) {
   };
 }
 
-export function createDefaultLayer(canvasInfo) {
+export async function createDefaultLayer(canvasInfo) {
   // 레이어 만들기
-  const back = make_layer(canvasInfo, {
+  const back = await make_layer(canvasInfo, {
     layerId: generateLayerId(),
     name: "BackgroundLayer",
     background: "#ffffff",
     priority: 0,
   });
-  
-  const la = make_layer(canvasInfo, {
+
+  const la = await make_layer(canvasInfo, {
     layerId: generateLayerId(),
     name: "Layer1",
     priority: 1,
   });
-  
+
   const layers = [back, la];
+  //console.log(layers);
 
   return layers;
 }
@@ -82,22 +89,7 @@ async function make_layer(canvasInfo, layerMeta) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  const scale = PaintJSState.magnification;
-
-  // // if (!PaintJSState.helper_layer) {
-  // //   //console.log('make helper-layer')
-  // //   PaintJSState.helper_layer = new OnCanvasHelperLayer(
-  // //     0,
-  // //     0,
-  // //     PaintJSState.main_canvas.width,
-  // //     PaintJSState.main_canvas.height,
-  // //     false,
-  // //     scale,
-  // //   );
-  // // }
-
-  // // const helperLayer = new OnCanvasHelperLayer(0, 0, width, height, 0, scale);
-  const drawLayer = new OnCanvasDrawLayer(0, 0, width, height, false, scale);
+  const drawLayer = {canvas: make_canvas(width,height)}
 
   return {
     layerId,
@@ -110,14 +102,20 @@ async function make_layer(canvasInfo, layerMeta) {
 }
 
 export async function layerListToLayerCanvas(canvasInfo, layerList) {
-  const layers = [];
+  try {
+    // 모든 make_layer 호출을 동시에 시작
+    const layerPromises = layerList.map((layerMeta) =>
+      make_layer(canvasInfo, layerMeta),
+    );
 
-  for (const layerMeta of layerList) {
-    const layer = await make_layer(canvasInfo, layerMeta);
-    layers.push(layer);
+    // 모든 레이어가 완료될 때까지 기다림
+    const layers = await Promise.all(layerPromises);
+
+    return layers;
+  } catch (error) {
+    console.error("레이어 생성 중 에러 발생:", error);
+    throw error; // 필요에 따라 에러를 다시 던질 수 있습니다.
   }
-
-  return layers;
 }
 
 /**
@@ -128,7 +126,7 @@ function generateLayerId() {
 }
 
 // 이미지 로드를 위한 헬퍼 함수
-function loadImage(dataURL) {
+async function loadImage(dataURL) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);

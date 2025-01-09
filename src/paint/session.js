@@ -45,13 +45,14 @@ export async function getDBCanvas() {
   // 파일키를 통해 파일 불러오기
   const paintInfo = await getPaint(key);
   console.log("paintInfo:", paintInfo);
-  currentPaintId = paintInfo.paintId;
+
   if (!paintInfo) {
     // await deleteCanvas(key);
     //await deleteLayers(key);
     createNewFile();
     return;
   }
+  currentPaintId = paintInfo.paintId;
 
   // 파일에 있는 레이어 불러오기
   const layerList = await getLayers(key);
@@ -91,7 +92,7 @@ async function createNewFile() {
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
-  const layers = createDefaultLayer(paintInfo);
+  const layers = await createDefaultLayer(paintInfo);
 
   // 레이어를 레이어영역에 추가
   setLayer(layers);
@@ -188,12 +189,12 @@ function generatepaintId() {
 
 // --------------------------- function.js ---------------------------
 
-export function reset_canvas() {
+export async function reset_canvas() {
   const paintInfo = crateDefaultCanvas(currentPaintId);
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
-  const layers = createDefaultLayer(paintInfo);
+  const layers = await createDefaultLayer(paintInfo);
 
   // 레이어를 레이어영역에 추가
   setLayer(layers);

@@ -1692,10 +1692,11 @@ function setting_get_brush(tool) {
 		tool.mask_canvas = null;
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
+			tool.draw_canvas = PaintJSState.draw_layer.canvas;
 			if (!tool.mask_canvas) {
-				tool.draw_canvas = PaintJSState.draw_layer.canvas;
 				tool.mask_canvas = new OffscreenCanvas(1, 1);
 			}
+			//console.log('tool.draw_canvas',tool.draw_canvas)
 			if (tool.draw_canvas.width !== PaintJSState.main_canvas.width) {
 				tool.draw_canvas.width = PaintJSState.main_canvas.width;
 			}

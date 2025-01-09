@@ -16,7 +16,7 @@ export class OnCanvasDrawLayer extends OnCanvasObject {
   constructor(x, y, width, height, hideMainCanvasHandles, pixelRatio = 1) {
     super(x, y, width, height, hideMainCanvasHandles);
 
-    this.$el.addClass("draw-layer");
+   // this.$el.addClass("draw-layer");
     this.$el.css({
       pointerEvents: "none",
     });
