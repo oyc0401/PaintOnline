@@ -16,7 +16,7 @@ import {
 } from "./src/functions.js";
 
 import {
-  crateDefaultCanvas,
+  crateDefaultPaint,
   createDefaultLayer,
   layerListToLayerCanvas,
   setLayer,
@@ -88,7 +88,7 @@ async function createNewFile() {
   await keyStore.set("recent_key", currentPaintId);
 
   // 새로운 파일 만들기
-  const paintInfo = crateDefaultCanvas(key);
+  const paintInfo = crateDefaultPaint(key);
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
@@ -135,7 +135,6 @@ async function saveFileImmediately() {
 
     // 1) 캔버스 정보 저장
     const activeCanvas = PaintJSState.layers[0]; // 예: 첫 번째 레이어가 배경 캔버스
-    console.log("activeCanvas", activeCanvas);
     if (!activeCanvas) {
       console.error("No active canvas found in PaintJSState.layers.");
       return;
@@ -190,7 +189,7 @@ function generatepaintId() {
 // --------------------------- function.js ---------------------------
 
 export async function reset_canvas() {
-  const paintInfo = crateDefaultCanvas(currentPaintId);
+  const paintInfo = crateDefaultPaint(currentPaintId);
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기

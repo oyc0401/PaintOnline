@@ -136,17 +136,6 @@ function update_helper_layer_immediately() {
 		);
 	}
 
-	// if (!PaintJSState.draw_layer) {
-	// 	//console.log('make draw_layer')
-	// 	PaintJSState.draw_layer = new OnCanvasDrawLayer(
-	// 		0,
-	// 		0,
-	// 		PaintJSState.main_canvas.width,
-	// 		PaintJSState.main_canvas.height,
-	// 		false,
-	// 		scale,
-	// 	);
-	// }
 
 	if (
 		PaintJSState.helper_layer.canvas.width != PaintJSState.main_canvas.width ||
@@ -162,21 +151,6 @@ function update_helper_layer_immediately() {
 		PaintJSState.helper_layer.y = 0;
 		PaintJSState.helper_layer.position();
 	}
-
-	// if (
-	// 	PaintJSState.draw_layer.canvas.width != PaintJSState.main_canvas.width ||
-	// 	PaintJSState.draw_layer.canvas.height != PaintJSState.main_canvas.height
-	// ) {
-	// 	//console.log('같지않음2')
-
-	// 	PaintJSState.draw_layer.canvas.width = PaintJSState.main_canvas.width;
-	// 	PaintJSState.draw_layer.canvas.height = PaintJSState.main_canvas.height;
-	// 	PaintJSState.draw_layer.width = PaintJSState.main_canvas.width;
-	// 	PaintJSState.draw_layer.height = PaintJSState.main_canvas.height;
-	// 	PaintJSState.draw_layer.x = 0;
-	// 	PaintJSState.draw_layer.y = 0;
-	// 	PaintJSState.draw_layer.position();
-	// }
 
 	render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
 
@@ -348,37 +322,6 @@ function render_canvas_view(
 			hctx.restore();
 		}
 	});
-
-	// if (PaintJSState.selection) {
-	// 	hctx.save();
-
-	// 	hctx.scale(scale, scale);
-	// 	hctx.translate(-viewport_x, -viewport_y);
-
-	// 		//PaintJSState.draw_layer.canvas.ctx.drawImage(
-	// 	hctx.drawImage(
-	// 		PaintJSState.selection.canvas,
-	// 		PaintJSState.selection.x,
-	// 		PaintJSState.selection.y,
-	// 	);
-
-	// 	hctx.restore();
-
-	// 	if (!is_helper_layer && !PaintJSState.selection.dragging) {
-	// 		// Draw the selection outline (for the thumbnail)
-	// 		// (The main canvas view has the OnCanvasSelection object which has its own outline)
-	// 		draw_selection_box(
-	// 			hctx,
-	// 			PaintJSState.selection.x,
-	// 			PaintJSState.selection.y,
-	// 			PaintJSState.selection.width,
-	// 			PaintJSState.selection.height,
-	// 			scale,
-	// 			-viewport_x,
-	// 			-viewport_y,
-	// 		);
-	// 	}
-	// }
 
 	tools_to_preview.forEach((tool) => {
 		if (

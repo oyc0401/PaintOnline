@@ -693,6 +693,9 @@ export function setEvent() {
     // 마우스가 캔버스 안에 들어오면 커서위치에 헬퍼레이어에 브러쉬 미리보기 위치 잡는거
     function setBrushPreview() {
       $layer_area.on("pointerenter", (e) => {
+        if (!PaintJSState.init) {
+          return;
+        }
         PaintJSState.pointer_over_canvas = true;
         update_helper_layer(e);
 
@@ -857,6 +860,9 @@ export function setEvent() {
 
     $layer_area.on("pointerdown", (e) => {
       console.log("$canvas.pointerdown");
+      if (!PaintJSState.init) {
+        return;
+      }
       PaintJSState.position_object_active = false;
       update_canvas_rect();
 

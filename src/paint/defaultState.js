@@ -74,7 +74,6 @@ export function defaultState() {
   /** @type {OnCanvasHelperLayer} */
   let helper_layer; // instance used for the grid and tool previews (not a singleton)
 
-  let draw_layer;
   /** @type {OSGUI$Window} */
   let $thumbnail_window;
   /** @type {PixelCanvas} */
@@ -229,7 +228,6 @@ export function defaultState() {
     pointer_over_canvas,
     update_helper_layer_on_pointermove_active,
     pointers,
-    draw_layer,
     pointer_float_previous,
     fill,
     stroke,

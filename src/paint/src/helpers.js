@@ -237,38 +237,6 @@ function make_canvas(width, height) {
 	return new_canvas;
 }
 
-
-export function setDefaultCanvas(canvas, width, height){
-	console.log("setting canvas");
-	const image = width;
-
-	const new_canvas = canvas
-	const new_ctx = new_canvas.getContext("2d");
-
-	new_canvas.ctx = new_ctx;
-
-	new_ctx.imageSmoothingEnabled = false;
-	// condition is to avoid a deprecation warning in Firefox
-	if (new_ctx.imageSmoothingEnabled !== false) {
-		// @ts-ignore
-		new_ctx.mozImageSmoothingEnabled = false;
-		// @ts-ignore
-		new_ctx.webkitImageSmoothingEnabled = false;
-		// @ts-ignore
-		new_ctx.msImageSmoothingEnabled = false;
-	}
-
-	if (width && height) {
-		// make_canvas(width, height)
-		new_canvas.width = width;
-		new_canvas.height = height;
-	} else if (image) {
-		drawcopy(new_ctx,image)
-	}
-
-	return new_canvas;
-}
-
 export function drawcopy(ctx, image) {
 	const canvas = ctx.canvas;
 

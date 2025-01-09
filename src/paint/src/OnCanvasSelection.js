@@ -36,58 +36,19 @@ class OnCanvasSelection extends OnCanvasObject {
 	}
 	position() {
 		super.position(true);
-		
+
 		//update_helper_layer(); // @TODO: under-grid specific helper layer?
 		this.update_draw_layer();
 	}
 
-	update_draw_layer(){
-		
-		if (!PaintJSState.draw_layer) {
-			//console.log('make draw_layer')
-			PaintJSState.draw_layer = new OnCanvasDrawLayer(
-				0,
-				0,
-				PaintJSState.main_canvas.width,
-				PaintJSState.main_canvas.height,
-				false,
-				scale,
-			);
-		}
-		
-		if (
-			PaintJSState.draw_layer.canvas.width != PaintJSState.main_canvas.width ||
-			PaintJSState.draw_layer.canvas.height != PaintJSState.main_canvas.height
-		) {
-			//console.log('같지않음2')
-
-			PaintJSState.draw_layer.canvas.width = PaintJSState.main_canvas.width;
-			PaintJSState.draw_layer.canvas.height = PaintJSState.main_canvas.height;
-			PaintJSState.draw_layer.width = PaintJSState.main_canvas.width;
-			PaintJSState.draw_layer.height = PaintJSState.main_canvas.height;
-			PaintJSState.draw_layer.x = 0;
-			PaintJSState.draw_layer.y = 0;
-			PaintJSState.draw_layer.position();
-		}
-
-		if(this.canvas){
+	update_draw_layer() {
+		if (this.canvas) {
 			// 초기화
-				PaintJSState.draw_layer.canvas.ctx.clearRect(
-					0,
-					0,
-					PaintJSState.draw_layer.canvas.width,
-					PaintJSState.draw_layer.canvas.height,
-				);
+			PaintJSState.draw_canvas.clear();
 
-				// 그리기
-				PaintJSState.draw_layer.canvas.ctx.drawImage(
-					this.canvas,
-					this.x,
-					this.y,
-				);
+			// 그리기
+			PaintJSState.draw_canvas.ctx.drawImage(this.canvas, this.x, this.y);
 		}
-		
-	
 	}
 	/**
 	 * @param {HTMLImageElement | HTMLCanvasElement | ImageData=} image_source
@@ -195,8 +156,6 @@ class OnCanvasSelection extends OnCanvasObject {
 						// 	// Smear selection
 						// 	this.draw();
 						// }
-
-					
 					},
 				);
 			};
@@ -372,12 +331,7 @@ class OnCanvasSelection extends OnCanvasObject {
 		super.destroy();
 		//update_helper_layer(); // @TODO: under-grid specific helper layer?
 		this.update_draw_layer();
-		PaintJSState.draw_layer.canvas.ctx.clearRect(
-			0,
-			0,
-			PaintJSState.draw_layer.canvas.width,
-			PaintJSState.draw_layer.canvas.height,
-		);
+		PaintJSState.draw_canvas.clear();
 	}
 }
 

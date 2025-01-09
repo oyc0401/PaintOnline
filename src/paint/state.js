@@ -14,13 +14,10 @@ function getMainCtx() {
 }
 
 function getDrawLayer() {
-  const canvas=stateStore.layers[stateStore.activeLayerIndex].drawLayer;
+  const canvas=stateStore.layers[stateStore.activeLayerIndex].drawCanvas;
   return canvas;
 }
-// function getDrawCtx() {
-//  // console.log('ctx:',stateStore.layers[stateStore.activeLayerIndex].ctx);
-//   return stateStore.layers[stateStore.activeLayerIndex].draw_layer.canvas.ctx;
-// }
+
 
 const handler = {
   get(target, prop) {
@@ -33,7 +30,7 @@ const handler = {
       //console.error(`[GET] Accessing MobX state: ${prop}`);
       return getMainCtx();
     }
-    if (["draw_layer"].includes(prop)) {
+    if (["draw_canvas"].includes(prop)) {
       //console.error(`[GET] Accessing MobX state: ${prop}`);
       return getDrawLayer();
     }

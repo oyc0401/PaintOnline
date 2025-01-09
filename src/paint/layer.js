@@ -1,9 +1,52 @@
 import { make_canvas } from "./src/helpers.js";
-import { OnCanvasDrawLayer } from "./src/OnCanvasDrawLayer.js";
-import { OnCanvasHelperLayer } from "./src/OnCanvasHelperLayer.js";
 
 import { PaintJSState, PaintMobXState } from "./state.js";
 import $ from "jquery";
+
+async function make_layer(canvasInfo, layerMeta) {
+  const { width, height } = canvasInfo;
+  const { layerId, name, priority } = layerMeta;
+
+  const canvas = make_canvas(width, height);
+  const ctx = canvas.ctx;
+  $(canvas).addClass("canvas");
+
+  const drawCanvas = make_canvas(width, height);
+  const drawCtx = drawCanvas.ctx;
+  $(drawCanvas).addClass("canvas draw-canvas");
+  drawCanvas.reset = () => {
+    //console.warn("draw_canvas reset!");
+    drawCanvas.width = PaintJSState.main_canvas.width;
+    drawCanvas.height = PaintJSState.main_canvas.height;
+  };
+
+  //console.log(drawCanvas.clear);
+  drawCanvas.clear = () => {
+    drawCanvas.ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  };
+
+  if (layerMeta.dataURL) {
+    try {
+      const image = await loadImage(layerMeta.dataURL);
+      ctx.drawImage(image, 0, 0);
+    } catch (imgErr) {
+      console.error("Failed to load image:", imgErr);
+    }
+  } else if (layerMeta.background) {
+    ctx.fillStyle = layerMeta.background;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  return {
+    layerId,
+    canvas,
+    ctx,
+    drawCanvas,
+    drawCtx,
+    name,
+    priority,
+  };
+}
 
 /**
  * 화면에 레이어 canvas들을 배치
@@ -12,27 +55,22 @@ export function setLayer(layers) {
   PaintJSState.layers = layers;
 
   PaintJSState.$layer_area.empty();
-  for (let i = 0; i < PaintJSState.layers.length; i++) {
-    const layer = PaintJSState.layers[i];
-    console.log("layer", layer);
-    const zIndex = i + 2; // zIndex는 2부터 시작 (1은 background-canvas)
+
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers[i];
+    const zIndex = layer.priority;
+
+    const $layer = $(document.createElement("div"));
+    $layer.css({ zIndex }).appendTo(PaintJSState.$layer_area);
+
     if (i == 0) {
-      const div = $(document.createElement("div"));
-      div.css({ zIndex }).addClass("layer background");
-
-      $(layer.canvas).css({ zIndex: 1 }).addClass("inner-layer").appendTo(div);
-      $(layer.drawLayer.canvas).css({ zIndex: 2 }).addClass("inner-layer draw-layer").appendTo(div);
-
-      div.appendTo(PaintJSState.$layer_area);
+      $layer.addClass("layer background");
     } else {
-      const div = $(document.createElement("div"));
-      div.css({ zIndex }).addClass("layer");
-
-      $(layer.canvas).css({ zIndex: 1 }).addClass("inner-layer").appendTo(div);
-      $(layer.drawLayer.canvas).css({ zIndex: 2 }).addClass("inner-layer draw-layer").appendTo(div);
-
-      div.appendTo(PaintJSState.$layer_area);
+      $layer.addClass("layer");
     }
+
+    $(layer.canvas).css({ zIndex: 0 }).appendTo($layer);
+    $(layer.drawCanvas).css({ zIndex: 1 }).appendTo($layer);
   }
 
   PaintJSState.activeLayerIndex = PaintJSState.layers.length - 1;
@@ -41,7 +79,7 @@ export function setLayer(layers) {
   PaintJSState.$canvas_area.trigger("resize");
 }
 
-export function crateDefaultCanvas(paintId) {
+export function crateDefaultPaint(paintId) {
   return {
     paintId,
     width: PaintJSState.default_canvas_width,
@@ -68,37 +106,6 @@ export async function createDefaultLayer(canvasInfo) {
   //console.log(layers);
 
   return layers;
-}
-
-async function make_layer(canvasInfo, layerMeta) {
-  const { width, height } = canvasInfo;
-  const { layerId, name, priority } = layerMeta;
-
-  const canvas = make_canvas(width, height);
-  const ctx = canvas.ctx;
-
-  if (layerMeta.dataURL) {
-    try {
-      const image = await loadImage(layerMeta.dataURL);
-      ctx.drawImage(image, 0, 0);
-    } catch (imgErr) {
-      console.error("Failed to load image:", imgErr);
-    }
-  } else if (layerMeta.background) {
-    ctx.fillStyle = layerMeta.background;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  const drawLayer = {canvas: make_canvas(width,height)}
-
-  return {
-    layerId,
-    canvas,
-    ctx,
-    name,
-    priority,
-    drawLayer,
-  };
 }
 
 export async function layerListToLayerCanvas(canvasInfo, layerList) {

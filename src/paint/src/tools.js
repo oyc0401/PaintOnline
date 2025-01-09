@@ -929,7 +929,7 @@ function CURVE() {
 		cursor: ["precise", [16, 16], "crosshair"],
 		stroke_only: true,
 		points: [],
-		preview_canvas: null,
+		draw_canvas: null,
 		pointerup(ctx, _x, _y) {
 			if (this.points.length >= 4) {
 				undoable(
@@ -938,20 +938,19 @@ function CURVE() {
 						icon: get_icon_for_tool(this),
 					},
 					() => {
-						ctx.drawImage(this.preview_canvas, 0, 0);
+						ctx.drawImage(this.draw_canvas, 0, 0);
 					},
 				);
 				this.points = [];
-				this.preview_canvas.width = 1;
+				this.draw_canvas.clear();
 				//$status_size.text("");
 				//PaintJSState.position_object_active = false;
 			}
 		},
 		pointerdown(_ctx, x, y) {
 			if (this.points.length < 1) {
-				this.preview_canvas = PaintJSState.draw_layer.canvas;
-				this.preview_canvas.width = PaintJSState.main_canvas.width;
-				this.preview_canvas.height = PaintJSState.main_canvas.height;
+				this.draw_canvas = PaintJSState.draw_canvas;
+				this.draw_canvas.reset();
 
 				this.points.push({ x, y });
 				if (!$("body").hasClass("eye-gaze-mode")) {
@@ -973,18 +972,18 @@ function CURVE() {
 			this.points[i].x = x;
 			this.points[i].y = y;
 
-			this.preview_canvas.ctx.clearRect(
+			this.draw_canvas.ctx.clearRect(
 				0,
 				0,
-				this.preview_canvas.width,
-				this.preview_canvas.height,
+				this.draw_canvas.width,
+				this.draw_canvas.height,
 			);
-			this.preview_canvas.ctx.strokeStyle = PaintJSState.stroke_color;
+			this.draw_canvas.ctx.strokeStyle = PaintJSState.stroke_color;
 
 			// Draw curves on preview canvas
 			if (this.points.length === 4) {
 				draw_bezier_curve(
-					this.preview_canvas.ctx,
+					this.draw_canvas.ctx,
 					this.points[0].x,
 					this.points[0].y,
 					this.points[2].x,
@@ -997,7 +996,7 @@ function CURVE() {
 				);
 			} else if (this.points.length === 3) {
 				draw_quadratic_curve(
-					this.preview_canvas.ctx,
+					this.draw_canvas.ctx,
 					this.points[0].x,
 					this.points[0].y,
 					this.points[2].x,
@@ -1008,7 +1007,7 @@ function CURVE() {
 				);
 			} else if (this.points.length === 2) {
 				draw_line(
-					this.preview_canvas.ctx,
+					this.draw_canvas.ctx,
 					this.points[0].x,
 					this.points[0].y,
 					this.points[1].x,
@@ -1017,7 +1016,7 @@ function CURVE() {
 				);
 			} else {
 				draw_line(
-					this.preview_canvas.ctx,
+					this.draw_canvas.ctx,
 					this.points[0].x,
 					this.points[0].y,
 					this.points[0].x,
@@ -1047,26 +1046,26 @@ function CURVE() {
 			translate_y,
 		) {
 			// if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) { return; }
-			if (!this.preview_canvas) {
+			if (!this.draw_canvas) {
 				return;
 			}
 			// ctx.scale(scale, scale);
 			// ctx.translate(translate_x, translate_y);
 
 			// if (this.points.length >= 1) {
-			// 	ctx.drawImage(this.preview_canvas, 0, 0);
+			// 	ctx.drawImage(this.draw_canvas, 0, 0);
 			// }
 		},
 		cancel() {
 			this.points = [];
-			this.preview_canvas.width = 1;
+			this.draw_canvas.clear();
 			//$status_size.text("");
 			//PaintJSState.position_object_active = false;
 		},
 		end() {
-			console.log('end!')
+			console.log("end!");
 			this.points = [];
-			//this.preview_canvas.width = 1;
+			//this.draw_canvas.width = 1;
 			update_helper_layer();
 			//$status_size.text("");
 			//PaintJSState.position_object_active = false;
@@ -1145,7 +1144,7 @@ function POLYGON() {
 		points: [],
 
 		// A canvas for rendering a preview of the shape
-		preview_canvas: null,
+		draw_canvas: null,
 
 		pointerup(ctx, x, y) {
 			if (this.points.length < 1) {
@@ -1177,9 +1176,8 @@ function POLYGON() {
 		},
 		pointerdown(ctx, x, y) {
 			if (this.points.length < 1) {
-				this.preview_canvas = PaintJSState.draw_layer.canvas;
-				this.preview_canvas.width = PaintJSState.main_canvas.width;
-				this.preview_canvas.height = PaintJSState.main_canvas.height;
+				this.draw_canvas = PaintJSState.draw_canvas;
+				this.draw_canvas.reset();
 
 				// Add the first point of the polygon
 				this.points.push({ x, y });
@@ -1215,26 +1213,26 @@ function POLYGON() {
 			this.points[i].x = x;
 			this.points[i].y = y;
 
-			this.preview_canvas.ctx.clearRect(
+			this.draw_canvas.ctx.clearRect(
 				0,
 				0,
-				this.preview_canvas.width,
-				this.preview_canvas.height,
+				this.draw_canvas.width,
+				this.draw_canvas.height,
 			);
 			if (PaintJSState.fill && !PaintJSState.stroke) {
-				this.preview_canvas.ctx.drawImage(PaintJSState.main_canvas, 0, 0);
-				this.preview_canvas.ctx.strokeStyle = "white";
-				this.preview_canvas.ctx.globalCompositeOperation = "difference";
+				this.draw_canvas.ctx.drawImage(PaintJSState.main_canvas, 0, 0);
+				this.draw_canvas.ctx.strokeStyle = "white";
+				this.draw_canvas.ctx.globalCompositeOperation = "difference";
 				var orig_stroke_size = PaintJSState.stroke_size;
 				PaintJSState.stroke_size = 2;
-				draw_line_strip(this.preview_canvas.ctx, this.points);
+				draw_line_strip(this.draw_canvas.ctx, this.points);
 				PaintJSState.stroke_size = orig_stroke_size;
 			} else if (this.points.length > 1) {
-				this.preview_canvas.ctx.strokeStyle = PaintJSState.stroke_color;
-				draw_line_strip(this.preview_canvas.ctx, this.points);
+				this.draw_canvas.ctx.strokeStyle = PaintJSState.stroke_color;
+				draw_line_strip(this.draw_canvas.ctx, this.points);
 			} else {
 				draw_line(
-					this.preview_canvas.ctx,
+					this.draw_canvas.ctx,
 					this.points[0].x,
 					this.points[0].y,
 					this.points[0].x,
@@ -1317,11 +1315,10 @@ function POLYGON() {
 				time: -Infinity,
 			};
 
-			if (!this.preview_canvas) {
+			if (!this.draw_canvas) {
 				return;
 			}
-			this.preview_canvas.width = 1;
-			this.preview_canvas.height = 1;
+			this.draw_canvas.clear();
 		},
 		shape_colors: true,
 	};
@@ -1529,25 +1526,19 @@ function setting_selectBox(tool) {
 
 function setting_shape(tool) {
 	if (tool.shape) {
-		tool.shape_canvas = null;
+		tool.draw_canvas = null;
 		tool.pointerdown = () => {
-			tool.shape_canvas = PaintJSState.draw_layer.canvas;
-			tool.shape_canvas.width = PaintJSState.main_canvas.width;
-			tool.shape_canvas.height = PaintJSState.main_canvas.height;
+			tool.draw_canvas = PaintJSState.draw_canvas;
+			tool.draw_canvas.reset();
 		};
 		tool.paint = () => {
-			//console.log('paint')
-			tool.shape_canvas.ctx.clearRect(
-				0,
-				0,
-				tool.shape_canvas.width,
-				tool.shape_canvas.height,
-			);
-			tool.shape_canvas.ctx.fillStyle = PaintJSState.main_ctx.fillStyle;
-			tool.shape_canvas.ctx.strokeStyle = PaintJSState.main_ctx.strokeStyle;
-			tool.shape_canvas.ctx.lineWidth = PaintJSState.main_ctx.lineWidth;
+			tool.draw_canvas.clear();
+			
+			tool.draw_canvas.ctx.fillStyle = PaintJSState.main_ctx.fillStyle;
+			tool.draw_canvas.ctx.strokeStyle = PaintJSState.main_ctx.strokeStyle;
+			tool.draw_canvas.ctx.lineWidth = PaintJSState.main_ctx.lineWidth;
 			tool.shape(
-				tool.shape_canvas.ctx,
+				tool.draw_canvas.ctx,
 				PaintJSState.pointer_start.x,
 				PaintJSState.pointer_start.y,
 				PaintJSState.pointer.x - PaintJSState.pointer_start.x,
@@ -1558,16 +1549,15 @@ function setting_shape(tool) {
 			const signed_height =
 				PaintJSState.pointer.y - PaintJSState.pointer_start.y || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
-			//if(signed_width > 1 && signed_height > 1){
+
 			PaintJSState.position_object_active = true;
 			PaintJSState.position_object_x = signed_width;
 			PaintJSState.position_object_y = signed_height;
-			//}
 		};
 		tool.pointerup = () => {
 			//$status_size.text(""); // also handles canceling with two mouse buttons or escape key
 			//PaintJSState.position_object_active = false;
-			if (!tool.shape_canvas) {
+			if (!tool.draw_canvas) {
 				return;
 			}
 			undoable(
@@ -1576,8 +1566,8 @@ function setting_shape(tool) {
 					icon: get_icon_for_tool(tool),
 				},
 				() => {
-					PaintJSState.main_ctx.drawImage(tool.shape_canvas, 0, 0);
-					tool.shape_canvas.width = tool.shape_canvas.width;
+					PaintJSState.main_ctx.drawImage(tool.draw_canvas, 0, 0);
+					tool.draw_canvas.clear();
 				},
 			);
 		};
@@ -1692,17 +1682,12 @@ function setting_get_brush(tool) {
 		tool.mask_canvas = null;
 
 		tool.init_mask_canvas = (_ctx, _x, _y) => {
-			tool.draw_canvas = PaintJSState.draw_layer.canvas;
 			if (!tool.mask_canvas) {
 				tool.mask_canvas = new OffscreenCanvas(1, 1);
 			}
 			//console.log('tool.draw_canvas',tool.draw_canvas)
-			if (tool.draw_canvas.width !== PaintJSState.main_canvas.width) {
-				tool.draw_canvas.width = PaintJSState.main_canvas.width;
-			}
-			if (tool.draw_canvas.height !== PaintJSState.main_canvas.height) {
-				tool.draw_canvas.height = PaintJSState.main_canvas.height;
-			}
+			tool.draw_canvas = PaintJSState.draw_canvas;
+			tool.draw_canvas.reset();
 		};
 		tool.pointerdown = (_ctx, _x, _y) => {
 			tool.init_mask_canvas();
@@ -1720,15 +1705,14 @@ function setting_get_brush(tool) {
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
 
-					tool.draw_canvas.width = PaintJSState.main_canvas.width;
-					tool.draw_canvas.height = PaintJSState.main_canvas.height;
+					tool.draw_canvas.clear();
 				},
 			);
 		};
 
 		tool.paint = () => {
 			const brush = tool.get_brush();
-			const draw_canvas = PaintJSState.draw_layer.canvas;
+			const draw_canvas = tool.draw_canvas;
 			const draw_ctx = draw_canvas.ctx;
 
 			draw_ctx.fillStyle = PaintJSState.stroke_color;
@@ -1809,8 +1793,7 @@ function setting_get_brush(tool) {
 			tool.mask_canvas.width = 1;
 			tool.mask_canvas.height = 1;
 
-			tool.draw_canvas.width = PaintJSState.main_canvas.width;
-			tool.draw_canvas.height = PaintJSState.main_canvas.height;
+			tool.draw_canvas.clear();
 		};
 		tool.render_from_mask = (ctx, previewing) => {
 			if (previewing && tool.dynamic_preview_cursor) {
@@ -1842,21 +1825,9 @@ function setting_get_brush(tool) {
 			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
-
-			ctx.scale(scale, scale);
-			ctx.translate(translate_x, translate_y);
-
-			tool.init_mask_canvas();
-
-			const should_animate = tool.render_from_mask(ctx, true);
-
-			if (should_animate) {
-				// animate for gradient
-				// TODO: is rAF needed? update_helper_layer uses rAF
-				requestAnimationFrame(() => {
-					update_helper_layer();
-				});
-			}
+			requestAnimationFrame(() => {
+				update_helper_layer();
+			});
 		};
 	}
 }
