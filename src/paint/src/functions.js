@@ -2380,7 +2380,9 @@ function resize_canvas_without_saving_dimensions(
 						canvas.width = new_width;
 						canvas.height = new_height;
 
-						if (canvas.className == "layer background") {
+						// background 레이어면
+						if (layer.priority == 0) {
+							console.log('backgrond layer:',layer)
 							ctx.fillStyle = PaintJSState.selected_colors.background;
 							ctx.fillRect(0, 0, canvas.width, canvas.height);
 							ctx.clearRect(0, 0, beforeWidth, beforeHeight);
