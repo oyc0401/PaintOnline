@@ -15,6 +15,7 @@ import {
   image_invert_colors,
   load_image_from_uri,
   open_from_file,
+  pasteFromFile,
   paste,
   paste_image_from_file,
   redo,
@@ -141,7 +142,7 @@ export function setEvent() {
                 show_error_message(localize("File not found."), error);
                 return;
               }
-              open_from_file(file, handle);
+                pasteFromFile(file, handle);
               if (window._open_images_serially) {
                 // For testing a suite of files:
                 await new Promise((resolve) => setTimeout(resolve, 500));

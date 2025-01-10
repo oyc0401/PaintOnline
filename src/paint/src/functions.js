@@ -504,6 +504,7 @@ function make_history_node({
 	ternary_color, // selected ternary color (ctrl+click)
 	name, // the name of the operation, shown in the history window, e.g. localize("Resize Canvas")
 	icon = null, // an Image representation of the operation type, shown in the history window, e.g. get_help_folder_icon("p_blank.png")
+	layerIndex = 1, // 기본은 레이어 두개가 제공되기 때문에 가장 위에있는것, 1임
 }) {
 	return {
 		parent,
@@ -521,6 +522,7 @@ function make_history_node({
 		ternary_color,
 		name,
 		icon,
+		layerIndex,
 	};
 }
 
@@ -776,14 +778,16 @@ function open_from_image_info(
 				newLocalFile();
 			}
 
-			reset_file();
-			reset_selected_colors();
-			reset_canvas();
-			reset_history();
-			set_magnification(PaintJSState.default_magnification);
-			drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
-			//apply_file_format_and_palette_info(info);
-			PaintJSState.transparency = false; // has_any_transparency(PaintJSState.main_ctx);
+			// 이미지를 열면 새로운 세션을 생성하고.
+			//
+
+			// reset_file();
+			// reset_selected_colors();
+			// reset_canvas();
+			// reset_history();
+			// set_magnification(PaintJSState.default_magnification);
+			// drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
+
 			PaintJSState.$canvas_area.trigger("resize");
 
 			PaintJSState.current_history_node.name = localize("Open");
@@ -833,12 +837,53 @@ function open_from_image_info(
 	);
 }
 
+export async function pasteFromFile(file, source_file_handle) {
+	// 이미지를 드래그서 붙여넣으면 현재 레이어에 해당 사진이 나오게 한다.
+	// 그 이미지는 선택상태가 되어 0x0에 위치한다.
+
+	// 만약에 이미지가 더 크면 어찌해야할까요..
+	// 이미지가 더 크면 그냥 캔버스 크기는 그대로 둡시다요!
+	console.warn("파일 드래그 해서 놓기!", source_file_handle);
+
+	try {
+		const imageInfo = await readImageFile(file);
+		console.log("이미지 정보:", imageInfo);
+		imageInfo.source_file_handle = source_file_handle;
+			paste(imageInfo);
+	} catch (error) {
+		console.error("이미지 처리 중 에러 발생:", error);
+	}
+}
+
+// async function pasteImage(image) {
+// 	undoable(
+// 		{
+// 			name: localize("Paste"),
+// 			icon: get_help_folder_icon("p_paste.png"),
+// 			soft: true,
+// 		},
+// 		() => {
+// 			console.log("붙여넣기!",image);
+// 			PaintJSState.selection = new OnCanvasSelection(
+// 				x,
+// 				y,
+// 				img_or_canvas.width,
+// 				img_or_canvas.height,
+// 				img_or_canvas,
+// 			);
+// 		},
+// 	);
+// }
+
 // Note: This function is part of the API.
 /**
  * @param {Blob} file
  * @param {UserFileHandle} source_file_handle
  */
-function open_from_file(file, source_file_handle) {
+async function open_from_file(file, source_file_handle) {
+	// 이거는 새로운 파일을 열때 사용하는 함수이다.
+	// 끌어서 이동하는거와는 맞지 않음
+	console.warn("파일 열기!!", source_file_handle);
 	// The browser isn't very smart about MIME types.
 	// It seems to look at the file extension, but not the actual file contents.
 	// This is particularly problematic for files with no extension, where file.type gives an empty string.
@@ -853,23 +898,15 @@ function open_from_file(file, source_file_handle) {
 		});
 		return;
 	}
-	// Try loading as an image file first, then as a palette file, but show a combined error message if both fail.
-	read_image_file(file, (as_image_error, image_info) => {
-		if (as_image_error) {
-			// AnyPalette.loadPalette(file, (as_palette_error, new_palette) => {
-			// 	if (as_palette_error) {
-			// 		show_file_format_errors({ as_image_error, as_palette_error });
-			// 		return;
-			// 	}
-			// 	PaintJSState.palette = new_palette.map((color) => color.toString());
-			// 	//$colorbox.rebuild_palette();
-			// 	window.console?.log(`Loaded palette: ${PaintJSState.palette.map(() => "%c█").join("")}`, ...PaintJSState.palette.map((color) => `color: ${color};`));
-			// });
-			// return;
-		}
-		image_info.source_file_handle = source_file_handle;
-		open_from_image_info(image_info);
-	});
+
+	try {
+		const imageInfo = await readImageFile(file);
+		console.log("이미지 정보:", imageInfo);
+		imageInfo.source_file_handle = source_file_handle;
+		open_from_image_info(imageInfo);
+	} catch (error) {
+		console.error("이미지 처리 중 에러 발생:", error);
+	}
 }
 
 /**
@@ -1455,14 +1492,14 @@ async function choose_file_to_paste() {
  */
 function paste(img_or_canvas) {
 	// The resize gets its own undoable, as in mspaint
-	resize_canvas_and_save_dimensions(
-		Math.max(PaintJSState.main_canvas.width, img_or_canvas.width),
-		Math.max(PaintJSState.main_canvas.height, img_or_canvas.height),
-		{
-			name: "Enlarge Canvas For Paste",
-			icon: get_help_folder_icon("p_stretch_both.png"),
-		},
-	);
+	// resize_canvas_and_save_dimensions(
+	// 	Math.max(PaintJSState.main_canvas.width, img_or_canvas.width),
+	// 	Math.max(PaintJSState.main_canvas.height, img_or_canvas.height),
+	// 	{
+	// 		name: "Enlarge Canvas For Paste",
+	// 		icon: get_help_folder_icon("p_stretch_both.png"),
+	// 	},
+	// );
 	do_the_paste();
 	PaintJSState.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
 
@@ -1482,15 +1519,6 @@ function paste(img_or_canvas) {
 				PaintJSState.$canvas_area.scrollTop() / PaintJSState.magnification,
 			),
 		);
-		// Nevermind, canvas, isn't aligned to the right in RTL layout!
-		// let x = Math.max(0, Math.ceil(PaintJSState.$canvas_area.scrollLeft() / magnification));
-		// if (get_direction() === "rtl") {
-		// 	// magic number 8 is a guess, I guess based on the scrollbar width which shows on the left in RTL layout
-		// 	// x = Math.max(0, Math.ceil((PaintJSState.$canvas_area.innerWidth() - canvas.width + PaintJSState.$canvas_area.scrollLeft() + 8) / magnification));
-		// 	const scrollbar_width = PaintJSState.$canvas_area[0].offsetWidth - PaintJSState.$canvas_area[0].clientWidth; // maybe??
-		// 	console.log("scrollbar_width", scrollbar_width);
-		// 	x = Math.max(0, Math.ceil((-PaintJSState.$canvas_area.innerWidth() + PaintJSState.$canvas_area.scrollLeft() + scrollbar_width) / magnification + canvas.width));
-		// }
 
 		undoable(
 			{
@@ -1528,6 +1556,8 @@ function go_to_history_node(target_history_node, canceling) {
 	}
 
 	PaintJSState.current_history_node = target_history_node;
+
+	PaintJSState.activeLayerIndex = target_history_node.layerIndex;
 
 	console.log("target_history_node:", target_history_node);
 	deselect(true);
@@ -1627,6 +1657,7 @@ async function undoable({ name, icon, soft }, callback) {
 		name,
 		icon,
 		soft,
+		layerIndex: PaintJSState.activeLayerIndex,
 	});
 	PaintJSState.current_history_node.futures.push(new_history_node);
 	PaintJSState.current_history_node = new_history_node;
@@ -2382,7 +2413,7 @@ function resize_canvas_without_saving_dimensions(
 
 						// background 레이어면
 						if (layer.priority == 0) {
-							console.log('backgrond layer:',layer)
+							console.log("backgrond layer:", layer);
 							ctx.fillStyle = PaintJSState.selected_colors.background;
 							ctx.fillRect(0, 0, canvas.width, canvas.height);
 							ctx.clearRect(0, 0, beforeWidth, beforeHeight);
@@ -2639,6 +2670,8 @@ function read_image_file(blob, callback) {
 	// @TODO: handle SVG (might need to keep track of source URL, for relative resources)
 	// @TODO: read palette from GIF files
 
+	console.log("이미지 읽어오기!");
+
 	let file_format;
 	let palette;
 	let monochrome = false;
@@ -2879,6 +2912,212 @@ function read_image_file(blob, callback) {
 			callback(error);
 		},
 	);
+}
+
+async function readImageFile(blob) {
+	console.log("이미지 읽어오기!");
+
+	let file_format;
+	let palette;
+	let monochrome = false;
+
+	try {
+		const arrayBuffer = await blob.arrayBuffer();
+		const magics = {
+			png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+			bmp: [0x42, 0x4d], // "BM" in ASCII
+			jpeg: [0xff, 0xd8, 0xff],
+			gif: [0x47, 0x49, 0x46, 0x38], // "GIF8" in ASCII, fully either "GIF87a" or "GIF89a"
+			webp: [0x57, 0x45, 0x42, 0x50], // "WEBP" in ASCII
+			tiff_be: [0x4d, 0x4d, 0x0, 0x2a],
+			tiff_le: [0x49, 0x49, 0x2a, 0x0],
+			ico: [0x00, 0x00, 0x01, 0x00],
+			cur: [0x00, 0x00, 0x02, 0x00],
+			icns: [0x69, 0x63, 0x6e, 0x73], // "icns" in ASCII
+		};
+		const file_bytes = new Uint8Array(arrayBuffer);
+		let detected_type_id;
+
+		for (const [type_id, magic_bytes] of Object.entries(magics)) {
+			const magic_found = magic_bytes.every(
+				(byte, index) => byte === file_bytes[index],
+			);
+			if (magic_found) {
+				detected_type_id = type_id;
+				break;
+			}
+		}
+
+		if (!detected_type_id) {
+			const firstChunk = String.fromCharCode(...file_bytes.slice(0, 1024));
+			if (firstChunk.includes("%PDF")) {
+				detected_type_id = "pdf";
+			}
+		}
+
+		if (detected_type_id === "bmp") {
+			const { colorTable, bitsPerPixel, imageData } = decodeBMP(arrayBuffer);
+			file_format =
+				bitsPerPixel === 24 ? "image/bmp" : `image/bmp;bpp=${bitsPerPixel}`;
+			if (colorTable.length >= 2) {
+				palette = colorTable.map(
+					(color) => `rgb(${color.r}, ${color.g}, ${color.b})`,
+				);
+				monochrome = false;
+			}
+			return {
+				file_format,
+				monochrome,
+				palette,
+				image_data: imageData,
+				source_blob: blob,
+			};
+		} else if (detected_type_id === "png") {
+			const decoded = UPNG.decode(arrayBuffer);
+			const rgba = UPNG.toRGBA8(decoded)[0];
+			const { width, height, tabs, ctype } = decoded;
+
+			if (
+				tabs.PLTE &&
+				tabs.PLTE.length >= 3 * 2 &&
+				ctype === 3 /* palettized */
+			) {
+				palette = new Array(tabs.PLTE.length / 3);
+				for (let i = 0; i < palette.length; i++) {
+					if (tabs.tRNS && tabs.tRNS.length >= i + 1) {
+						palette[i] =
+							`rgba(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]}, ${tabs.tRNS[i] / 255})`;
+					} else {
+						palette[i] =
+							`rgb(${tabs.PLTE[i * 3 + 0]}, ${tabs.PLTE[i * 3 + 1]}, ${tabs.PLTE[i * 3 + 2]})`;
+					}
+				}
+				monochrome = false;
+			}
+			file_format = "image/png";
+			const image_data = new ImageData(
+				new Uint8ClampedArray(rgba),
+				width,
+				height,
+			);
+			return {
+				file_format,
+				monochrome,
+				palette,
+				image_data,
+				source_blob: blob,
+			};
+		} else if (
+			detected_type_id === "tiff_be" ||
+			detected_type_id === "tiff_le"
+		) {
+			var ifds = UTIF.decode(arrayBuffer);
+			var vsns = ifds,
+				ma = 0,
+				page = vsns[0];
+			if (ifds[0].subIFD) {
+				vsns = vsns.concat(ifds[0].subIFD);
+			}
+			for (var i = 0; i < vsns.length; i++) {
+				var img = vsns[i];
+				if (img["t258"] == null || img["t258"].length < 3) continue;
+				var ar = img["t256"] * img["t257"];
+				if (ar > ma) {
+					ma = ar;
+					page = img;
+				}
+			}
+			UTIF.decodeImage(arrayBuffer, page, ifds);
+			var rgba = UTIF.toRGBA8(page);
+
+			var image_data = new ImageData(
+				new Uint8ClampedArray(rgba.buffer),
+				page.width,
+				page.height,
+			);
+
+			file_format = "image/tiff";
+			return {
+				file_format,
+				monochrome,
+				palette,
+				image_data,
+				source_blob: blob,
+			};
+		} else if (detected_type_id === "pdf") {
+			// PDF 처리 로직은 현재 주석 처리되어 있습니다.
+			throw new Error("PDF 처리 기능은 현재 구현되지 않았습니다.");
+		} else {
+			monochrome = false;
+			file_format =
+				{
+					png: "image/png",
+					webp: "image/webp",
+					jpeg: "image/jpeg",
+					gif: "image/gif",
+					tiff_be: "image/tiff",
+					tiff_le: "image/tiff", // can also be image/x-canon-cr2 etc.
+					ico: "image/x-icon",
+					cur: "image/x-win-bitmap",
+					icns: "image/icns",
+				}[detected_type_id] || blob.type;
+
+			const blob_uri = URL.createObjectURL(blob);
+			const img = new Image();
+
+			// 이미지 로딩을 Promise로 래핑
+			const loadImage = () => {
+				return new Promise((resolve, reject) => {
+					img.onload = () => {
+						if (
+							!img.complete ||
+							typeof img.naturalWidth === "undefined" ||
+							img.naturalWidth === 0
+						) {
+							reject(new Error("이미지 로드 실패"));
+						} else {
+							resolve(img);
+						}
+					};
+					img.onerror = () => {
+						reject(new Error("이미지 로드 중 에러 발생"));
+					};
+				});
+			};
+
+			img.src = blob_uri;
+
+			try {
+				const loadedImg = await loadImage();
+				URL.revokeObjectURL(blob_uri);
+				return {
+					file_format,
+					monochrome,
+					palette,
+					image: loadedImg,
+					source_blob: blob,
+				};
+			} catch (error) {
+				URL.revokeObjectURL(blob_uri);
+				// 추가적인 에러 처리를 위해 Blob을 텍스트로 변환 시도
+				try {
+					const file_text = await blob.text();
+					const err = new Error("이미지 디코딩 실패");
+					err.code = file_text.match(/^\s*<!doctype\s+html/i)
+						? "html-not-image"
+						: "decoding-failure";
+					throw err;
+				} catch (_err) {
+					const err = new Error("이미지 또는 텍스트로 디코딩 실패");
+					err.code = "decoding-failure";
+					throw err;
+				}
+			}
+		}
+	} catch (error) {
+		// 에러 발생 시 다시 던지기
+		throw error;
+	}
 }
 
 /**
