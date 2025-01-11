@@ -872,7 +872,6 @@ function BRUSH() {
 			"Draws using a brush with the selected shape and size.",
 		),
 		cursor: ["precise-dotted", [16, 16], "crosshair"],
-		dynamic_preview_cursor: true,
 		get_brush() {
 			return { size: PaintJSState.brush_size, shape: PaintJSState.brush_shape };
 		},
@@ -1533,7 +1532,7 @@ function setting_shape(tool) {
 		};
 		tool.paint = () => {
 			tool.draw_canvas.clear();
-			
+
 			tool.draw_canvas.ctx.fillStyle = PaintJSState.main_ctx.fillStyle;
 			tool.draw_canvas.ctx.strokeStyle = PaintJSState.main_ctx.strokeStyle;
 			tool.draw_canvas.ctx.lineWidth = PaintJSState.main_ctx.lineWidth;
@@ -1701,7 +1700,6 @@ function setting_get_brush(tool) {
 				() => {
 					PaintJSState.main_ctx.globalCompositeOperation = "source-over";
 					PaintJSState.main_ctx.drawImage(tool.draw_canvas, 0, 0);
-					//tool.render_from_mask(PaintJSState.main_ctx);
 					tool.mask_canvas.width = 1;
 					tool.mask_canvas.height = 1;
 
@@ -1796,22 +1794,19 @@ function setting_get_brush(tool) {
 			tool.draw_canvas.clear();
 		};
 		tool.render_from_mask = (ctx, previewing) => {
-			if (previewing && tool.dynamic_preview_cursor) {
-				const brush = tool.get_brush();
-				// dynamic cursor preview:
-				// stamp just onto this temporary canvas so it's temporary
-				stamp_brush_canvas_color(
-					ctx,
-					PaintJSState.pointer.x,
-					PaintJSState.pointer.y,
-					brush.shape,
-					brush.size,
-					PaintJSState.stroke_color,
-				);
-				//console.log('helper',PaintJSState.stroke_color)
-			}
+			const brush = tool.get_brush();
+			// dynamic cursor preview:
+			// stamp just onto this temporary canvas so it's temporary
+			stamp_brush_canvas_color(
+				ctx,
+				PaintJSState.pointer.x,
+				PaintJSState.pointer.y,
+				brush.shape,
+				brush.size,
+				PaintJSState.stroke_color,
+			);
+			//console.log('helper',PaintJSState.stroke_color)
 
-			return true;
 		};
 		tool.drawPreviewUnderGrid = (
 			ctx,
@@ -1825,9 +1820,7 @@ function setting_get_brush(tool) {
 			if (!PaintJSState.pointer_active && !PaintJSState.pointer_over_canvas) {
 				return;
 			}
-			requestAnimationFrame(() => {
-				update_helper_layer();
-			});
+			tool.render_from_mask(ctx);
 		};
 	}
 }
