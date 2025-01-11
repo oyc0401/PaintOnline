@@ -729,24 +729,6 @@ async function load_image_from_uri(uri) {
 	throw error;
 }
 
-export async function pasteFromFile(file, source_file_handle) {
-	// 이미지를 드래그서 붙여넣으면 현재 레이어에 해당 사진이 나오게 한다.
-	// 그 이미지는 선택상태가 되어 0x0에 위치한다.
-
-	// 만약에 이미지가 더 크면 어찌해야할까요..
-	// 이미지가 더 크면 그냥 캔버스 크기는 그대로 둡시다요!
-	console.warn("파일 드래그 해서 놓기!", source_file_handle);
-
-	try {
-		const imageInfo = await readImageFile(file);
-		console.log("이미지 정보:", imageInfo);
-		imageInfo.source_file_handle = source_file_handle;
-		paste(imageInfo);
-	} catch (error) {
-		console.error("이미지 처리 중 에러 발생:", error);
-	}
-}
-
 async function open_from_file(file, source_file_handle) {
 	console.warn("파일 열기!!", source_file_handle);
 
@@ -772,8 +754,12 @@ function open_from_image_info(info) {
 			// await newLocalFile(info.image); // 나중에 이렇게 만들어야함..!!!!
 
 			console.log(info);
-			resize_canvas(info.image.width, info.image.height);
-			PaintJSState.main_canvas.ctx.drawImage(info.image, 0, 0);
+			const image = info.image || info.image_data;
+			console.log("image", image);
+
+			resize_canvas(image.width, image.height);
+
+			drawcopy(PaintJSState.main_ctx, image);
 
 			// 히스토리를 현재 레이어로 초기화
 			reset_history();
@@ -1364,7 +1350,7 @@ function paste(img_or_canvas) {
 	PaintJSState.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
 
 	function do_the_paste() {
-		deselect();
+		 deselect();
 		select_tool(get_tool_by_id(TOOL_SELECT));
 
 		const x = Math.max(
@@ -1384,9 +1370,9 @@ function paste(img_or_canvas) {
 			{
 				name: localize("Paste"),
 				icon: get_help_folder_icon("p_paste.png"),
-				soft: true,
 			},
 			() => {
+				console.log('AA')
 				PaintJSState.selection = new OnCanvasSelection(
 					x,
 					y,
@@ -1394,6 +1380,7 @@ function paste(img_or_canvas) {
 					img_or_canvas.height,
 					img_or_canvas,
 				);
+				console.log('BB')
 			},
 		);
 	}
@@ -1467,9 +1454,11 @@ function go_to_history_node(target_history_node, canceling) {
  * @param {ActionMetadata} options
  * @param {function=} callback
  */
-async function undoable({ name, icon, soft }, callback) {
+function undoable({ name, icon, soft }, callback) {
 	const before_callback_history_node = PaintJSState.current_history_node;
-	await callback?.();
+	console.log('before_callback_history_node',	before_callback_history_node);
+ callback?.();
+	console.log('PaintJSState.current_history_node',PaintJSState.current_history_node);
 	if (PaintJSState.current_history_node !== before_callback_history_node) {
 		alert(
 			`History node switched during undoable callback for ${name}. This shouldn't happen.`,

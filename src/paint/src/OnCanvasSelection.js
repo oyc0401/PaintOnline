@@ -34,6 +34,7 @@ class OnCanvasSelection extends OnCanvasObject {
 		super(x, y, width, height, true);
 
 		this.$el.addClass("selection");
+		PaintJSState.draw_canvas.reset();
 		this.instantiate(image_source);
 	}
 	position() {
@@ -57,6 +58,8 @@ class OnCanvasSelection extends OnCanvasObject {
 	 */
 	instantiate(image_source) {
 		// 움직여야지만 히스토리 기록되게
+		console.log('instantiate')
+		
 		this.moved=false;
 		
 		this.$el.css({
@@ -153,6 +156,7 @@ class OnCanvasSelection extends OnCanvasObject {
 				// 	this.draw();
 				// }
 			};
+			
 			this.canvas_pointerdown = (e) => {
 				e.preventDefault();
 				// 핀지줌을 할때 선택이 안되게 하기

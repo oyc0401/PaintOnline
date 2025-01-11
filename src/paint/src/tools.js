@@ -280,35 +280,36 @@ function SELECT() {
 					// for silly multitools feature
 					meld_selection_into_canvas();
 				}
-				if (PaintJSState.ctrl) {
-					undoable({ name: "Crop" }, () => {
-						var cropped_canvas = make_canvas(rect_width, rect_height);
-						cropped_canvas.ctx.drawImage(
-							PaintJSState.main_canvas,
-							-rect_x,
-							-rect_y,
+				// if (PaintJSState.ctrl) {
+				// 	undoable({ name: "Crop" }, () => {
+				// 		var cropped_canvas = make_canvas(rect_width, rect_height);
+				// 		cropped_canvas.ctx.drawImage(
+				// 			PaintJSState.main_canvas,
+				// 			-rect_x,
+				// 			-rect_y,
+				// 		);
+				// 		drawcopy(PaintJSState.main_ctx, cropped_canvas);
+				// 		PaintJSState.canvas_handles.show();
+				// 		PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
+				// 	});
+				// } else {
+					
+				// }
+				undoable(
+					{
+						name: localize("Select"),
+						icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
+						soft: true,
+					},
+					() => {
+						PaintJSState.selection = new OnCanvasSelection(
+							rect_x,
+							rect_y,
+							rect_width,
+							rect_height,
 						);
-						drawcopy(PaintJSState.main_ctx, cropped_canvas);
-						PaintJSState.canvas_handles.show();
-						PaintJSState.$canvas_area.trigger("resize"); // does this not also call canvas_handles.show()?
-					});
-				} else {
-					undoable(
-						{
-							name: localize("Select"),
-							icon: get_icon_for_tool(get_tool_by_id(TOOL_SELECT)),
-							soft: true,
-						},
-						() => {
-							PaintJSState.selection = new OnCanvasSelection(
-								rect_x,
-								rect_y,
-								rect_width,
-								rect_height,
-							);
-						},
-					);
-				}
+					},
+				);
 			}
 		},
 	};
