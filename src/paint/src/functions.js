@@ -352,21 +352,6 @@ function update_disable_aa() {
 	}
 }
 
-//window.PaintJSState=PaintJSState
-
-function roundDPR(dpr) {
-	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
-	let closest = values[0];
-
-	for (let i = 1; i < values.length; i++) {
-		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
-			closest = values[i];
-		}
-	}
-
-	return closest;
-}
-
 /**
  * @param {number} new_scale
  * @param {{x: number, y: number}} [anchor_point] - uses canvas coordinates; default is the top-left of the PaintJSState.$canvas_area viewport
@@ -557,6 +542,7 @@ function get_uris(text) {
 	}
 	return uris;
 }
+
 /**
  * Load an image file from a URL by any means necessary.
  * For basic image loading, see `load_image_simple` instead.
@@ -751,92 +737,6 @@ async function load_image_from_uri(uri) {
 	throw error;
 }
 
-/**
- * @param {ImageInfo} info
- * @param {() => void} [callback]
- * @param {() => void} [canceled]
- * @param {boolean} [into_existing_session]
- * @param {boolean} [from_session_load]
- */
-function open_from_image_info(
-	info,
-	callback,
-	canceled,
-	into_existing_session,
-	from_session_load,
-) {
-	are_you_sure(
-		({ canvas_modified_while_loading } = {}) => {
-			deselect();
-			cancel();
-
-			console.error("여기 함수 다시 짜야함! 레이어 적용 x");
-			if (!into_existing_session) {
-				$(window).triggerHandler("session-update"); // autosave old session
-				console.log("세션초기화");
-				// new_local_session();
-				newLocalFile();
-			}
-
-			// 이미지를 열면 새로운 세션을 생성하고.
-			//
-
-			// reset_file();
-			// reset_selected_colors();
-			// reset_canvas();
-			// reset_history();
-			// set_magnification(PaintJSState.default_magnification);
-			// drawcopy(PaintJSState.main_ctx, info.image || info.image_data);
-
-			PaintJSState.$canvas_area.trigger("resize");
-
-			PaintJSState.current_history_node.name = localize("Open");
-
-			let layers = [];
-			for (let i = 0; i < PaintJSState.layers.length; i++) {
-				const layer = PaintJSState.layers[i];
-				const image_data = layer.ctx.getImageData(
-					0,
-					0,
-					layer.canvas.width,
-					layer.canvas.height,
-				);
-				layers.push({ image_data, id: layer.layerId, name: layer.name });
-			}
-			PaintJSState.current_history_node.layers = layers;
-
-			PaintJSState.current_history_node.icon =
-				get_help_folder_icon("p_open.png");
-
-			if (canvas_modified_while_loading || !from_session_load) {
-				// normally we don't want to autosave if we're loading a session,
-				// as this is redundant, but if the user has modified the canvas while loading a session,
-				// right now how it works is the session would be overwritten, so if you reloaded, it'd be lost,
-				// so we'd better save it.
-				// (and we want to save if this is a new session being initialized with an image)
-				$(window).triggerHandler("session-update"); // autosave
-			}
-			$(window).triggerHandler("history-update"); // update history view
-
-			if (info.source_blob instanceof File) {
-				PaintJSState.file_name = info.source_blob.name;
-				// file.path is available in Electron (see https://www.electronjs.org/docs/api/file-object#file-object)
-				// @ts-ignore
-				PaintJSState.system_file_handle = info.source_blob.path;
-			}
-			if (info.source_file_handle) {
-				PaintJSState.system_file_handle = info.source_file_handle;
-			}
-			PaintJSState.saved = true;
-			update_title();
-
-			callback?.();
-		},
-		canceled,
-		false,
-	);
-}
-
 export async function pasteFromFile(file, source_file_handle) {
 	// 이미지를 드래그서 붙여넣으면 현재 레이어에 해당 사진이 나오게 한다.
 	// 그 이미지는 선택상태가 되어 0x0에 위치한다.
@@ -849,55 +749,14 @@ export async function pasteFromFile(file, source_file_handle) {
 		const imageInfo = await readImageFile(file);
 		console.log("이미지 정보:", imageInfo);
 		imageInfo.source_file_handle = source_file_handle;
-			paste(imageInfo);
+		paste(imageInfo);
 	} catch (error) {
 		console.error("이미지 처리 중 에러 발생:", error);
 	}
 }
 
-// async function pasteImage(image) {
-// 	undoable(
-// 		{
-// 			name: localize("Paste"),
-// 			icon: get_help_folder_icon("p_paste.png"),
-// 			soft: true,
-// 		},
-// 		() => {
-// 			console.log("붙여넣기!",image);
-// 			PaintJSState.selection = new OnCanvasSelection(
-// 				x,
-// 				y,
-// 				img_or_canvas.width,
-// 				img_or_canvas.height,
-// 				img_or_canvas,
-// 			);
-// 		},
-// 	);
-// }
-
-// Note: This function is part of the API.
-/**
- * @param {Blob} file
- * @param {UserFileHandle} source_file_handle
- */
 async function open_from_file(file, source_file_handle) {
-	// 이거는 새로운 파일을 열때 사용하는 함수이다.
-	// 끌어서 이동하는거와는 맞지 않음
 	console.warn("파일 열기!!", source_file_handle);
-	// The browser isn't very smart about MIME types.
-	// It seems to look at the file extension, but not the actual file contents.
-	// This is particularly problematic for files with no extension, where file.type gives an empty string.
-	// And the File Access API currently doesn't let us automatically append a file extension,
-	// so the user is likely to end up with files with no extension.
-	// It's better to look at the file content to determine file type.
-	// We do this for image files in read_image_file, and palette files in AnyPalette.js.
-
-	if (file instanceof File && file.name.match(/\.theme(pack)?$/i)) {
-		file.text().then(load_theme_from_text, (error) => {
-			show_error_message(localize("Paint cannot open this file."), error);
-		});
-		return;
-	}
 
 	try {
 		const imageInfo = await readImageFile(file);
@@ -909,30 +768,49 @@ async function open_from_file(file, source_file_handle) {
 	}
 }
 
-/**
- * @param {string} fileText
- */
-function load_theme_from_text(fileText) {
-	var cssProperties = parseThemeFileString(fileText);
-	if (!cssProperties) {
-		show_error_message(localize("Paint cannot open this file."));
-		return;
-	}
-	applyCSSProperties(cssProperties, { recurseIntoIframes: true });
+function open_from_image_info(info) {
+	are_you_sure(
+		async () => {
+			deselect();
+			cancel();
 
-	window.themeCSSProperties = cssProperties;
+			console.log("open_from_image_info");
 
-	$(window).triggerHandler("theme-load");
+			await newLocalFile();
+			// await newLocalFile(info.image); // 나중에 이렇게 만들어야함..!!!!
+
+			console.log(info);
+			resize_canvas(info.image.width, info.image.height);
+			PaintJSState.main_canvas.ctx.drawImage(info.image, 0, 0);
+
+			// 히스토리를 현재 레이어로 초기화
+			reset_history();
+
+			
+			$(window).triggerHandler("resize"); // 확대 설정
+			$(window).triggerHandler("session-update"); // 저장
+			
+			if (info.source_blob instanceof File) {
+				PaintJSState.file_name = info.source_blob.name;
+				PaintJSState.system_file_handle = info.source_blob.path;
+			}
+			if (info.source_file_handle) {
+				PaintJSState.system_file_handle = info.source_file_handle;
+			}
+
+			PaintJSState.saved = true;
+		},
+		false, // 이 두게 꼭 있어야함?
+		false,
+	);
 }
 
 // 새 이미지
-function file_new() {
+async function file_new() {
 	deselect();
 	cancel();
 
-	newLocalFile();
-
-	$(window).triggerHandler("session-update"); // autosave
+	await newLocalFile();
 }
 
 // 파일 열기
@@ -2365,6 +2243,42 @@ function select_tool(tool, toggle) {
 	// // $toolbox2.update_selected_tool();
 }
 
+function resize_canvas(width,height){
+	const beforeWidth = PaintJSState.main_canvas.width;
+	const beforeHeight = PaintJSState.main_canvas.height;
+
+	PaintJSState.$layer_area.css("width", width); // '500px'로 설정
+	PaintJSState.$layer_area.css("height", height); // '500px'로 설정
+
+	// 캔버스 늘리기
+	for (const layer of PaintJSState.layers) {
+		const canvas = layer.canvas;
+		const ctx = canvas.ctx;
+		const image_data = ctx.getImageData(
+			0,
+			0,
+			beforeWidth,
+			beforeHeight,
+		);
+
+		// 캔버스 초기화
+		canvas.width = width;
+		canvas.height = height;
+
+		// background 레이어면
+		if (layer.priority == 0) {
+			console.log("backgrond layer:", layer);
+			ctx.fillStyle = PaintJSState.selected_colors.background;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+		}
+
+		// 기존 영역은 기존 그림으로 그리기
+		const temp_canvas = make_canvas(image_data);
+		ctx.drawImage(temp_canvas, 0, 0);
+	}
+}
+
 /**
  * Resizes the canvas without saving the dimensions to local storage.
  *
@@ -2390,54 +2304,7 @@ function resize_canvas_without_saving_dimensions(
 			},
 			() => {
 				try {
-					const beforeWidth = PaintJSState.main_canvas.width;
-					const beforeHeight = PaintJSState.main_canvas.height;
-
-					PaintJSState.$layer_area.css("width", new_width); // '500px'로 설정
-					PaintJSState.$layer_area.css("height", new_height); // '500px'로 설정
-
-					// 캔버스 늘리기
-					for (const layer of PaintJSState.layers) {
-						const canvas = layer.canvas;
-						const ctx = canvas.ctx;
-						const image_data = ctx.getImageData(
-							0,
-							0,
-							beforeWidth,
-							beforeHeight,
-						);
-
-						// 캔버스 초기화
-						canvas.width = new_width;
-						canvas.height = new_height;
-
-						// background 레이어면
-						if (layer.priority == 0) {
-							console.log("backgrond layer:", layer);
-							ctx.fillStyle = PaintJSState.selected_colors.background;
-							ctx.fillRect(0, 0, canvas.width, canvas.height);
-							ctx.clearRect(0, 0, beforeWidth, beforeHeight);
-						}
-
-						// 기존 영역은 기존 그림으로 그리기
-						const temp_canvas = make_canvas(image_data);
-						ctx.drawImage(temp_canvas, 0, 0);
-					}
-
-					// if (!PaintJSState.transparency) {
-					// 	PaintJSState.main_ctx.fillStyle =
-					// 		PaintJSState.selected_colors.background;
-					// 	PaintJSState.main_ctx.fillRect(
-					// 		0,
-					// 		0,
-					// 		PaintJSState.main_canvas.width,
-					// 		PaintJSState.main_canvas.height,
-					// 	);
-					// 	PaintJSState.main_ctx.clearRect(0, 0, beforeWidth, beforeHeight);
-					// }
-
-					// const temp_canvas = make_canvas(image_data);
-					// PaintJSState.main_ctx.drawImage(temp_canvas, 0, 0);
+					resize_canvas(new_width,new_height)
 				} catch (exception) {
 					if (exception.name === "NS_ERROR_FAILURE") {
 						// or localize("There is not enough memory or resources to complete operation.")
@@ -3251,7 +3118,6 @@ export {
 	image_invert_colors,
 	//image_stretch_and_skew,
 	load_image_from_uri,
-	load_theme_from_text,
 	make_history_node,
 	meld_selection_into_canvas,
 	open_from_file,

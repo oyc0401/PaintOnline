@@ -29,6 +29,8 @@ class OnCanvasSelection extends OnCanvasObject {
 	 */
 	constructor(x, y, width, height, image_source) {
 		// 화면을 늘리고 사진을 붙여넣기 하면 비율이 깨짐..
+
+		
 		super(x, y, width, height, true);
 
 		this.$el.addClass("selection");

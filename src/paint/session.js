@@ -82,6 +82,7 @@ async function createNewFile() {
   // 새로운 키 만들기
   const key = generatepaintId();
   currentPaintId = key;
+  console.log("generate key:", key);
 
   // 키 저장
   await keyStore.set("recent_key", currentPaintId);
@@ -130,7 +131,6 @@ const saveFileSoon = debounce(saveFileImmediately, 100);
 
 async function saveFileImmediately() {
   try {
-  
     // 1) 캔버스 정보 저장
     const activeCanvas = PaintJSState.layers[0]; // 예: 첫 번째 레이어가 배경 캔버스
     if (!activeCanvas) {
@@ -145,7 +145,10 @@ async function saveFileImmediately() {
 
     // 2) 레이어 메타데이터 저장
     const layerList = PaintJSState.layers.map((layer) => {
-      if (PaintJSState.selection && PaintJSState.activeLayerIndex == layer.priority) {
+      if (
+        PaintJSState.selection &&
+        PaintJSState.activeLayerIndex == layer.priority
+      ) {
         // 기존 canvas와 동일한 크기의 새로운 canvas 생성
         const temp_canvas = document.createElement("canvas");
         temp_canvas.width = layer.canvas.width;
@@ -178,9 +181,8 @@ async function saveFileImmediately() {
     });
 
     await layerRepository.setLayers(currentPaintId, layerList);
-    
-    console.warn("Paint saved. paintId =", currentPaintId);
 
+    console.warn("Paint saved. paintId =", currentPaintId);
   } catch (error) {
     console.error(
       "An unexpected error occurred in saveFileImmediately:",
@@ -192,15 +194,15 @@ async function saveFileImmediately() {
 // --------------------------- 세션 종료 / 새 파일 ---------------------------
 
 export async function newLocalFile() {
-  endSession();
+  await endSession();
   console.log("Creating new file...");
   await createNewFile();
 }
 
-export function endSession() {
+export async function endSession() {
   saveFileSoon.cancel();
-  saveFileImmediately();
-  console.log("Session ended.");
+  await saveFileImmediately();
+  console.log("Session ended.", currentPaintId);
 }
 
 /**
