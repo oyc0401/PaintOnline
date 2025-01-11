@@ -1,28 +1,21 @@
 console.log("JS 실행:", "functions.js");
 
 import UPNG from "../lib/UPNG.js";
-//import AnyPalette from '../lib/anypalette-0.6.0.js';
-
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
-import { OnCanvasDrawLayer } from "./OnCanvasDrawLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { localize } from "../../localize/localize.js";
 import { image_formats } from "./file-format-data.js";
 import {
 	E,
-	debounce,
 	get_help_folder_icon,
 	get_icon_for_tool,
 	make_canvas,
-	render_access_key,
 	to_canvas_coords_magnification,
 	drawcopy,
 } from "./helpers.js";
 import {
 	apply_image_transformation,
-	draw_selection_box,
 	invert_rgb,
-	threshold_black_and_white,
 } from "./image-manipulation.js";
 import { showMessageBox } from "./msgbox.js";
 import {
@@ -30,7 +23,6 @@ import {
 	TOOL_FREE_FORM_SELECT,
 	TOOL_POLYGON,
 	TOOL_SELECT,
-	TOOL_TEXT,
 	tools,
 } from "./tools.js";
 import $ from "jquery";
@@ -42,7 +34,7 @@ import { PaintJSState, PaintMobXState } from "../state";
 // I'm surprised I haven't been bitten by this sort of bug, and I've
 // mostly converted the whole app to ES Modules!
 // TODO: make sessions.js export function to initialize it
-import { newLocalFile, reset_canvas } from "../session.js";
+import { newLocalFile } from "../session.js";
 
 function update_magnified_canvas_size() {
 	PaintJSState.$layer_area.css(
@@ -100,7 +92,7 @@ function update_helper_layer(e) {
 let lastTime = 0;
 
 function update_helper_layer_immediately() {
-		window.console.log("Update helper layer NOW");
+	// window.console.log("Update helper layer NOW");
 
 	// [comment] 24.12.28
 	// 아래 코드는 마우스에서 미리 그림 보여주는 위치를 잡는 코드인데, 이게 모바일버전에서 더블터치할때 오류가 생김.

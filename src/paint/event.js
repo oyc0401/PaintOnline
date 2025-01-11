@@ -19,8 +19,6 @@ import {
   paste_image_from_file,
   redo,
   select_all,
-  select_tool,
-  select_tools,
   set_magnification,
   show_error_message,
   show_resource_load_error_message,
@@ -38,7 +36,6 @@ import {
   make_canvas,
   to_canvas_coords,
   to_canvas_coords_magnification,
-  make_css_cursor,
 } from "./src/helpers.js";
 import { rotate } from "./src/image-manipulation.js";
 
@@ -59,7 +56,7 @@ import {
 
 import { PaintJSState } from "./state.js";
 
-import {setDrawEvent} from './event-draw.js';
+import { setDrawEvent } from "./event-draw.js";
 
 const MIN_MAGNIFICATION = 0.12;
 const MAX_MAGNIFICATION = 78;
@@ -93,9 +90,11 @@ export function setEvent() {
 
   copyPasteEvent();
 
-  managePointer();
+  pointerEvent();
 
   setDrawEvent();
+
+  pinchEvent();
 
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
   $(window).on("blur", () => {
@@ -443,7 +442,7 @@ function keyboardEvent() {
       if (PaintJSState.selection) {
         deselect();
       } else {
-         cancel(false, true);
+        cancel(false, true);
       }
     } else if (e.key === "Enter") {
       if (PaintJSState.selection) {
@@ -633,8 +632,7 @@ function keyboardEvent() {
   });
 }
 
-function managePointer() {
-
+function pointerEvent() {
   // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
   $layer_area.on("pointermove", (e) => {
     if (!PaintJSState.init) return;
@@ -655,24 +653,57 @@ function managePointer() {
     deactivateBrushPreview(e);
   });
 
+  // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
+  function setPrimaryPointPosition(e) {
+    // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
+    if (!PaintJSState.pointer_active) {
+      const pointer = to_canvas_coords(e);
 
+      PaintJSState.position_mouse_active = true;
+      PaintJSState.position_mouse_x = pointer.x;
+      PaintJSState.position_mouse_y = pointer.y;
+      return;
+    }
 
-  ////////////////////////////////////
-  // #region Panning and Zooming
+    if (PaintJSState.pointerId === e.pointerId) {
+      // console.log(e.pointerId);
 
+      const pointer = to_canvas_coords(e);
+      PaintJSState.pointer = pointer;
+
+      PaintJSState.position_mouse_active = true;
+      PaintJSState.position_mouse_x = pointer.x;
+      PaintJSState.position_mouse_y = pointer.y;
+    }
+  }
+
+  // 마우스가 캔버스 안에 들어오면 커서 위치에 헬퍼 레이어에 브러시 미리보기 위치 설정
+  function activateBrushPreview(e) {
+    update_helper_layer(e);
+
+    if (!PaintJSState.update_helper_layer_on_pointermove_active) {
+      $(window).on("pointermove", update_helper_layer);
+      PaintJSState.update_helper_layer_on_pointermove_active = true;
+    }
+  }
+
+  // 마우스가 캔버스를 벗어나면 브러시 미리보기 비활성화
+  function deactivateBrushPreview(e) {
+    update_helper_layer(e);
+
+    if (
+      !PaintJSState.pointer_active &&
+      PaintJSState.update_helper_layer_on_pointermove_active
+    ) {
+      $(window).off("pointermove", update_helper_layer);
+      PaintJSState.update_helper_layer_on_pointermove_active = false;
+    }
+  }
+}
+
+function pinchEvent() {
   let last_zoom_pointer_distance;
   let pan_last_pos;
-
-  function average_touches(points) {
-    const average = { x: 0, y: 0 };
-    for (const pointer of points) {
-      average.x += pointer.clientX;
-      average.y += pointer.clientY;
-    }
-    average.x /= points.length;
-    average.y /= points.length;
-    return average;
-  }
 
   PaintJSState.$canvas_area.get(0).addEventListener(
     "touchstart",
@@ -772,62 +803,18 @@ function managePointer() {
       pan_last_pos = current_pos;
     }
   });
-}
 
-
-// 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
-function setPrimaryPointPosition(e) {
-  // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
-  if (!PaintJSState.pointer_active) {
-    const pointer = to_canvas_coords(e);
-
-    PaintJSState.position_mouse_active = true;
-    PaintJSState.position_mouse_x = pointer.x;
-    PaintJSState.position_mouse_y = pointer.y;
-    return;
-  }
-
-  if (PaintJSState.pointerId === e.pointerId) {
-    // console.log(e.pointerId);
-
-    const pointer = to_canvas_coords(e);
-    PaintJSState.pointer = pointer;
-
-    PaintJSState.position_mouse_active = true;
-    PaintJSState.position_mouse_x = pointer.x;
-    PaintJSState.position_mouse_y = pointer.y;
+  function average_touches(points) {
+    const average = { x: 0, y: 0 };
+    for (const pointer of points) {
+      average.x += pointer.clientX;
+      average.y += pointer.clientY;
+    }
+    average.x /= points.length;
+    average.y /= points.length;
+    return average;
   }
 }
-
-// 마우스가 캔버스 안에 들어오면 커서 위치에 헬퍼 레이어에 브러시 미리보기 위치 설정
-function activateBrushPreview(e) {
-  update_helper_layer(e);
-
-  if (!PaintJSState.update_helper_layer_on_pointermove_active) {
-    $(window).on("pointermove", update_helper_layer);
-    PaintJSState.update_helper_layer_on_pointermove_active = true;
-  }
-}
-
-// 마우스가 캔버스를 벗어나면 브러시 미리보기 비활성화
-function deactivateBrushPreview(e) {
-  update_helper_layer(e);
-
-  if (
-    !PaintJSState.pointer_active &&
-    PaintJSState.update_helper_layer_on_pointermove_active
-  ) {
-    $(window).off("pointermove", update_helper_layer);
-    PaintJSState.update_helper_layer_on_pointermove_active = false;
-  }
-}
-
-
-
-
-
-
-
 
 // #endregion
 export function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
@@ -899,5 +886,3 @@ export function tool_go(selected_tool, event_name) {
     );
   }
 }
-
-
