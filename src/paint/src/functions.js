@@ -100,7 +100,7 @@ function update_helper_layer(e) {
 let lastTime = 0;
 
 function update_helper_layer_immediately() {
-	//	window.console?.log("Update helper layer NOW");
+		window.console.log("Update helper layer NOW");
 
 	// [comment] 24.12.28
 	// 아래 코드는 마우스에서 미리 그림 보여주는 위치를 잡는 코드인데, 이게 모바일버전에서 더블터치할때 오류가 생김.
@@ -786,10 +786,9 @@ function open_from_image_info(info) {
 			// 히스토리를 현재 레이어로 초기화
 			reset_history();
 
-			
 			$(window).triggerHandler("resize"); // 확대 설정
 			$(window).triggerHandler("session-update"); // 저장
-			
+
 			if (info.source_blob instanceof File) {
 				PaintJSState.file_name = info.source_blob.name;
 				PaintJSState.system_file_handle = info.source_blob.path;
@@ -1622,57 +1621,26 @@ function cancel(going_to_history_node, discard_document_state) {
 		return;
 	}
 
-	// For two finger panning, I want to prevent history nodes from being created,
-	// for performance, and to avoid cluttering the history.
-	// (And also so if you undo and then pan, you can still redo (without accessing the nonlinear history window).)
-	// Most tools create undoables on pointerup, in which case we can prevent them from being created,
-	// but Fill tool creates on pointerdown, so we need to delete a history node in that case.
-	// Select tool can create multiple undoables before being cancelled (for moving/resizing/inverting/smearing),
-	// but only the last should be discarded due to panning. (All of them should be undone you hit Esc. But not deleted.)
-	const history_node_to_discard =
-		discard_document_state &&
-		PaintJSState.current_history_node.parent && // can't discard the root node
-		PaintJSState.current_history_node !==
-			PaintJSState.history_node_to_cancel_to && // can't discard what will be the active node
-		PaintJSState.current_history_node.futures.length === 0 // prevent discarding whole branches of history if you go back in history and then pan / hit Esc
-			? PaintJSState.current_history_node
-			: null;
+	const history_node_to_cancel_to = PaintJSState.history_node_to_cancel_to;
 
-	// console.log("history_node_to_discard", history_node_to_discard, "PaintJSState.current_history_node", PaintJSState.current_history_node, "PaintJSState.history_node_to_cancel_to", PaintJSState.history_node_to_cancel_to);
+	PaintJSState.cancel = true;
 
-	// PaintJSState.history_node_to_cancel_to = PaintJSState.history_node_to_cancel_to || PaintJSState.current_history_node;
-	$(window).triggerHandler("pointerup", ["canceling", discard_document_state]);
+	// PaintJSState.cancel이면 그리지 않음
+	$(window).triggerHandler("pointerup"); // 여기서 history_node_to_cancel_to = null; 해버림
+	PaintJSState.history_node_to_cancel_to = history_node_to_cancel_to;
+
+	console.log("after pointup!");
 	for (const selected_tool of PaintJSState.selected_tools) {
 		selected_tool.cancel?.();
 	}
-	if (!going_to_history_node) {
-		// Note: this will revert any changes from other users in multi-user sessions
-		// which isn't good, but there's no real conflict resolution in multi-user mode anyways
-		go_to_history_node(PaintJSState.history_node_to_cancel_to, true);
 
-		if (history_node_to_discard) {
-			const index = history_node_to_discard.parent.futures.indexOf(
-				history_node_to_discard,
-			);
-			if (index === -1) {
-				show_error_message("History node not found. Please report this bug.");
-				console.log("history_node_to_discard", history_node_to_discard);
-				console.log(
-					"PaintJSState.current_history_node",
-					PaintJSState.current_history_node,
-				);
-				console.log(
-					"history_node_to_discard.parent",
-					history_node_to_discard.parent,
-				);
-			} else {
-				history_node_to_discard.parent.futures.splice(index, 1);
-				$(window).triggerHandler("history-update"); // update history view (don't want you to be able to click on the excised node)
-				// (@TODO: prevent duplicate update, here vs go_to_history_node)
-			}
-		}
+	console.log("after tool.cancel!");
+	if (!going_to_history_node) {
+		go_to_history_node(PaintJSState.history_node_to_cancel_to, true);
 	}
+
 	PaintJSState.history_node_to_cancel_to = null;
+	PaintJSState.cancel = false;
 	update_helper_layer();
 }
 /**
@@ -2243,7 +2211,7 @@ function select_tool(tool, toggle) {
 	// // $toolbox2.update_selected_tool();
 }
 
-function resize_canvas(width,height){
+function resize_canvas(width, height) {
 	const beforeWidth = PaintJSState.main_canvas.width;
 	const beforeHeight = PaintJSState.main_canvas.height;
 
@@ -2254,12 +2222,7 @@ function resize_canvas(width,height){
 	for (const layer of PaintJSState.layers) {
 		const canvas = layer.canvas;
 		const ctx = canvas.ctx;
-		const image_data = ctx.getImageData(
-			0,
-			0,
-			beforeWidth,
-			beforeHeight,
-		);
+		const image_data = ctx.getImageData(0, 0, beforeWidth, beforeHeight);
 
 		// 캔버스 초기화
 		canvas.width = width;
@@ -2304,7 +2267,7 @@ function resize_canvas_without_saving_dimensions(
 			},
 			() => {
 				try {
-					resize_canvas(new_width,new_height)
+					resize_canvas(new_width, new_height);
 				} catch (exception) {
 					if (exception.name === "NS_ERROR_FAILURE") {
 						// or localize("There is not enough memory or resources to complete operation.")

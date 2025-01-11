@@ -59,6 +59,8 @@ import {
 
 import { PaintJSState } from "./state.js";
 
+import {setDrawEvent} from './event-draw.js';
+
 const MIN_MAGNIFICATION = 0.12;
 const MAX_MAGNIFICATION = 78;
 
@@ -93,9 +95,33 @@ export function setEvent() {
 
   managePointer();
 
+  setDrawEvent();
+
   // Stop drawing (or dragging or whatever) if you Alt+Tab or whatever
   $(window).on("blur", () => {
     $(window).triggerHandler("pointerup");
+  });
+
+  $canvas_area.get(0).addEventListener("pointerdown", (event) => {
+    if (
+      document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
+      document.activeElement !== document.body &&
+      document.activeElement !== document.documentElement
+    ) {
+      // Allow unfocusing dialogs etc. in order to use keyboard shortcuts
+      document.activeElement.blur();
+    }
+  });
+
+  // 외부 누르면 선택창꺼지기
+  $canvas_area.on("pointerdown", (e) => {
+    if (e.button === 0) {
+      if ($canvas_area.is(e.target) && !PaintJSState.pinchAllowed) {
+        if (PaintJSState.selection) {
+          deselect();
+        }
+      }
+    }
   });
 
   // #region Fullscreen Handling for iOS
@@ -417,7 +443,7 @@ function keyboardEvent() {
       if (PaintJSState.selection) {
         deselect();
       } else {
-        cancel();
+         cancel(false, true);
       }
     } else if (e.key === "Enter") {
       if (PaintJSState.selection) {
@@ -608,435 +634,200 @@ function keyboardEvent() {
 }
 
 function managePointer() {
-  // #region Palette Updating From Theme
-
-  ////////////////////////////////////
-  // #region Primary Canvas Interaction
-  function tool_go(selected_tool, event_name) {
-    //  console.warn("tool_go!");
-    update_fill_and_stroke_colors_and_lineWidth(selected_tool);
-
-    if (selected_tool[event_name]) {
-      selected_tool[event_name](
-        PaintJSState.main_ctx,
-        PaintJSState.pointer.x,
-        PaintJSState.pointer.y,
-      );
-    }
-    if (selected_tool.paint) {
-      selected_tool.paint(
-        PaintJSState.main_ctx,
-        PaintJSState.pointer.x,
-        PaintJSState.pointer.y,
-      );
-    }
-  }
-
-  function canvas_pointer_move(e) {
-    // ---- [중요 수정 1] pointer_active가 아니면 바로 return → 그림 안 그려짐
-    if (!PaintJSState.pointer_active) {
-      return;
-    }
-
-    PaintJSState.ctrl = e.ctrlKey;
-    PaintJSState.shift = e.shiftKey;
-
-    // Quick Undo (for mouse/pen)
-    if (PaintJSState.touchCount && e.button !== -1) {
-      const MMB = 4;
-      if (
-        e.pointerType !== PaintJSState.pointer_type ||
-        (e.buttons | MMB) !== (PaintJSState.pointer_buttons | MMB)
-      ) {
-        cancel();
-        PaintJSState.pointer_active = false;
-        return;
-      }
-    }
-
-    // SHIFT 스냅(도형 그리기) 로직 (원본 코드와 동일)
-    if (e.shiftKey) {
-      if (
-        PaintJSState.selected_tool.id === TOOL_LINE ||
-        PaintJSState.selected_tool.id === TOOL_CURVE
-      ) {
-        const dist = Math.hypot(
-          PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-          PaintJSState.pointer.x - PaintJSState.pointer_start.x,
-        );
-        const eighth_turn = TAU / 8;
-        const angle_0_to_8 =
-          Math.atan2(
-            PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-            PaintJSState.pointer.x - PaintJSState.pointer_start.x,
-          ) / eighth_turn;
-        const angle = Math.round(angle_0_to_8) * eighth_turn;
-        PaintJSState.pointer.x = Math.round(
-          PaintJSState.pointer_start.x + Math.cos(angle) * dist,
-        );
-        PaintJSState.pointer.y = Math.round(
-          PaintJSState.pointer_start.y + Math.sin(angle) * dist,
-        );
-      } else if (PaintJSState.selected_tool.shape) {
-        const w = Math.abs(
-          PaintJSState.pointer.x - PaintJSState.pointer_start.x,
-        );
-        const h = Math.abs(
-          PaintJSState.pointer.y - PaintJSState.pointer_start.y,
-        );
-        if (w < h) {
-          if (PaintJSState.pointer.y > PaintJSState.pointer_start.y) {
-            PaintJSState.pointer.y = PaintJSState.pointer_start.y + w;
-          } else {
-            PaintJSState.pointer.y = PaintJSState.pointer_start.y - w;
-          }
-        } else {
-          if (PaintJSState.pointer.x > PaintJSState.pointer_start.x) {
-            PaintJSState.pointer.x = PaintJSState.pointer_start.x + h;
-          } else {
-            PaintJSState.pointer.x = PaintJSState.pointer_start.x - h;
-          }
-        }
-      }
-    }
-
-    // 실제 도구 paint
-    PaintJSState.selected_tools.forEach((selected_tool) => {
-      tool_go(selected_tool);
-    });
-
-    PaintJSState.pointer_previous = PaintJSState.pointer;
-  }
 
   // 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
-  function setPrimaryPointPosition(e) {
-    // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
-    if (!PaintJSState.pointer_active) {
-      const pointer = to_canvas_coords(e);
-
-      PaintJSState.position_mouse_active = true;
-      PaintJSState.position_mouse_x = pointer.x;
-      PaintJSState.position_mouse_y = pointer.y;
-      return;
-    }
-
-    if (PaintJSState.pointerId === e.pointerId) {
-      // console.log(e.pointerId);
-
-      const pointer = to_canvas_coords(e);
-      PaintJSState.pointer = pointer;
-
-      PaintJSState.position_mouse_active = true;
-      PaintJSState.position_mouse_x = pointer.x;
-      PaintJSState.position_mouse_y = pointer.y;
-    }
-  }
-
   $layer_area.on("pointermove", (e) => {
     if (!PaintJSState.init) return;
-
     setPrimaryPointPosition(e);
   });
 
-  // 마우스가 캔버스 안에 들어오면 커서위치에 헬퍼레이어에 브러쉬 미리보기 위치 잡는거
-  function updateBrushPreview(e) {
-    PaintJSState.pointer_over_canvas = true;
-    update_helper_layer(e);
-
-    if (!PaintJSState.update_helper_layer_on_pointermove_active) {
-      $(window).on("pointermove", update_helper_layer);
-      PaintJSState.update_helper_layer_on_pointermove_active = true;
-    }
-  }
-
-  function disableBrushPreview(e) {
-    PaintJSState.pointer_over_canvas = false;
-    update_helper_layer(e);
-
-    if (
-      !PaintJSState.pointer_active &&
-      PaintJSState.update_helper_layer_on_pointermove_active
-    ) {
-      $(window).off("pointermove", update_helper_layer);
-      PaintJSState.update_helper_layer_on_pointermove_active = false;
-    }
-  }
-
+  // 마우스가 캔버스 안에 들어오면 커서 위치에 헬퍼 레이어에 브러시 미리보기 위치 설정
   $layer_area.on("pointerenter", (e) => {
     if (!PaintJSState.init) return;
-    updateBrushPreview(e);
+    PaintJSState.pointer_over_canvas = true;
+    activateBrushPreview(e);
   });
 
+  // 마우스가 캔버스를 벗어나면 브러시 미리보기 비활성화
   $layer_area.on("pointerleave", (e) => {
     if (!PaintJSState.init) return;
-    disableBrushPreview(e);
+    PaintJSState.pointer_over_canvas = false;
+    deactivateBrushPreview(e);
   });
+
+
 
   ////////////////////////////////////
   // #region Panning and Zooming
 
-  $canvas_area.get(0).addEventListener("pointerdown", (event) => {
-    if (
-      document.activeElement instanceof HTMLElement && // exists and (for type checker:) has blur()
-      document.activeElement !== document.body &&
-      document.activeElement !== document.documentElement
-    ) {
-      // Allow unfocusing dialogs etc. in order to use keyboard shortcuts
-      document.activeElement.blur();
-    }
-  });
-
   let last_zoom_pointer_distance;
   let pan_last_pos;
 
-  function touchEventSetting() {
-    function average_touches(points) {
-      const average = { x: 0, y: 0 };
-      for (const pointer of points) {
-        average.x += pointer.clientX;
-        average.y += pointer.clientY;
-      }
-      average.x /= points.length;
-      average.y /= points.length;
-      return average;
+  function average_touches(points) {
+    const average = { x: 0, y: 0 };
+    for (const pointer of points) {
+      average.x += pointer.clientX;
+      average.y += pointer.clientY;
     }
+    average.x /= points.length;
+    average.y /= points.length;
+    return average;
+  }
 
-    PaintJSState.$canvas_area.get(0).addEventListener(
-      "touchstart",
-      (event) => {
-        console.log("$canvas_area.touchstart - captured");
+  PaintJSState.$canvas_area.get(0).addEventListener(
+    "touchstart",
+    (event) => {
+      console.log("$canvas_area.touchstart - captured");
 
-        if (event.touches.length === 1) {
-          PaintJSState.first_pointer_time = performance.now();
-        }
-        if (event.touches.length === 2) {
-          last_zoom_pointer_distance = Math.hypot(
-            event.touches[0].clientX - event.touches[1].clientX,
-            event.touches[0].clientY - event.touches[1].clientY,
-          );
-
-          pan_last_pos = average_touches(event.touches);
-        }
-
-        if (event.touches.length == 2) {
-          const elapsed = performance.now() - PaintJSState.first_pointer_time;
-
-          // 일정시간 이내에 그리면 지우기
-          if (elapsed <= PaintJSState.discard_quick_undo_period) {
-            $(window).trigger("touchend");
-
-            // 500ms 이내 => 그림 cancel + pinchAllowed = true
-            cancel(false, true);
-          }
-          $(window).trigger("pointerup");
-          console.log("두손가락이면 핀치줌 허용");
-          // 그림그리기 완료
-          // pinchAllowed가 false일때만 그리기 완료됌..
-
-          PaintJSState.pointer_active = false;
-          // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
-          // 핀치 줌은 허용
-          PaintJSState.pinchAllowed = true;
-        }
-      },
-      true,
-    );
-
-    $(window).on("touchend", (event) => {
-      console.log("touchend");
-
-      // // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
-      if (event.touches === undefined || event.touches.length < 2) {
-        PaintJSState.pinchAllowed = false;
+      if (event.touches.length === 1) {
+        PaintJSState.first_pointer_time = performance.now();
       }
-    });
-
-    $(window).on("touchmove", (event) => {
-      if (PaintJSState.pinchAllowed) {
-        const current_pos = average_touches(event.touches);
-        const distance = Math.hypot(
+      if (event.touches.length === 2) {
+        last_zoom_pointer_distance = Math.hypot(
           event.touches[0].clientX - event.touches[1].clientX,
           event.touches[0].clientY - event.touches[1].clientY,
         );
 
-        // (A) 배율 계산
-        const scaleFactor = distance / last_zoom_pointer_distance;
-        let new_magnification = PaintJSState.magnification * scaleFactor;
-
-        last_zoom_pointer_distance = distance;
-
-        const clamped_magnification = Math.min(
-          MAX_MAGNIFICATION,
-          Math.max(MIN_MAGNIFICATION, new_magnification),
-        );
-        set_magnification(
-          clamped_magnification,
-          to_canvas_coords_magnification({
-            clientX: current_pos.x,
-            clientY: current_pos.y,
-          }),
-        );
-
-        const dx = pan_last_pos.x - current_pos.x;
-        const dy = pan_last_pos.y - current_pos.y;
-        const dpr = devicePixelRatio;
-
-        // 스크롤을 할때 브라우저는 1만큼 이동하라고 시켰으면 실제론 1*dpr를 계산하고. 이를 내림한 값을 브라우저에 저장한다.
-        // 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고.
-        // scrollLeft()는 2/2.6 = 0.7692가 된다. 실제와 약 23%나 차이나는 것이다.
-        // 이것이 프레임당 지속되면 누적이되어 크게 차이난다. 평균 (-0.5,-0.5) 만큼의 차이가 나므로 1초에 30픽셀만큼 오차가 생긴다.
-        // 반올림 하면 오차를 반으로 줄일 수 있지만 완벽히 오차를 제거한 것은 아니다.
-
-        // scaleFactor를 곱해야 제대로 되는것 같은데..?
-        // 확대를 하기 전 거리기준이었으니깐 확대를 반영한 거리만큼 움직여야겠지..?
-        // 계산해보면 그것도 아닌데..?
-
-        PaintJSState.$canvas_area[0].scrollBy({
-          left: Math.round(dx * scaleFactor * dpr) / dpr,
-          top: Math.round(dy * scaleFactor * dpr) / dpr,
-        });
-
-        pan_last_pos = current_pos;
+        pan_last_pos = average_touches(event.touches);
       }
-    });
-  }
-  touchEventSetting();
-  // #endregion
 
-  ////////////////////////////////////
-  // #region Primary Canvas Interaction (continued)
+      if (event.touches.length == 2) {
+        const elapsed = performance.now() - PaintJSState.first_pointer_time;
 
-  $layer_area.on("pointerdown", (e) => {
-    console.log("$canvas.pointerdown");
-    if (!PaintJSState.init) {
-      return;
-    }
-    PaintJSState.position_object_active = false;
-    update_canvas_rect();
+        // 일정시간 이내에 그리면 지우기
+        if (elapsed <= PaintJSState.discard_quick_undo_period) {
+          $(window).trigger("touchend");
 
-    const elapsed = performance.now() - PaintJSState.first_pointer_time;
-
-    // "pointer_active가 없으면" => 첫 번째 포인터로 간주  // 이였는데, 2개캡쳐되면 알아서 pointer_active를 false로 바꿈.
-    // 그래서 pinchAllowed인지도 같이 감지함
-    //그러면 !PaintJSState.pointer_active 이거 빼도 되지 않으려나?
-    // 그러면 안돼 왜나면 다른곳을 클릭하고 캔버스를 클릭하면 정상작동해야해
-    if (!PaintJSState.pointer_active && !PaintJSState.pinchAllowed) {
-      console.log("첫 번째 터치로 그림 시작:", e.pointerId);
-      PaintJSState.pointer_active = true;
-      PaintJSState.pointerId = e.pointerId;
-      PaintJSState.pinchAllowed = false; // 초기값 false
-    } else {
-      console.log("두 번째 터치 무시");
-      return;
-    }
-
-    // ------ 첫 번째 포인터로 그림 그리는 로직 ------
-    PaintJSState.history_node_to_cancel_to = PaintJSState.current_history_node;
-    PaintJSState.pointer_type = e.pointerType;
-    PaintJSState.pointer_buttons = e.buttons;
-
-    // pointerup 핸들러
-    const pointerUpHandler = (eUp, canceling, no_undoable) => {
-      PaintJSState.pointer_active = false;
-      update_helper_layer(eUp);
-
-      if (
-        !PaintJSState.pointer_over_canvas &&
-        PaintJSState.update_helper_layer_on_pointermove_active
-      ) {
-        $(window).off("pointermove", update_helper_layer);
-        PaintJSState.update_helper_layer_on_pointermove_active = false;
-      }
-      $(window).off("pointerup pointercancel", pointerUpHandler);
-    };
-
-    $(window).on("pointerup pointercancel", pointerUpHandler);
-    // </ pointerup 핸들러>
-
-    if (e.button === 0) {
-      PaintJSState.reverse = false;
-    } else if (e.button === 2) {
-      PaintJSState.reverse = true;
-    } else {
-      return;
-    }
-
-    // 초기화
-    //console.log("포인터 초기화");
-    PaintJSState.button = e.button;
-    PaintJSState.ctrl = e.ctrlKey;
-    PaintJSState.shift = e.shiftKey;
-    PaintJSState.pointer_start =
-      PaintJSState.pointer_previous =
-      PaintJSState.pointer =
-        to_canvas_coords(e);
-
-    // 실제 펜/브러시/도구 pointerdown_action
-    const pointerdown_action = () => {
-      // let interval_ids = [];
-      PaintJSState.selected_tools.forEach((selected_tool) => {
-        if (selected_tool.paint || selected_tool.pointerdown) {
-          tool_go(selected_tool, "pointerdown");
+          // 500ms 이내 => 그림 cancel + pinchAllowed = true
+          cancel(false, true);
         }
+        $(window).trigger("pointerup");
+        console.log("두손가락이면 핀치줌 허용");
+        // 그림그리기 완료
+        // pinchAllowed가 false일때만 그리기 완료됌..
+
+        PaintJSState.pointer_active = false;
+        // ---- [중요 수정 2] 그림 그리기를 중단하려면 pointer_active = false
+        // 핀치 줌은 허용
+        PaintJSState.pinchAllowed = true;
+      }
+    },
+    true,
+  );
+
+  $(window).on("touchend", (event) => {
+    console.log("touchend");
+
+    // // 핀치줌을 하다가 떼면 핀치줌 꺼지게 하기
+    if (event.touches === undefined || event.touches.length < 2) {
+      PaintJSState.pinchAllowed = false;
+    }
+  });
+
+  $(window).on("touchmove", (event) => {
+    if (PaintJSState.pinchAllowed) {
+      const current_pos = average_touches(event.touches);
+      const distance = Math.hypot(
+        event.touches[0].clientX - event.touches[1].clientX,
+        event.touches[0].clientY - event.touches[1].clientY,
+      );
+
+      // (A) 배율 계산
+      const scaleFactor = distance / last_zoom_pointer_distance;
+      let new_magnification = PaintJSState.magnification * scaleFactor;
+
+      last_zoom_pointer_distance = distance;
+
+      const clamped_magnification = Math.min(
+        MAX_MAGNIFICATION,
+        Math.max(MIN_MAGNIFICATION, new_magnification),
+      );
+      set_magnification(
+        clamped_magnification,
+        to_canvas_coords_magnification({
+          clientX: current_pos.x,
+          clientY: current_pos.y,
+        }),
+      );
+
+      const dx = pan_last_pos.x - current_pos.x;
+      const dy = pan_last_pos.y - current_pos.y;
+      const dpr = devicePixelRatio;
+
+      // 스크롤을 할때 브라우저는 1만큼 이동하라고 시켰으면 실제론 1*dpr를 계산하고. 이를 내림한 값을 브라우저에 저장한다.
+      // 따라서 1을 움직이라고 했을 때 dpr이 2.6이라면 실제로는 floor(1*2.6)을 한 2만큼 스크롤이 움직인다고 여기고.
+      // scrollLeft()는 2/2.6 = 0.7692가 된다. 실제와 약 23%나 차이나는 것이다.
+      // 이것이 프레임당 지속되면 누적이되어 크게 차이난다. 평균 (-0.5,-0.5) 만큼의 차이가 나므로 1초에 30픽셀만큼 오차가 생긴다.
+      // 반올림 하면 오차를 반으로 줄일 수 있지만 완벽히 오차를 제거한 것은 아니다.
+
+      // scaleFactor를 곱해야 제대로 되는것 같은데..?
+      // 확대를 하기 전 거리기준이었으니깐 확대를 반영한 거리만큼 움직여야겠지..?
+      // 계산해보면 그것도 아닌데..?
+
+      PaintJSState.$canvas_area[0].scrollBy({
+        left: Math.round(dx * scaleFactor * dpr) / dpr,
+        top: Math.round(dy * scaleFactor * dpr) / dpr,
       });
 
-      $(window).on("pointermove", canvas_pointer_move);
-
-      // 툴별 pointerup
-      const toolPointUp = (eUp, canceling, no_undoable) => {
-        PaintJSState.button = undefined;
-        PaintJSState.reverse = false;
-
-        if (eUp.clientX !== undefined) {
-          if (PaintJSState.pointerId === eUp.pointerId) {
-            // PaintJSState.pointer = to_canvas_coords(eUp);
-          }
-        }
-        //console.log('toolPointUp', eUp.pointerId,PaintJSState.pinchAllowed);
-
-        PaintJSState.selected_tools.forEach((selected_tool) => {
-          selected_tool.pointerup?.(
-            PaintJSState.main_ctx,
-            PaintJSState.pointer.x,
-            PaintJSState.pointer.y,
-          );
-        });
-
-        if (PaintJSState.selected_tools.length === 1) {
-          if (PaintJSState.selected_tool.deselect) {
-            select_tools(PaintJSState.return_to_tools);
-          }
-        }
-
-        $(window).off("pointermove", canvas_pointer_move);
-        // for (const interval_id of interval_ids) {
-        //   clearInterval(interval_id);
-        // }
-        if (!canceling) {
-          PaintJSState.history_node_to_cancel_to = null;
-        }
-        $(window).off("pointerup pointercancel", toolPointUp);
-      };
-
-      $(window).on("pointerup pointercancel", toolPointUp);
-    };
-
-    pointerdown_action();
-    update_helper_layer(e);
-  });
-
-  // 외부 누르면 선택창꺼지기
-  $canvas_area.on("pointerdown", (e) => {
-    if (e.button === 0) {
-      if ($canvas_area.is(e.target) && !PaintJSState.pinchAllowed) {
-        if (PaintJSState.selection) {
-          deselect();
-        }
-      }
+      pan_last_pos = current_pos;
     }
   });
-  // #endregion
 }
+
+
+// 현재 그림을 그리는 중 이면 포인터의 위치를 설정한다.
+function setPrimaryPointPosition(e) {
+  // ---- [중요 수정 1과 동일한 원리] pointer_active 아닌데 $canvas의 pointermove가 들어오면 그림 안 그리도록
+  if (!PaintJSState.pointer_active) {
+    const pointer = to_canvas_coords(e);
+
+    PaintJSState.position_mouse_active = true;
+    PaintJSState.position_mouse_x = pointer.x;
+    PaintJSState.position_mouse_y = pointer.y;
+    return;
+  }
+
+  if (PaintJSState.pointerId === e.pointerId) {
+    // console.log(e.pointerId);
+
+    const pointer = to_canvas_coords(e);
+    PaintJSState.pointer = pointer;
+
+    PaintJSState.position_mouse_active = true;
+    PaintJSState.position_mouse_x = pointer.x;
+    PaintJSState.position_mouse_y = pointer.y;
+  }
+}
+
+// 마우스가 캔버스 안에 들어오면 커서 위치에 헬퍼 레이어에 브러시 미리보기 위치 설정
+function activateBrushPreview(e) {
+  update_helper_layer(e);
+
+  if (!PaintJSState.update_helper_layer_on_pointermove_active) {
+    $(window).on("pointermove", update_helper_layer);
+    PaintJSState.update_helper_layer_on_pointermove_active = true;
+  }
+}
+
+// 마우스가 캔버스를 벗어나면 브러시 미리보기 비활성화
+function deactivateBrushPreview(e) {
+  update_helper_layer(e);
+
+  if (
+    !PaintJSState.pointer_active &&
+    PaintJSState.update_helper_layer_on_pointermove_active
+  ) {
+    $(window).off("pointermove", update_helper_layer);
+    PaintJSState.update_helper_layer_on_pointermove_active = false;
+  }
+}
+
+
+
+
+
+
+
 
 // #endregion
 export function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
@@ -1088,3 +879,25 @@ export function update_fill_and_stroke_colors_and_lineWidth(selected_tool) {
   }
   PaintJSState.pick_color_slot = fill_color_k;
 }
+
+export function tool_go(selected_tool, event_name) {
+  //  console.warn("tool_go!");
+  update_fill_and_stroke_colors_and_lineWidth(selected_tool);
+
+  if (selected_tool[event_name]) {
+    selected_tool[event_name](
+      PaintJSState.main_ctx,
+      PaintJSState.pointer.x,
+      PaintJSState.pointer.y,
+    );
+  }
+  if (selected_tool.paint) {
+    selected_tool.paint(
+      PaintJSState.main_ctx,
+      PaintJSState.pointer.x,
+      PaintJSState.pointer.y,
+    );
+  }
+}
+
+
