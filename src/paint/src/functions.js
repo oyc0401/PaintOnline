@@ -878,41 +878,32 @@ async function confirm_overwrite_capability() {
 // 저장
 function file_save() {
 	deselect();
-	// // store and use file handle at this point in time, to avoid race conditions
-	// const save_file_handle = PaintJSState.system_file_handle;
-	// if (!save_file_handle || PaintJSState.file_name.match(/\.(svg|pdf)$/i)) {
-	// 	return file_save_as(maybe_saved_callback, update_from_saved);
-	// }
-	saveCanvasAsPng(PaintJSState.main_canvas, localize("untitled"));
+
+	saveLayer(PaintJSState.layers, localize("untitled"));
 	return;
-	// write_image_file(
-	// 	PaintJSState.main_canvas,
-	// 	PaintJSState.file_format,
-	// 	async (blob) => {
-	// 		// An error may be shown by `systemHooks.writeBlobToHandle`,
-	// 		// or it may be unknown whether the save will succeed,
-	// 		// so for now: true means definite success, false means failure or cancelation, and undefined means it's unknown.
-	// 		const success = await systemHooks.writeBlobToHandle(
-	// 			save_file_handle,
-	// 			blob,
-	// 		);
-	// 		// When using a file download, where it's unknown whether the save will succeed,
-	// 		// we don't want to mark the file as saved, as it would prevent the user from retrying the save.
-	// 		// So only mark the file as saved if it's definite.
-	// 		if (success === true) {
-	// 			PaintJSState.saved = true;
-	// 			update_title();
-	// 		}
-	// 		// However, we can still apply format-specific color reduction to the canvas,
-	// 		// and call the "maybe saved" callback, which, as the name implies, is intended to handle the uncertainty.
-	// 		if (success !== false) {
-	// 			if (update_from_saved) {
-	// 				update_from_saved_file(blob);
-	// 			}
-	// 			maybe_saved_callback();
-	// 		}
-	// 	},
-	// );
+}
+
+function saveLayer(layers, name) {
+	const length = layers.length;
+	const topCanvas = layers[length - 1].canvas;
+	const canvas = make_canvas(topCanvas.width, topCanvas.height);
+
+	for (const layer of layers) {
+		canvas.ctx.drawImage(layer.canvas, 0, 0);
+	}
+
+	canvas.toBlob((blob) => {
+		if (blob) {
+			const a = document.createElement("a");
+			const url = URL.createObjectURL(blob);
+			a.href = url;
+			a.download = `${name}.png`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} else {
+			console.error("Failed to create PNG blob.");
+		}
+	}, "image/png");
 }
 
 function saveCanvasAsPng(canvas, name) {
