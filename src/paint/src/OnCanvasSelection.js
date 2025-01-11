@@ -105,7 +105,7 @@ class OnCanvasSelection extends OnCanvasObject {
 			this.handles = new Handles({
 				$handles_container: this.$el,
 				$object_container: PaintJSState.$canvas_area,
-				outset: 2,
+				outset: 3,
 				get_rect: () => ({
 					x: this.x,
 					y: this.y,

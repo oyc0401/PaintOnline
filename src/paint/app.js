@@ -37,7 +37,7 @@ export async function initApp(canvasAreaQuery) {
     }),
     set_rect: ({ width, height }) =>
       resize_canvas_and_save_dimensions(width, height),
-    outset: 4,
+    outset: 3,
     get_handles_offset_left: () =>
       parseFloat($canvas_area.css("padding-left")) + 1,
     get_handles_offset_top: () =>

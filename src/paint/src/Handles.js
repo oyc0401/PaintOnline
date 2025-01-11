@@ -2,42 +2,7 @@ console.log('JS 실행:','Hendles.js')
 import $ from 'jquery'
 import {  E, make_css_cursor, to_canvas_coords } from "./helpers.js";
 import {PaintJSState} from '../state';
-// import $ from 'jquery'
-/**
- * Handles for resizable, draggable, on-canvas objects.
- * @param {object} options
- * @param {JQuery} options.$handles_container
- * @param {JQuery} options.$object_container
- * @param {number} [options.outset=0]
- * @param {() => number} [options.get_handles_offset_left=() => 0]
- * @param {() => number} [options.get_handles_offset_top=() => 0]
- * @param {() => number} [options.get_ghost_offset_left=() => 0]
- * @param {() => number} [options.get_ghost_offset_top=() => 0]
- * @param {boolean} [options.size_only=false]
- * @param {() => { x: number, y: number, width: number, height: number }} options.get_rect
- * @param {(rect: { x: number, y: number, width: number, height: number }) => void} options.set_rect
- * @param {(rect: { x: number, y: number, width: number, height: number }, x_axis: -1 | 0 | 1, y_axis: -1 | 0 | 1) => { x: number, y: number, width: number, height: number }} [options.constrain_rect]
- * @param {boolean} [options.thick]
- * @constructor
- * @property {HTMLElement[]} handles
- * @property {() => void} hide
- * @property {() => void} show
- * @property {HTMLElement[]} handles
- */
-// function roundDPR(dpr) {
-// 	const values = [0.25, 0.5, 1, 2, 4, 8, 16]; // 필요에 따라 확장 가능
-// 	let closest = values[0];
 
-// 	for (let i = 1; i < values.length; i++) {
-// 		if (Math.abs(dpr - values[i]) < Math.abs(dpr - closest)) {
-// 			closest = values[i];
-// 		}
-// 	}
-
-// 	return closest;
-// }
-
-//is_canvas
 
 function Handles(options) {
 	console.log('is_canvas:',options.is_canvas)
@@ -229,7 +194,10 @@ function Handles(options) {
 			const rect = options.get_rect();
 			//rect.width *= div;
 			//rect.height *= div
-			const hs = $h.width();
+			//const hs = $h.width();
+			const hs = 5;
+			//console.log('$h', $h.width())
+			//hs=5;
 			// const x = rect.x + get_handles_offset_left();
 			// const y = rect.y + get_handles_offset_top();
 			const x = get_handles_offset_left();
@@ -239,6 +207,7 @@ function Handles(options) {
 				{ len_key: "width", pos_key: "left", region: x_axis, offset: x },
 				{ len_key: "height", pos_key: "top", region: y_axis, offset: y },
 			]) {
+			
 				let middle_start = Math.max(
 					rect[len_key] * PaintJSState.magnification / 2 - grab_size / 2,
 					Math.min(
@@ -272,6 +241,7 @@ function Handles(options) {
 						[len_key]: start_end - start_start,
 					});
 				} else if (region === HANDLE_MIDDLE) {
+					
 					$h.css({ [pos_key]: offset + (rect[len_key] * PaintJSState.magnification - hs) / 2 });
 					$grab_region.css({
 						[pos_key]: offset + middle_start,
