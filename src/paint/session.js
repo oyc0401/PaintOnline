@@ -184,7 +184,7 @@ async function saveFileImmediately() {
       }
     }
 
-    // await layerRepository.setLayers(currentPaintId, layerList);
+    await layerRepository.setLayers(currentPaintId, layerList);
 
     console.warn("Paint saved. paintId =", currentPaintId);
   } catch (error) {
