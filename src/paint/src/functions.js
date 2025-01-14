@@ -432,13 +432,19 @@ export function reset_history() {
 	let layers = [];
 	for (let i = 0; i < PaintJSState.layers.length; i++) {
 		const layer = PaintJSState.layers[i];
-		const image_data = layer.ctx.getImageData(
-			0,
-			0,
+
+		// 오프스크린 캔버스 생성
+		const offscreenCanvas = new OffscreenCanvas(
 			layer.canvas.width,
 			layer.canvas.height,
 		);
-		layers.push({ image_data, id: layer.layerId, name: layer.name });
+		const offscreenCtx = offscreenCanvas.getContext("2d");
+		offscreenCanvas.ctx = offscreenCtx;
+		
+		// 메인 캔버스 내용을 오프스크린 캔버스로 복사
+		offscreenCtx.drawImage(layer.canvas, 0, 0);
+
+		layers.push({ offscreenCanvas, id: layer.layerId, name: layer.name });
 	}
 	PaintJSState.current_history_node.layers = layers;
 
@@ -1350,7 +1356,7 @@ function paste(img_or_canvas) {
 	PaintJSState.$canvas_area.trigger("resize"); // already taken care of by resize_canvas_and_save_dimensions? or does this hide the main canvas handles?
 
 	function do_the_paste() {
-		 deselect();
+		deselect();
 		select_tool(get_tool_by_id(TOOL_SELECT));
 
 		const x = Math.max(
@@ -1372,7 +1378,7 @@ function paste(img_or_canvas) {
 				icon: get_help_folder_icon("p_paste.png"),
 			},
 			() => {
-				console.log('AA')
+				console.log("AA");
 				PaintJSState.selection = new OnCanvasSelection(
 					x,
 					y,
@@ -1380,7 +1386,7 @@ function paste(img_or_canvas) {
 					img_or_canvas.height,
 					img_or_canvas,
 				);
-				console.log('BB')
+				console.log("BB");
 			},
 		);
 	}
@@ -1419,7 +1425,7 @@ function go_to_history_node(target_history_node, canceling) {
 		let layers = target_history_node.layers;
 		for (let i = 0; i < layers.length; i++) {
 			const layer = layers[i];
-			drawcopy(PaintJSState.layers[i].ctx, layer.image_data);
+			drawcopy(PaintJSState.layers[i].ctx, layer.offscreenCanvas);
 		}
 	} else {
 		console.error("error!!!");
@@ -1456,9 +1462,12 @@ function go_to_history_node(target_history_node, canceling) {
  */
 function undoable({ name, icon, soft }, callback) {
 	const before_callback_history_node = PaintJSState.current_history_node;
-	console.log('before_callback_history_node',	before_callback_history_node);
- callback?.();
-	console.log('PaintJSState.current_history_node',PaintJSState.current_history_node);
+	console.log("before_callback_history_node", before_callback_history_node);
+	callback?.();
+	console.log(
+		"PaintJSState.current_history_node",
+		PaintJSState.current_history_node,
+	);
 	if (PaintJSState.current_history_node !== before_callback_history_node) {
 		alert(
 			`History node switched during undoable callback for ${name}. This shouldn't happen.`,
@@ -1467,15 +1476,22 @@ function undoable({ name, icon, soft }, callback) {
 
 	// 이미지 데이터 만들기
 	let layers = [];
+
 	for (let i = 0; i < PaintJSState.layers.length; i++) {
 		const layer = PaintJSState.layers[i];
-		const image_data = layer.ctx.getImageData(
-			0,
-			0,
+
+		// 오프스크린 캔버스 생성
+		const offscreenCanvas = new OffscreenCanvas(
 			layer.canvas.width,
 			layer.canvas.height,
 		);
-		layers.push({ image_data, id: layer.layerId, name: layer.name });
+
+		// 왜인지 GC가 바로 일어나네
+		const offscreenCtx = offscreenCanvas.getContext("2d");
+		// 메인 캔버스 내용을 오프스크린 캔버스로 복사
+		offscreenCtx.drawImage(layer.canvas, 0, 0);
+
+		layers.push({ offscreenCanvas, id: layer.layerId, name: layer.name });
 	}
 
 	/////
