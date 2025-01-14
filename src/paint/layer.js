@@ -25,9 +25,9 @@ async function make_layer(canvasInfo, layerMeta) {
     drawCanvas.ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   };
 
-  if (layerMeta.dataURL) {
+  if (layerMeta.dataBlob) {
     try {
-      const image = await loadImage(layerMeta.dataURL);
+      const image = await loadImage(layerMeta.dataBlob);
       ctx.drawImage(image, 0, 0);
     } catch (imgErr) {
       console.error("Failed to load image:", imgErr);
@@ -133,11 +133,12 @@ function generateLayerId() {
 }
 
 // 이미지 로드를 위한 헬퍼 함수
-async function loadImage(dataURL) {
+async function loadImage(dataBlob) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
-    img.src = dataURL;
+    const url = URL.createObjectURL(dataBlob);
+    img.src = url;
   });
 }

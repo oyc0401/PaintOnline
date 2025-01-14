@@ -144,41 +144,45 @@ async function saveFileImmediately() {
     });
 
     // 2) 레이어 메타데이터 저장
-    // const layerList = PaintJSState.layers.map((layer) => {
-    //   if (
-    //     PaintJSState.selection &&
-    //     PaintJSState.activeLayerIndex == layer.priority
-    //   ) {
-    //     // 기존 canvas와 동일한 크기의 새로운 canvas 생성
-    //     const temp_canvas = document.createElement("canvas");
-    //     temp_canvas.width = layer.canvas.width;
-    //     temp_canvas.height = layer.canvas.height;
+    const layerList = [];
 
-    //     // 기존 canvas의 내용을 복사
-    //     const temp_ctx = temp_canvas.getContext("2d");
-    //     temp_ctx.drawImage(layer.canvas, 0, 0);
+    for (const layer of PaintJSState.layers) {
+      if (
+        PaintJSState.selection &&
+        PaintJSState.activeLayerIndex == layer.priority
+      ) {
+        // 기존 canvas와 동일한 크기의 새로운 canvas 생성
+        const temp_canvas = document.createElement("canvas");
+        temp_canvas.width = layer.canvas.width;
+        temp_canvas.height = layer.canvas.height;
 
-    //     temp_ctx.drawImage(
-    //       PaintJSState.selection.canvas,
-    //       PaintJSState.selection.x,
-    //       PaintJSState.selection.y,
-    //     );
-    //     return {
-    //       layerId: layer.layerId,
-    //       name: layer.name,
-    //       paintId: currentPaintId,
-    //       dataURL: temp_canvas.toDataURL("image/png"),
-    //       priority: layer.priority,
-    //     };
-    //   }
-    //   return {
-    //     layerId: layer.layerId,
-    //     name: layer.name,
-    //     paintId: currentPaintId,
-    //     dataURL: layer.canvas.toDataURL("image/png"),
-    //     priority: layer.priority,
-    //   };
-    // });
+        // 기존 canvas의 내용을 복사
+        const temp_ctx = temp_canvas.getContext("2d");
+        temp_ctx.drawImage(layer.canvas, 0, 0);
+
+        temp_ctx.drawImage(
+          PaintJSState.selection.canvas,
+          PaintJSState.selection.x,
+          PaintJSState.selection.y,
+        );
+
+        layerList.push({
+          layerId: layer.layerId,
+          name: layer.name,
+          paintId: currentPaintId,
+          dataBlob: await toBlobAsync(temp_canvas),
+          priority: layer.priority,
+        });
+      } else {
+        layerList.push({
+          layerId: layer.layerId,
+          name: layer.name,
+          paintId: currentPaintId,
+          dataBlob: await toBlobAsync(layer.canvas),
+          priority: layer.priority,
+        });
+      }
+    }
 
     // await layerRepository.setLayers(currentPaintId, layerList);
 
@@ -189,6 +193,18 @@ async function saveFileImmediately() {
       error,
     );
   }
+}
+
+function toBlobAsync(canvas, mimeType = "image/png", qualityArgument) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Failed to create Blob from canvas."));
+      }
+    }, mimeType, qualityArgument);
+  });
 }
 
 // --------------------------- 세션 종료 / 새 파일 ---------------------------
