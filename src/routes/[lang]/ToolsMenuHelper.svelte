@@ -25,14 +25,14 @@
       () => PaintMobXState.undo_length, // 감시할 상태
       (newValue) => {
         menuState.undoLength = newValue;
-        console.log("undo:", newValue);
+        //console.log("undo:", newValue);
       },
     );
     reaction(
       () => PaintMobXState.redo_length, // 감시할 상태
       (newValue) => {
         menuState.redoLength = newValue;
-        console.log("redo:", newValue);
+        //console.log("redo:", newValue);
       },
     );
 

@@ -1462,12 +1462,8 @@ function go_to_history_node(target_history_node, canceling) {
  */
 function undoable({ name, icon, soft }, callback) {
 	const before_callback_history_node = PaintJSState.current_history_node;
-	console.log("before_callback_history_node", before_callback_history_node);
 	callback?.();
-	console.log(
-		"PaintJSState.current_history_node",
-		PaintJSState.current_history_node,
-	);
+
 	if (PaintJSState.current_history_node !== before_callback_history_node) {
 		alert(
 			`History node switched during undoable callback for ${name}. This shouldn't happen.`,
@@ -1530,9 +1526,9 @@ function undoable({ name, icon, soft }, callback) {
 	// soft는 그냥 넘어가는 히스토리임. [1, 2, 3] 에서 2가 soft면 1->3, 3->1
 	// 따라서 [1, 2, 3]에서 3이 soft이면 2->3, 3->2임
 	if (soft) {
-		console.warn("undo soft:", PaintJSState.undos.length);
+		console.log("undo soft:", PaintJSState.undos.length);
 	} else {
-		console.warn("undo stack:", PaintJSState.undos.length);
+		console.log("undo stack:", PaintJSState.undos.length);
 		PaintJSState.saved = false;
 	}
 

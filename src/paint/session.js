@@ -5,7 +5,6 @@ import { keyStore } from "./repository/keyStorage.js";
 import { layerRepository } from "./repository/layerRepository.js";
 import { paintRepository } from "./repository/paintRepository.js";
 import { localize } from "../localize/localize.js";
-import { debounce } from "./src/helpers.js";
 
 import {
   reset_file,
@@ -21,15 +20,6 @@ import {
   setLayer,
 } from "./layer.js";
 
-export function initSession() {
-  console.log("initSession");
-
-  // 레이어 변경(그리기 등) 시에 저장
-  $(window).on("session-update.session-hook", () => {
-    // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
-    saveFileSoon();
-  });
-}
 
 let currentPaintId = null;
 
@@ -127,8 +117,53 @@ async function getLayers(key) {
   return layerList;
 }
 
-const saveFileSoon = debounce(saveFileImmediately, 100);
+export function initSession() {
+  console.log("initSession");
 
+  // 레이어 변경(그리기 등) 시에 저장
+  $(window).on("session-update.session-hook", () => {
+    // 디바운스로, 여러 번 연속으로 발생해도 일정 시간 뒤에 한 번만 저장
+    saveFileSoon();
+  });
+}
+
+// 큐에 저장 요청을 추가하고 큐를 처리하는 함수
+function enqueueSave() {
+  saveQueue.push(saveFileImmediately);
+  processQueue();
+}
+
+// 큐를 처리하는 함수
+async function processQueue() {
+  if (isSaving) return; // 현재 저장 중이면 대기
+  if (saveQueue.length === 0) return; // 큐가 비어있으면 대기
+
+  isSaving = true;
+  const saveTask = saveQueue.shift(); // 큐에서 첫 번째 작업을 가져옴
+
+  try {
+    await saveTask(); // 저장 작업 수행
+  } catch (error) {
+    console.error('저장 중 오류 발생:', error);
+    // 오류 처리 로직을 추가할 수 있습니다.
+  } finally {
+    isSaving = false;
+    processQueue(); // 다음 작업을 처리
+  }
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+const saveQueue = [];
+let isSaving = false;
+
+const saveFileSoon = debounce(enqueueSave, 300);
 async function saveFileImmediately() {
   try {
     // 1) 캔버스 정보 저장
@@ -186,7 +221,7 @@ async function saveFileImmediately() {
 
     await layerRepository.setLayers(currentPaintId, layerList);
 
-    console.warn("Paint saved. paintId =", currentPaintId);
+    console.log("Paint saved. paintId =", currentPaintId);
   } catch (error) {
     console.error(
       "An unexpected error occurred in saveFileImmediately:",

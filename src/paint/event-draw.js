@@ -23,7 +23,7 @@ export function setDrawEvent() {
   // (중요) 그림 그리기
   $layer_area.on("pointerdown", (e) => {
     if (!PaintJSState.init) return;
-    console.log("$canvas.pointerdown");
+    //console.log("$canvas.pointerdown");
     handleCanvasPointerDown(e);
   });
 }
@@ -38,7 +38,7 @@ function handleCanvasPointerDown(e) {
 
   // 첫 번째 포인터(터치/마우스)로 그림을 시작할지 여부
   if (!PaintJSState.pointer_active && !PaintJSState.pinchAllowed) {
-    console.log("첫 번째 터치로 그림 시작:", e.pointerId);
+    //console.log("첫 번째 터치로 그림 시작:", e.pointerId);
     PaintJSState.pointer_active = true;
     PaintJSState.pointerId = e.pointerId;
     // pinchAllowed 초기값 false
@@ -98,7 +98,7 @@ const pointerUpHandler = (eUp) => {
     return;
   }
 
-  console.log("pointerup!!");
+  //console.log("pointerup!!");
 
   PaintJSState.pointer_active = false;
   PaintJSState.button = undefined;
