@@ -5,6 +5,7 @@ import { keyStore } from "./repository/keyStorage.js";
 import { layerRepository } from "./repository/layerRepository.js";
 import { paintRepository } from "./repository/paintRepository.js";
 import { localize } from "../localize/localize.js";
+import { debounce } from "./src/helpers.js";
 
 import {
   reset_file,
@@ -152,18 +153,12 @@ async function processQueue() {
   }
 }
 
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
 
 const saveQueue = [];
 let isSaving = false;
 
 const saveFileSoon = debounce(enqueueSave, 300);
+
 async function saveFileImmediately() {
   try {
     // 1) 캔버스 정보 저장
@@ -221,7 +216,7 @@ async function saveFileImmediately() {
 
     await layerRepository.setLayers(currentPaintId, layerList);
 
-    console.log("Paint saved. paintId =", currentPaintId);
+    console.warn("Paint saved. paintId =", currentPaintId);
   } catch (error) {
     console.error(
       "An unexpected error occurred in saveFileImmediately:",

@@ -24,8 +24,9 @@ class DrawTool {
   }
 
   pointerdown(_ctx, _x, _y) {
-    if(!this.mask_canvas){
-       this.mask_canvas = new OffscreenCanvas(1, 1);
+    if (!this.mask_canvas) {
+      this.mask_canvas = new OffscreenCanvas(1, 1);
+      this.mask_ctx = this.mask_canvas.getContext("2d");
     }
     this.draw_canvas = PaintJSState.draw_canvas;
     this.draw_canvas.reset();
@@ -34,7 +35,7 @@ class DrawTool {
     undoable({ name: this.name }, () => {
       PaintJSState.main_ctx.globalCompositeOperation = "source-over";
       PaintJSState.main_ctx.drawImage(this.draw_canvas, 0, 0);
-      
+
       this.mask_canvas.width = 1;
       this.mask_canvas.height = 1;
 
@@ -72,7 +73,7 @@ class DrawTool {
 
     // 마스크 캔버스 초기화
     const mask_canvas = this.mask_canvas;
-    const mask_ctx = mask_canvas.getContext("2d");
+    const mask_ctx = this.mask_ctx;
     mask_canvas.width = width;
     mask_canvas.height = height;
     mask_ctx.imageSmoothingEnabled = false;
@@ -98,6 +99,7 @@ class DrawTool {
     );
 
     // 2. draw_canvas에서 mask_canvas가 차지하는 영역 지우기
+    // 이 작업을 왜하냐면 투명도 50인 색을 칠할때 지우지 않으면 겹쳐보임
     this.draw_canvas.ctx.globalCompositeOperation = "destination-out";
     this.draw_canvas.ctx.drawImage(
       mask_canvas,

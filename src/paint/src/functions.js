@@ -140,6 +140,7 @@ function update_helper_layer_immediately() {
 		PaintJSState.helper_layer.position();
 	}
 
+	// TODO: 이거 나중에 꼭 지워야함!!
 	render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
 
 	if (
