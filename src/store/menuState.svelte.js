@@ -27,4 +27,7 @@ export const menuState = $state({
   position_canvas: { x: 0, y: 0 },
   position_object_active:false,
   position_object: { x: 0, y: 0 },
+
+  layerIds:[],
+  layers:[],
 });

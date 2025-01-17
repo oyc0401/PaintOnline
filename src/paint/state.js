@@ -54,4 +54,5 @@ export const PaintMobXState = observable({
   undo_length: 0,
   redo_length: 0,
   activeLayerIndex:1,
+  layerIds:[]
 });

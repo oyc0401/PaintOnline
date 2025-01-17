@@ -1,6 +1,6 @@
 import $ from "jquery";
 
-import { PaintJSState } from "./state.js";
+import { PaintJSState,PaintMobXState} from "./state.js";
 import { keyStore } from "./repository/keyStorage.js";
 import { layerRepository } from "./repository/layerRepository.js";
 import { paintRepository } from "./repository/paintRepository.js";
@@ -67,6 +67,8 @@ export async function getDBCanvas() {
   // 기본세팅 하기
   initSetting();
   console.log("캔버스 제작 완료!");
+  
+  //PaintMobXState.layerIds=getLayerIds();
 }
 
 async function createNewFile() {
@@ -80,6 +82,7 @@ async function createNewFile() {
 
   // 새로운 파일 만들기
   const paintInfo = crateDefaultPaint(key);
+ console.log(paintInfo);
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
@@ -256,6 +259,14 @@ export async function endSession() {
  */
 function generatepaintId() {
   return Math.random().toString(36).substr(2, 9);
+}
+
+export function  getPaintInfo(){
+  return {
+    width: PaintJSState.main_canvas.width,
+       height: PaintJSState.main_canvas.height,
+    paintId:currentPaintId,
+  }
 }
 
 // --------------------------- function.js ---------------------------

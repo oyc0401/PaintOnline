@@ -3,6 +3,8 @@ import { make_canvas } from "./src/helpers.js";
 import { PaintJSState, PaintMobXState } from "./state.js";
 import $ from "jquery";
 
+import {getPaintInfo} from "./session.js";
+
 async function make_layer(canvasInfo, layerMeta) {
   const { width, height } = canvasInfo;
   const { layerId, name, priority } = layerMeta;
@@ -77,6 +79,40 @@ export function setLayer(layers) {
   PaintMobXState.activeLayerIndex = PaintJSState.activeLayerIndex;
 
   PaintJSState.$canvas_area.trigger("resize");
+
+  window.getLayerIds = getLayerIds;
+  window.addLayer = addLayer;
+  
+  PaintMobXState.layerIds=getLayerIds();
+}
+
+async function addLayer() {
+  const newLayer = await make_layer(getPaintInfo(), {
+    layerId: generateLayerId(),
+    name: "NewLayer",
+    priority: 3,
+  });
+
+
+  const layers =PaintJSState.layers;
+  layers.push(newLayer);
+  setLayer(layers);
+
+  console.log('layers:',layers);
+
+  
+}
+
+function switchLayer() {}
+
+export function getLayerIds() {
+  if (!PaintJSState.layers) {
+    return [];
+  }
+  return PaintJSState.layers
+    .slice() // 원본 배열을 복사하여 정렬
+    .sort((a, b) => a.priority - b.priority) // priority 기준 정렬
+    .map(layer => layer.layerId); // 정렬된 layer의 layerId만 추출
 }
 
 export function crateDefaultPaint(paintId) {

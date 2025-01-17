@@ -12,6 +12,9 @@
 .small-dropdown{
    width:168px;
 }
+.medium-dropdown{
+   width:282px;
+}
 .large-dropdown{
   width:100%;
 }
@@ -24,6 +27,11 @@
 .menu-bottom{
   bottom: 48px;
   left:4px;
+}
+
+.menu-bottom-right{
+  bottom: 48px;
+  right:4px;
 }
 
 .selected-tool {
