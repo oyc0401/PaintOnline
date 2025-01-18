@@ -215,15 +215,10 @@ async function saveFileImmediately() {
 
     await layerRepository.setLayers(currentPaintId, layerList);
 
-    PaintJSState.layerStore = [];
+    //PaintJSState.layerStore = [];
     for (let layerObj of layerList) {
-      let { layerId, name, dataBlob } = layerObj;
-
-      PaintJSState.layerStore.push({
-        layerId,
-        name,
-        url: URL.createObjectURL(dataBlob),
-      });
+      let { layerId, dataBlob } = layerObj;
+      PaintJSState.LayerStore[layerId].imageUrl=URL.createObjectURL(dataBlob);
     }
 
     const now = new Date();

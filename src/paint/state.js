@@ -5,14 +5,14 @@ configure({ enforceActions: "never" }); // strict-mode 비활성화
 const stateStore = {};
 
 function getMainCanvas() {
-  return stateStore.layerObject[stateStore.activeLayerId].canvas;
+  return stateStore.LayerStore[stateStore.activeLayerId].canvas;
 }
 function getMainCtx() {
-  return stateStore.layerObject[stateStore.activeLayerId].ctx;
+  return stateStore.LayerStore[stateStore.activeLayerId].ctx;
 }
 
 function getDrawLayer() {
-  const canvas = stateStore.layerObject[stateStore.activeLayerId].drawCanvas;
+  const canvas = stateStore.LayerStore[stateStore.activeLayerId].drawCanvas;
   return canvas;
 }
 

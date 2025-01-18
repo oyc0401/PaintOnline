@@ -13,8 +13,8 @@
   import { reaction } from "mobx";
 
   import { PaintJSState, PaintMobXState } from "$paint/state";
-  import { addLayer} from "$paint/layer";
-  
+  import { addLayer } from "$paint/layer";
+
   // let layersPreview = {};
 
   let layers = [];
@@ -24,16 +24,25 @@
       () => PaintMobXState.lastChanged, // 감시할 상태
       (newValue) => {
         menuState.lastChanged = newValue;
-        layers = PaintJSState.layerStore;
+        
+        layers = [];
+        for (let key in PaintJSState.LayerStore) {
+          let { layerId, name, imageUrl } = PaintJSState.LayerStore[key];
+          layers.push({
+            layerId,
+            name,
+            url: imageUrl,
+          });
+        }
+
         console.log("newValue:", newValue);
       },
     );
   });
 
-
-  function clickLayer(id){
-    PaintJSState.activeLayerId=id;
-    console.log('select:',PaintJSState.layerObject[id])
+  function clickLayer(id) {
+    PaintJSState.activeLayerId = id;
+    console.log("select:", PaintJSState.LayerStore[id]);
   }
 
   const MENU_NUMBER = 7;
@@ -53,12 +62,22 @@
       <div class="layer-menu">
         <div class="layer-header">
           <p class="px-3 text-medium">레이어</p>
-          <button class="icon-button" onclick={()=>{addLayer()}}>
+          <button
+            class="icon-button"
+            onclick={() => {
+              addLayer();
+            }}
+          >
             <AddIcon />
           </button>
         </div>
         {#each layers as layer}
-          <button class="layer-box" onclick={()=>{clickLayer(layer.layerId)}}>
+          <button
+            class="layer-box"
+            onclick={() => {
+              clickLayer(layer.layerId);
+            }}
+          >
             <img id={layer.layerId} class="layer-image" src={layer.url} />
             <p class="layer-text">{layer.name}</p>
             <div class="icon-button">
@@ -93,7 +112,7 @@
     border-radius: 4px;
     background: #cde1ff;
     height: 88px;
-    width:100%;
+    width: 100%;
     padding-top: 8px;
     padding-bottom: 8px;
     padding-left: 8px;

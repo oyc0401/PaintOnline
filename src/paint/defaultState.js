@@ -27,7 +27,6 @@ export function defaultState() {
 
   const $layer_area = $(".layer-area");
 
-
   /** @type {BrushShape} */
   const default_brush_shape = "circle";
   const default_brush_size = 4;
@@ -172,11 +171,13 @@ export function defaultState() {
   let position_object_x;
   let position_object_y;
 
-  let paintObject={};
-  let layerObject={};
-  let activeLayerId=0;
+  let paint = {};
+  let LayerStore = {};
+  let activeLayerId = 0;
 
- 
+  const getSortedLayers = function () {
+    return Object.values(LayerStore).sort((a, b) => a.priority - b.priority);
+  };
 
   return {
     default_magnification,
@@ -248,11 +249,13 @@ export function defaultState() {
     position_object_active,
     position_object_x,
     position_object_y,
-    
+
     $layer_area,
-    paintObject,
-    layerObject,
+    paint,
+    LayerStore,
     activeLayerId,
+
+    getSortedLayers
   };
 }
 
