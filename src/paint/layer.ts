@@ -100,16 +100,18 @@ export async function addLayer() {
   $(window).triggerHandler("session-update"); // 저장
 }
 
-function switchLayer() {}
+function switchLayer(layerId1, layerId2) {}
 
-export function crateDefaultPaint(paintId: string): Paint {
+export function make_paint(paintInfo: PaintInfo): Paint {
+  console.log("페인트 만들기");
+  const { paintId, width, height } = paintInfo;
   // layer 비우기
   PaintJSState.$layer_area.empty();
 
   const paint: Paint = {
     paintId,
-    width: PaintJSState.default_canvas_width,
-    height: PaintJSState.default_canvas_height,
+    width,
+    height,
   };
 
   PaintJSState.paint = paint;
@@ -118,39 +120,43 @@ export function crateDefaultPaint(paintId: string): Paint {
   return paint;
 }
 
-export async function createDefaultLayer(paintInfo: PaintInfo): Promise<void> {
+export function crateDefaultPaint(paintId: string): Paint {
+  const paint = make_paint({
+    paintId,
+    width: PaintJSState.default_canvas_width,
+    height: PaintJSState.default_canvas_height,
+  });
+  return paint;
+}
+
+export async function createDefaultLayer(paint: Paint): Promise<void> {
   // 레이어 만들기
-  const { width, height } = paintInfo;
+  const { width, height, paintId } = paint;
 
   const back = await make_layer(
     {
+      paintId,
       layerId: generateLayerId(),
       name: "BackgroundLayer",
       priority: 0,
-      paintId: paintInfo.paintId,
     },
     { width, height, background: "#ffffff" },
   );
   PaintJSState.LayerStore[back.layerId] = back;
 
   const layer = await make_layer(
-    {
-      layerId: generateLayerId(),
-      name: "Layer1",
-      priority: 1,
-      paintId: paintInfo.paintId,
-    },
+    { paintId, layerId: generateLayerId(), name: "Layer1", priority: 1 },
     { width, height },
   );
   PaintJSState.LayerStore[layer.layerId] = layer;
 }
 
 export async function createLayerfromLayerList(
-  paintInfo: PaintInfo,
+  paint: Paint,
   layerList: LayerInfo[],
 ) {
   try {
-    const { width, height } = paintInfo;
+    const { width, height } = paint;
     // 모든 make_layer 호출을 동시에 시작
     const layerPromises = layerList.map((layerInfo) =>
       make_layer(layerInfo, { width, height }),
@@ -202,17 +208,11 @@ interface LayerInfo {
   priority: number;
 }
 
+// 실제 사용 객체
 interface Paint {
   paintId: string;
   width: number;
   height: number;
-}
-
-// 레이어를 만들때 필요한 기본정보
-interface CanvasMeta {
-  width: number;
-  height: number;
-  background?: string;
 }
 
 interface LayerStore {
@@ -220,13 +220,22 @@ interface LayerStore {
 }
 
 interface Layer {
+  paintId: string;
   layerId: string;
   canvas;
-  ctx;
+  ctx: CanvasRenderingContext2D;
   drawCanvas;
-  drawCtx;
-  name;
-  priority;
+  drawCtx: CanvasRenderingContext2D;
+  name: string;
+  priority: number;
   $layer;
-  paintId;
+
+  imageUrl: string;
+}
+
+// 레이어를 만들때 필요한 기본정보
+interface CanvasMeta {
+  width: number;
+  height: number;
+  background?: string;
 }

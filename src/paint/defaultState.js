@@ -175,10 +175,6 @@ export function defaultState() {
   let LayerStore = {};
   let activeLayerId = 0;
 
-  const getSortedLayers = function () {
-    return Object.values(LayerStore).sort((a, b) => a.priority - b.priority);
-  };
-
   return {
     default_magnification,
     default_tool,
@@ -255,7 +251,7 @@ export function defaultState() {
     LayerStore,
     activeLayerId,
 
-    getSortedLayers
+    //getSortedLayers
   };
 }
 
