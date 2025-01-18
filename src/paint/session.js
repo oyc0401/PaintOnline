@@ -1,6 +1,6 @@
 import $ from "jquery";
 
-import { PaintJSState,PaintMobXState} from "./state.js";
+import { PaintJSState, PaintMobXState } from "./state.js";
 import { keyStore } from "./repository/keyStorage.js";
 import { layerRepository } from "./repository/layerRepository.js";
 import { paintRepository } from "./repository/paintRepository.js";
@@ -20,7 +20,6 @@ import {
   layerListToLayerCanvas,
   setLayer,
 } from "./layer.js";
-
 
 let currentPaintId = null;
 
@@ -66,9 +65,10 @@ export async function getDBCanvas() {
 
   // 기본세팅 하기
   initSetting();
+
   console.log("캔버스 제작 완료!");
-  
-  //PaintMobXState.layerIds=getLayerIds();
+
+  saveFileSoon();
 }
 
 async function createNewFile() {
@@ -82,7 +82,7 @@ async function createNewFile() {
 
   // 새로운 파일 만들기
   const paintInfo = crateDefaultPaint(key);
- console.log(paintInfo);
+  console.log(paintInfo);
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
@@ -148,14 +148,13 @@ async function processQueue() {
   try {
     await saveTask(); // 저장 작업 수행
   } catch (error) {
-    console.error('저장 중 오류 발생:', error);
+    console.error("저장 중 오류 발생:", error);
     // 오류 처리 로직을 추가할 수 있습니다.
   } finally {
     isSaving = false;
     processQueue(); // 다음 작업을 처리
   }
 }
-
 
 const saveQueue = [];
 let isSaving = false;
@@ -219,6 +218,20 @@ async function saveFileImmediately() {
 
     await layerRepository.setLayers(currentPaintId, layerList);
 
+    PaintJSState.layerStore = [];
+    for (let layerObj of layerList) {
+      let { layerId, name, dataBlob } = layerObj;
+
+      PaintJSState.layerStore.push({
+        layerId,
+        name,
+        url: URL.createObjectURL(dataBlob),
+      });
+    }
+
+    const now = new Date();
+    PaintMobXState.lastChanged = now.getTime();
+
     console.warn("Paint saved. paintId =", currentPaintId);
   } catch (error) {
     console.error(
@@ -230,13 +243,17 @@ async function saveFileImmediately() {
 
 function toBlobAsync(canvas, mimeType = "image/png", qualityArgument) {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-      } else {
-        reject(new Error("Failed to create Blob from canvas."));
-      }
-    }, mimeType, qualityArgument);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to create Blob from canvas."));
+        }
+      },
+      mimeType,
+      qualityArgument,
+    );
   });
 }
 
@@ -261,12 +278,12 @@ function generatepaintId() {
   return Math.random().toString(36).substr(2, 9);
 }
 
-export function  getPaintInfo(){
+export function getPaintInfo() {
   return {
     width: PaintJSState.main_canvas.width,
-       height: PaintJSState.main_canvas.height,
-    paintId:currentPaintId,
-  }
+    height: PaintJSState.main_canvas.height,
+    paintId: currentPaintId,
+  };
 }
 
 // --------------------------- function.js ---------------------------

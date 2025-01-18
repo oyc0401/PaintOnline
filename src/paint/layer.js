@@ -80,10 +80,8 @@ export function setLayer(layers) {
 
   PaintJSState.$canvas_area.trigger("resize");
 
-  window.getLayerIds = getLayerIds;
   window.addLayer = addLayer;
   
-  PaintMobXState.layerIds=getLayerIds();
 }
 
 async function addLayer() {
@@ -100,20 +98,11 @@ async function addLayer() {
 
   console.log('layers:',layers);
 
-  
+  $(window).triggerHandler("session-update"); // 저장
 }
 
 function switchLayer() {}
 
-export function getLayerIds() {
-  if (!PaintJSState.layers) {
-    return [];
-  }
-  return PaintJSState.layers
-    .slice() // 원본 배열을 복사하여 정렬
-    .sort((a, b) => a.priority - b.priority) // priority 기준 정렬
-    .map(layer => layer.layerId); // 정렬된 layer의 layerId만 추출
-}
 
 export function crateDefaultPaint(paintId) {
   return {

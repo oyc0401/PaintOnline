@@ -14,37 +14,17 @@
 
   import { PaintJSState, PaintMobXState } from "$paint/state";
 
-  import { getLayerIds } from "$paint/layer.js";
+  // let layersPreview = {};
 
-  let layersPreview = {};
-
+  let layers = [];
 
   onMount(() => {
     reaction(
-      () => PaintMobXState.layerIds, // 감시할 상태
-       (newValue) => {
-        console.log("변화!");
-   
-        layersPreview = [];
-
-        for (let i = 0; i < PaintJSState.layers.length; i++) {
-          const layer = PaintJSState.layers[i];
-
-          if (!layersPreview[layer.layerId]) {
-            const canvas = document.createElement("canvas");
-            layersPreview[layer.layerId] = {
-              id: layer.layerId,
-              name: layer.name,
-              canvas,
-            };
-          }
-        }
-
-        menuState.layerIds = newValue;
-        window.layersPreview = layersPreview;
+      () => PaintMobXState.lastChanged, // 감시할 상태
+      (newValue) => {
+        menuState.lastChanged = newValue;
+        layers = PaintJSState.layerStore;
         console.log("newValue:", newValue);
-        console.log("layersPreview", layersPreview);
-
       },
     );
   });
@@ -61,20 +41,18 @@
   function drawPreviewCanvas(node, { id }) {
     //console.log("레이어 미리보기 그리기");
     console.log("그리기", node);
-  
-    const layer = getLayerById(id); 
+
+    const layer = getLayerById(id);
 
     const preview_canvas = node;
     const preview_ctx = preview_canvas.getContext("2d");
- 
+
     preview_canvas.width = layer.canvas.width;
     preview_canvas.height = layer.canvas.height;
     preview_ctx.drawImage(layer.canvas, 0, 0);
-
   }
 
   const MENU_NUMBER = 7;
-
 </script>
 
 <div>
@@ -95,14 +73,10 @@
             <AddIcon />
           </button>
         </div>
-        {#each menuState.layerIds as id}
+        {#each layers as layer}
           <div class="layer-box">
-            <canvas
-              {id}
-              class="layer-image"
-              use:drawPreviewCanvas={{ id }}
-            ></canvas>
-            <p class="layer-text">{id}</p>
+            <img id={layer.layerId} class="layer-image" src={layer.url} />
+            <p class="layer-text">{layer.name}</p>
             <button class="icon-button">
               <CheckBoxBlankIcon />
             </button>
@@ -143,7 +117,7 @@
   .layer-image {
     width: 90px;
     height: 72px;
-    object-fit: fill;
+    object-fit: cover;
   }
 
   .layer-text {

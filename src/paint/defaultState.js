@@ -174,6 +174,8 @@ export function defaultState() {
 
   let layers = [];
   let activeLayerIndex = 0;
+  let layerObject={};
+  let activeLayerId=0;
 
   return {
     default_magnification,
@@ -248,6 +250,8 @@ export function defaultState() {
     layers,
     activeLayerIndex,
     $layer_area,
+    layerObject,
+    activeLayerId,
   };
 }
 

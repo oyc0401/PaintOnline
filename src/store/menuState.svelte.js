@@ -28,6 +28,5 @@ export const menuState = $state({
   position_object_active:false,
   position_object: { x: 0, y: 0 },
 
-  layerIds:[],
   layers:[],
 });
