@@ -431,8 +431,8 @@ export function reset_history() {
 
 	// 히스토리
 	let layers = [];
-	for (let i = 0; i < PaintJSState.layers.length; i++) {
-		const layer = PaintJSState.layers[i];
+	for (let i = 0; i < PaintJSState.getLayers().length; i++) {
+		const layer = PaintJSState.getLayers()[i];
 
 		// 오프스크린 캔버스 생성
 		const offscreenCanvas = new OffscreenCanvas(
@@ -488,7 +488,7 @@ function make_history_node({
 	ternary_color, // selected ternary color (ctrl+click)
 	name, // the name of the operation, shown in the history window, e.g. localize("Resize Canvas")
 	icon = null, // an Image representation of the operation type, shown in the history window, e.g. get_help_folder_icon("p_blank.png")
-	layerIndex = 1, // 기본은 레이어 두개가 제공되기 때문에 가장 위에있는것, 1임
+	activeLayerId = 1, // 기본은 레이어 두개가 제공되기 때문에 가장 위에있는것, 1임
 }) {
 	return {
 		parent,
@@ -506,7 +506,7 @@ function make_history_node({
 		ternary_color,
 		name,
 		icon,
-		layerIndex,
+		activeLayerId,
 	};
 }
 
@@ -872,7 +872,7 @@ async function confirm_overwrite_capability() {
 function file_save() {
 	deselect();
 
-	saveLayer(PaintJSState.layers, localize("untitled"));
+	saveLayer(PaintJSState.getLayers(), localize("untitled"));
 	return;
 }
 
@@ -1410,9 +1410,8 @@ function go_to_history_node(target_history_node, canceling) {
 	}
 
 	PaintJSState.current_history_node = target_history_node;
-
-	PaintJSState.activeLayerIndex = target_history_node.layerIndex;
-
+	PaintJSState.activeLayerId=target_history_node.activeLayerId;
+	
 	console.log("target_history_node:", target_history_node);
 	deselect(true);
 	if (!canceling) {
@@ -1426,7 +1425,7 @@ function go_to_history_node(target_history_node, canceling) {
 		let layers = target_history_node.layers;
 		for (let i = 0; i < layers.length; i++) {
 			const layer = layers[i];
-			drawcopy(PaintJSState.layers[i].ctx, layer.offscreenCanvas);
+			drawcopy(PaintJSState.getLayers()[i].ctx, layer.offscreenCanvas);
 		}
 	} else {
 		console.error("error!!!");
@@ -1474,8 +1473,8 @@ function undoable({ name, icon, soft }, callback) {
 	// 이미지 데이터 만들기
 	let layers = [];
 
-	for (let i = 0; i < PaintJSState.layers.length; i++) {
-		const layer = PaintJSState.layers[i];
+	for (let i = 0; i < PaintJSState.getLayers().length; i++) {
+		const layer = PaintJSState.getLayers()[i];
 
 		// 오프스크린 캔버스 생성
 		const offscreenCanvas = new OffscreenCanvas(
@@ -1519,7 +1518,7 @@ function undoable({ name, icon, soft }, callback) {
 		name,
 		icon,
 		soft,
-		layerIndex: PaintJSState.activeLayerIndex,
+			activeLayerId: PaintJSState.activeLayerId,
 	});
 	PaintJSState.current_history_node.futures.push(new_history_node);
 	PaintJSState.current_history_node = new_history_node;
@@ -1947,7 +1946,7 @@ function clear() {
 			update_title();
 
 			// 캔버스 초기화
-			for (const layer of PaintJSState.layers) {
+			for (const layer of PaintJSState.getLayers()) {
 				const canvas = layer.canvas;
 				const ctx = canvas.ctx;
 				if (canvas.className == "layer background") {
@@ -2204,7 +2203,7 @@ function resize_canvas(width, height) {
 	PaintJSState.$layer_area.css("height", height); // '500px'로 설정
 
 	// 캔버스 늘리기
-	for (const layer of PaintJSState.layers) {
+	for (const layer of PaintJSState.getLayers()) {
 		const canvas = layer.canvas;
 		const ctx = canvas.ctx;
 		const image_data = ctx.getImageData(0, 0, beforeWidth, beforeHeight);

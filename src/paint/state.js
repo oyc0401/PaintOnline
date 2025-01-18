@@ -5,16 +5,14 @@ configure({ enforceActions: "never" }); // strict-mode 비활성화
 const stateStore = {};
 
 function getMainCanvas() {
-  //console.log(stateStore.layers[stateStore.activeLayerIndex].canvas);
-  return stateStore.layers[stateStore.activeLayerIndex].canvas;
+  return stateStore.layerObject[stateStore.activeLayerId].canvas;
 }
 function getMainCtx() {
-  // console.log('ctx:',stateStore.layers[stateStore.activeLayerIndex].ctx);
-  return stateStore.layers[stateStore.activeLayerIndex].ctx;
+  return stateStore.layerObject[stateStore.activeLayerId].ctx;
 }
 
 function getDrawLayer() {
-  const canvas = stateStore.layers[stateStore.activeLayerIndex].drawCanvas;
+  const canvas = stateStore.layerObject[stateStore.activeLayerId].drawCanvas;
   return canvas;
 }
 
@@ -51,6 +49,6 @@ export const PaintJSState = new Proxy(stateStore, handler);
 export const PaintMobXState = observable({
   undo_length: 0,
   redo_length: 0,
-  activeLayerIndex: 1,
+    activeLayerId: "",
   lastChanged: 0,
 });

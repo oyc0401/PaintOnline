@@ -8,6 +8,11 @@ import { PaintJSState } from "./state.js";
 import { getDBCanvas } from "./session.js";
 
 export async function initApp(canvasAreaQuery) {
+  PaintJSState.getLayers=function(){
+    return Object.values(PaintJSState.layerObject)
+    .sort((a, b) => a.priority - b.priority);
+  }
+  
   const $canvas_area = $(canvasAreaQuery);
   const $layer_area = $(".layer-area");
 

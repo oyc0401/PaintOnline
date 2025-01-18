@@ -17,9 +17,9 @@ import {
 import {
   crateDefaultPaint,
   createDefaultLayer,
-  layerListToLayerCanvas,
-  setLayer,
-} from "./layer.js";
+  createLayerfromLayerList,
+  setActiveLayerId,
+} from "./layer";
 
 let currentPaintId = null;
 
@@ -55,13 +55,11 @@ export async function getDBCanvas() {
 
   console.log("파일 불러오기 완료!");
 
-  // 레이어 데이터를 캔버스UI로 바꾸기
-  const layers = await layerListToLayerCanvas(paintInfo, layerList);
-  console.log("레이어 바꾸기 완료");
-
-  // 레이어를 레이어영역에 추가
-  setLayer(layers);
-  console.log("레이어 추가 완료");
+  // 레이어 데이터를 통해 레이어 객체 추가하기
+  await createLayerfromLayerList(paintInfo, layerList);
+  console.log("레이어객체 추가 완료");
+ 
+  setActiveLayerId();
 
   // 기본세팅 하기
   initSetting();
@@ -73,7 +71,7 @@ export async function getDBCanvas() {
 
 async function createNewFile() {
   // 새로운 키 만들기
-  const key = generatepaintId();
+  const key = generatePaintId();
   currentPaintId = key;
   console.log("generate key:", key);
 
@@ -86,10 +84,9 @@ async function createNewFile() {
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
-  const layers = await createDefaultLayer(paintInfo);
+  await createDefaultLayer(paintInfo);
 
-  // 레이어를 레이어영역에 추가
-  setLayer(layers);
+  setActiveLayerId();
 
   // 기본세팅 하기
   initSetting();
@@ -164,7 +161,7 @@ const saveFileSoon = debounce(enqueueSave, 300);
 async function saveFileImmediately() {
   try {
     // 1) 캔버스 정보 저장
-    const activeCanvas = PaintJSState.layers[0]; // 예: 첫 번째 레이어가 배경 캔버스
+    const activeCanvas = PaintJSState.getLayers()[0]; // 예: 첫 번째 레이어가 배경 캔버스
     if (!activeCanvas) {
       console.error("No active canvas found in PaintJSState.layers.");
       return;
@@ -178,10 +175,10 @@ async function saveFileImmediately() {
     // 2) 레이어 메타데이터 저장
     const layerList = [];
 
-    for (const layer of PaintJSState.layers) {
+    for (const layer of PaintJSState.getLayers()) {
       if (
         PaintJSState.selection &&
-        PaintJSState.activeLayerIndex == layer.priority
+        PaintJSState.activeLayerId ==layer.layerId
       ) {
         // 기존 canvas와 동일한 크기의 새로운 canvas 생성
         const temp_canvas = document.createElement("canvas");
@@ -274,16 +271,8 @@ export async function endSession() {
 /**
  * 새 paintId 생성
  */
-function generatepaintId() {
+function generatePaintId() {
   return Math.random().toString(36).substr(2, 9);
-}
-
-export function getPaintInfo() {
-  return {
-    width: PaintJSState.main_canvas.width,
-    height: PaintJSState.main_canvas.height,
-    paintId: currentPaintId,
-  };
 }
 
 // --------------------------- function.js ---------------------------
@@ -293,8 +282,8 @@ export async function reset_canvas() {
   currentPaintId = paintInfo.paintId;
 
   // 새로운 레이어 만들기
-  const layers = await createDefaultLayer(paintInfo);
+  await createDefaultLayer(paintInfo);
 
   // 레이어를 레이어영역에 추가
-  setLayer(layers);
+  setActiveLayerId();
 }

@@ -172,10 +172,11 @@ export function defaultState() {
   let position_object_x;
   let position_object_y;
 
-  let layers = [];
-  let activeLayerIndex = 0;
+  let paintObject={};
   let layerObject={};
   let activeLayerId=0;
+
+ 
 
   return {
     default_magnification,
@@ -247,9 +248,9 @@ export function defaultState() {
     position_object_active,
     position_object_x,
     position_object_y,
-    layers,
-    activeLayerIndex,
+    
     $layer_area,
+    paintObject,
     layerObject,
     activeLayerId,
   };

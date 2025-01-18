@@ -13,7 +13,8 @@
   import { reaction } from "mobx";
 
   import { PaintJSState, PaintMobXState } from "$paint/state";
-
+  import { addLayer} from "$paint/layer";
+  
   // let layersPreview = {};
 
   let layers = [];
@@ -29,27 +30,10 @@
     );
   });
 
-  function getLayerById(id) {
-    for (let i = 0; i < PaintJSState.layers.length; i++) {
-      const layer = PaintJSState.layers[i];
-      if (layer.layerId == id) {
-        return layer;
-      }
-    }
-  }
 
-  function drawPreviewCanvas(node, { id }) {
-    //console.log("레이어 미리보기 그리기");
-    console.log("그리기", node);
-
-    const layer = getLayerById(id);
-
-    const preview_canvas = node;
-    const preview_ctx = preview_canvas.getContext("2d");
-
-    preview_canvas.width = layer.canvas.width;
-    preview_canvas.height = layer.canvas.height;
-    preview_ctx.drawImage(layer.canvas, 0, 0);
+  function clickLayer(id){
+    PaintJSState.activeLayerId=id;
+    console.log('select:',PaintJSState.layerObject[id])
   }
 
   const MENU_NUMBER = 7;
@@ -69,18 +53,18 @@
       <div class="layer-menu">
         <div class="layer-header">
           <p class="px-3 text-medium">레이어</p>
-          <button class="icon-button" onclick={drawPreviewCanvas}>
+          <button class="icon-button" onclick={()=>{addLayer()}}>
             <AddIcon />
           </button>
         </div>
         {#each layers as layer}
-          <div class="layer-box">
+          <button class="layer-box" onclick={()=>{clickLayer(layer.layerId)}}>
             <img id={layer.layerId} class="layer-image" src={layer.url} />
             <p class="layer-text">{layer.name}</p>
-            <button class="icon-button">
+            <div class="icon-button">
               <CheckBoxBlankIcon />
-            </button>
-          </div>
+            </div>
+          </button>
         {/each}
       </div>
     </div>
@@ -109,6 +93,7 @@
     border-radius: 4px;
     background: #cde1ff;
     height: 88px;
+    width:100%;
     padding-top: 8px;
     padding-bottom: 8px;
     padding-left: 8px;
