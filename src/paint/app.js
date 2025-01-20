@@ -9,7 +9,7 @@ import { getDBCanvas } from "./session.js";
 
 export async function initApp(canvasAreaQuery) {
   PaintJSState.getLayers=function(){
-    return Object.values(PaintJSState.LayerStore)
+    return Object.values(PaintJSState.layerStore)
     .sort((a, b) => a.priority - b.priority);
   }
   

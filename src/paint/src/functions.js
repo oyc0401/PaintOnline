@@ -2196,34 +2196,7 @@ function select_tool(tool, toggle) {
 }
 
 function resize_canvas(width, height) {
-	const beforeWidth = PaintJSState.main_canvas.width;
-	const beforeHeight = PaintJSState.main_canvas.height;
-
-	PaintJSState.$layer_area.css("width", width); // '500px'로 설정
-	PaintJSState.$layer_area.css("height", height); // '500px'로 설정
-
-	// 캔버스 늘리기
-	for (const layer of PaintJSState.getLayers()) {
-		const canvas = layer.canvas;
-		const ctx = canvas.ctx;
-		const image_data = ctx.getImageData(0, 0, beforeWidth, beforeHeight);
-
-		// 캔버스 초기화
-		canvas.width = width;
-		canvas.height = height;
-
-		// background 레이어면
-		if (layer.priority == 0) {
-			console.log("backgrond layer:", layer);
-			ctx.fillStyle = PaintJSState.selected_colors.background;
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.clearRect(0, 0, beforeWidth, beforeHeight);
-		}
-
-		// 기존 영역은 기존 그림으로 그리기
-		const temp_canvas = make_canvas(image_data);
-		ctx.drawImage(temp_canvas, 0, 0);
-	}
+	PaintJSState.paint.setSize(width, height);
 }
 
 /**

@@ -222,7 +222,7 @@ async function saveFileImmediately() {
     for (let layerObj of layerList) {
       let { layerId, dataBlob } = layerObj;
       const url = URL.createObjectURL(dataBlob);
-      PaintJSState.LayerStore[layerId].imageUrl = url;
+      PaintJSState.layerStore[layerId].imageUrl = url;
     }
 
     const now = new Date();

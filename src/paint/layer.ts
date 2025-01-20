@@ -20,8 +20,14 @@ async function make_layer(
 
   // drawCanvas 함수 추가
   drawCanvas.reset = () => {
-    drawCanvas.width = PaintJSState.main_canvas.width;
-    drawCanvas.height = PaintJSState.main_canvas.height;
+    if (
+      drawCanvas.width != PaintJSState.paint.width ||
+      drawCanvas.height != PaintJSState.paint.height
+    ) {
+      console.error("draw_canvas의 크기가 알맞지않음");
+      drawCanvas.width = PaintJSState.main_canvas.width;
+      drawCanvas.height = PaintJSState.main_canvas.height;
+    }
   };
 
   drawCanvas.clear = () => {
@@ -93,7 +99,7 @@ export async function addLayer() {
     { width, height },
   );
 
-  PaintJSState.LayerStore[newLayer.layerId] = newLayer;
+  PaintJSState.layerStore[newLayer.layerId] = newLayer;
 
   setActiveLayerId();
 
@@ -108,14 +114,14 @@ export function make_paint(paintInfo: PaintInfo): Paint {
   // layer 비우기
   PaintJSState.$layer_area.empty();
 
-  const paint: Paint = {
+  const paint = new Paint({
     paintId,
     width,
     height,
-  };
+  });
 
   PaintJSState.paint = paint;
-  PaintJSState.LayerStore = {};
+  PaintJSState.layerStore = {};
 
   return paint;
 }
@@ -142,13 +148,13 @@ export async function createDefaultLayer(paint: Paint): Promise<void> {
     },
     { width, height, background: "#ffffff" },
   );
-  PaintJSState.LayerStore[back.layerId] = back;
+  PaintJSState.layerStore[back.layerId] = back;
 
   const layer = await make_layer(
     { paintId, layerId: generateLayerId(), name: "Layer1", priority: 1 },
     { width, height },
   );
-  PaintJSState.LayerStore[layer.layerId] = layer;
+  PaintJSState.layerStore[layer.layerId] = layer;
 }
 
 export async function createLayerfromLayerList(
@@ -166,7 +172,7 @@ export async function createLayerfromLayerList(
     const layers = await Promise.all(layerPromises);
 
     for (let layer of layers) {
-      PaintJSState.LayerStore[layer.layerId] = layer;
+      PaintJSState.layerStore[layer.layerId] = layer;
     }
   } catch (error) {
     console.error("레이어 생성 중 에러 발생:", error);
@@ -209,10 +215,53 @@ interface LayerInfo {
 }
 
 // 실제 사용 객체
-interface Paint {
+class Paint {
   paintId: string;
   width: number;
   height: number;
+
+  constructor({ paintId, width, height }) {
+    this.paintId = paintId;
+    this.width = width;
+    this.height = height;
+  }
+
+  setSize(width, height) {
+    const beforeWidth = this.width;
+    const beforeHeight = this.height;
+
+    this.width = width;
+    this.height = height;
+
+    PaintJSState.$layer_area.css("width", width);
+    PaintJSState.$layer_area.css("height", height);
+
+    // 캔버스 늘리기
+    const layerStore: LayerStore = PaintJSState.layerStore;
+    for (const layer of Object.values(layerStore)) {
+      const canvas = layer.canvas;
+      const ctx = canvas.ctx;
+      const image_data = ctx.getImageData(0, 0, beforeWidth, beforeHeight);
+
+      // 캔버스 초기화
+      canvas.width = width;
+      canvas.height = height;
+      layer.drawCanvas.width = width;
+      layer.drawCanvas.height = height;
+
+      // background 레이어면
+      if (layer.priority == 0) {
+        console.log("backgrond layer:", layer);
+        ctx.fillStyle = PaintJSState.selected_colors.background;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, beforeWidth, beforeHeight);
+      }
+
+      // 기존 영역은 기존 그림으로 그리기
+      const temp_canvas = make_canvas(image_data);
+      ctx.drawImage(temp_canvas, 0, 0);
+    }
+  }
 }
 
 interface LayerStore {
@@ -230,7 +279,7 @@ interface Layer {
   priority: number;
   $layer;
 
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 // 레이어를 만들때 필요한 기본정보

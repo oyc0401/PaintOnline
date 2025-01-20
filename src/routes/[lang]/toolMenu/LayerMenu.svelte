@@ -26,8 +26,8 @@
         menuState.lastChanged = newValue;
         
         layers = [];
-        for (let key in PaintJSState.LayerStore) {
-          let { layerId, name, imageUrl } = PaintJSState.LayerStore[key];
+        for (let key in PaintJSState.layerStore) {
+          let { layerId, name, imageUrl } = PaintJSState.layerStore[key];
           layers.push({
             layerId,
             name,
@@ -42,7 +42,7 @@
 
   function clickLayer(id) {
     PaintJSState.activeLayerId = id;
-    console.log("select:", PaintJSState.LayerStore[id]);
+    console.log("select:", PaintJSState.layerStore[id]);
   }
 
   const MENU_NUMBER = 7;
