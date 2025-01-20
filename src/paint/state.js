@@ -16,6 +16,8 @@ function getDrawLayer() {
   return canvas;
 }
 
+
+
 const handler = {
   get(target, prop) {
     // 특정 속성('undos', 'redos')은 PaintMobXState에서 가져옴

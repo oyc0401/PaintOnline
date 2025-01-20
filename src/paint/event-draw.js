@@ -1,5 +1,5 @@
 import {
-  select_tools,
+  select_tool,
   update_canvas_rect,
   update_helper_layer,
 } from "./src/functions.js";
@@ -74,12 +74,10 @@ function handleCanvasPointerDown(e) {
     PaintJSState.pointer =
       to_canvas_coords(e);
 
-  // let interval_ids = [];
-  PaintJSState.selected_tools.forEach((selected_tool) => {
-    if (selected_tool.paint || selected_tool.pointerdown) {
-      tool_go(selected_tool, "pointerdown");
-    }
-  });
+  const selected_tool = PaintJSState.selected_tool;
+  if (selected_tool.paint || selected_tool.pointerdown) {
+    tool_go(selected_tool, "pointerdown");
+  }
 
   $(window).on("pointermove", canvas_pointer_move);
 
@@ -112,19 +110,15 @@ const pointerUpHandler = (eUp) => {
   // cancel이면 그리지 말아야함.
   // 왜냐면 그리면 히스토리가 하나 푸시됌.
   if (!PaintJSState.cancel) {
-    PaintJSState.selected_tools.forEach((selected_tool) => {
-      selected_tool.pointerup?.(
-        PaintJSState.main_ctx,
-        PaintJSState.pointer.x,
-        PaintJSState.pointer.y,
-      );
-    });
+    PaintJSState.selected_tool.pointerup?.(
+      PaintJSState.main_ctx,
+      PaintJSState.pointer.x,
+      PaintJSState.pointer.y,
+    );
   }
 
-  if (PaintJSState.selected_tools.length === 1) {
-    if (PaintJSState.selected_tool.deselect) {
-      select_tools(PaintJSState.return_to_tools);
-    }
+  if (PaintJSState.selected_tool.deselect) {
+    select_tool(PaintJSState.return_to_tool);
   }
 
   $(window).off("pointermove", canvas_pointer_move);
@@ -199,9 +193,8 @@ function canvas_pointer_move(e) {
   }
 
   // 실제 도구 paint
-  PaintJSState.selected_tools.forEach((selected_tool) => {
-    tool_go(selected_tool);
-  });
+
+  tool_go(PaintJSState.selected_tool);
 
   PaintJSState.pointer_previous = PaintJSState.pointer;
 }

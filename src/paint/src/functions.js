@@ -254,83 +254,57 @@ function render_canvas_view(
 		);
 	}
 
-	var tools_to_preview = [...PaintJSState.selected_tools];
-
+	let tool_to_preview = PaintJSState.selected_tool;
 	// Don't preview tools while dragging components/component windows
 	// (The magnifier preview is especially confusing looking together with the component preview!)
 	if ($("body").hasClass("dragging") && !PaintJSState.pointer_active) {
-		// tools_to_preview.length = 0;
-		// Curve and Polygon tools have a persistent state over multiple gestures,
-		// which is, as of writing, part of the "tool preview"; it's ugly,
-		// but at least they don't have ALSO a brush like preview, right?
-		// so we can just allow those thru
-		tools_to_preview = tools_to_preview.filter(
-			(tool) => tool.id === TOOL_CURVE || tool.id === TOOL_POLYGON,
-		);
+		if (
+			PaintJSState.selected_tool.id === TOOL_CURVE ||
+			PaintJSState.selected_tool.id === TOOL_POLYGON
+		) {
+			tool_to_preview = PaintJSState.selected_tool;
+		} else {
+			tool_to_preview = null;
+		}
 	}
 
-	// the select box previews draw the document canvas onto the preview canvas
-	// so they have something to invert within the preview canvas
-	// but this means they block out anything earlier
-	// NOTE: sort Select after Free-Form Select,
-	// Brush after Eraser, as they are from the toolbar ordering
-	tools_to_preview.sort((a, b) => {
-		if (a.selectBox && !b.selectBox) {
-			return -1;
-		}
-		if (!a.selectBox && b.selectBox) {
-			return 1;
-		}
-		return 0;
-	});
-	// two select box previews would just invert and cancel each other out
-	// so only render one if there's one or more
-	var select_box_index = tools_to_preview.findIndex((tool) => tool.selectBox);
-	if (select_box_index >= 0) {
-		tools_to_preview = tools_to_preview.filter(
-			(tool, index) => !tool.selectBox || index == select_box_index,
+	if (
+		tool_to_preview &&
+		tool_to_preview.drawPreviewUnderGrid &&
+		PaintJSState.pointer &&
+		PaintJSState.pointers.length < 2
+	) {
+		hctx.save();
+		tool_to_preview.drawPreviewUnderGrid(
+			hctx,
+			PaintJSState.pointer.x,
+			PaintJSState.pointer.y,
+			grid_visible,
+			scale,
+			-viewport_x,
+			-viewport_y,
 		);
+		hctx.restore();
 	}
 
-	tools_to_preview.forEach((tool) => {
-		if (
-			tool.drawPreviewUnderGrid &&
-			PaintJSState.pointer &&
-			PaintJSState.pointers.length < 2
-		) {
-			hctx.save();
-			tool.drawPreviewUnderGrid(
-				hctx,
-				PaintJSState.pointer.x,
-				PaintJSState.pointer.y,
-				grid_visible,
-				scale,
-				-viewport_x,
-				-viewport_y,
-			);
-			hctx.restore();
-		}
-	});
-
-	tools_to_preview.forEach((tool) => {
-		if (
-			tool.drawPreviewAboveGrid &&
-			PaintJSState.pointer &&
-			PaintJSState.pointers.length < 2
-		) {
-			hctx.save();
-			tool.drawPreviewAboveGrid(
-				hctx,
-				PaintJSState.pointer.x,
-				PaintJSState.pointer.y,
-				grid_visible,
-				scale,
-				-viewport_x,
-				-viewport_y,
-			);
-			hctx.restore();
-		}
-	});
+	if (
+		tool_to_preview &&
+		tool_to_preview.drawPreviewAboveGrid &&
+		PaintJSState.pointer &&
+		PaintJSState.pointers.length < 2
+	) {
+		hctx.save();
+		tool_to_preview.drawPreviewAboveGrid(
+			hctx,
+			PaintJSState.pointer.x,
+			PaintJSState.pointer.y,
+			grid_visible,
+			scale,
+			-viewport_x,
+			-viewport_y,
+		);
+		hctx.restore();
+	}
 }
 
 function update_disable_aa() {
@@ -1318,9 +1292,7 @@ function deselect(going_to_history_node) {
 		meld_selection_into_canvas(going_to_history_node);
 	}
 
-	for (const selected_tool of PaintJSState.selected_tools) {
-		selected_tool.end?.(PaintJSState.main_ctx);
-	}
+	PaintJSState.selected_tool.end?.(PaintJSState.main_ctx);
 
 	PaintJSState.position_object_active = false;
 }
@@ -1776,6 +1748,7 @@ function view_bitmap() {
 		bitmap_view_div.appendChild(img);
 	}, "image/png");
 }
+
 /**
  * @param {ToolID} id
  * @returns {Tool} tool object
@@ -1786,73 +1759,24 @@ function get_tool_by_id(id) {
 			return tools[i];
 		}
 	}
-	// for (let i = 0; i < extra_tools.length; i++) {
-	// 	if (extra_tools[i].id == id) {
-	// 		return extra_tools[i];
-	// 	}
-	// }
-}
-
-// hacky but whatever
-// this whole "multiple tools" thing is hacky for now
-/**
- * @param {Tool[]} tools
- */
-function select_tools(tools) {
-	// for (let i = 0; i < tools.length; i++) {
-	select_tool(tools[0], false);
-	// }
-	// update_helper_layer();
 }
 
 /**
  * @param {Tool} tool
  * @param {boolean} [toggle]
  */
-function select_tool(tool, toggle) {
+function select_tool(tool) {
 	deselect();
 
-	if (
-		!(
-			PaintJSState.selected_tools.length === 1 &&
-			PaintJSState.selected_tool.deselect
-		)
-	) {
-		PaintJSState.return_to_tools = [...PaintJSState.selected_tools];
+	if (!PaintJSState.selected_tool.deselect) {
+		PaintJSState.return_to_tool = PaintJSState.selected_tool;
 	}
-	if (toggle) {
-		const index = PaintJSState.selected_tools.indexOf(tool);
-		if (index === -1) {
-			PaintJSState.selected_tools.push(tool);
-			PaintJSState.selected_tools.sort((a, b) => {
-				if (tools.indexOf(a) < tools.indexOf(b)) {
-					return -1;
-				}
-				if (tools.indexOf(a) > tools.indexOf(b)) {
-					return +1;
-				}
-				return 0;
-			});
-		} else {
-			PaintJSState.selected_tools.splice(index, 1);
-		}
-		if (PaintJSState.selected_tools.length > 0) {
-			PaintJSState.selected_tool =
-				PaintJSState.selected_tools[PaintJSState.selected_tools.length - 1];
-		} else {
-			PaintJSState.selected_tool = PaintJSState.default_tool;
-			PaintJSState.selected_tools = [PaintJSState.selected_tool];
-		}
-	} else {
-		PaintJSState.selected_tool = tool;
-		PaintJSState.selected_tools = [tool];
-	}
+
+	PaintJSState.selected_tool = tool;
 
 	if (tool.preload) {
 		tool.preload();
 	}
-
-	// // $toolbox2.update_selected_tool();
 }
 
 function resize_canvas(width, height) {
@@ -2712,7 +2636,6 @@ export {
 	save_selection_to_file,
 	select_all,
 	select_tool,
-	select_tools,
 	set_magnification,
 	//show_convert_to_black_and_white,
 	show_error_message,

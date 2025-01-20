@@ -56,11 +56,8 @@ export function defaultState() {
 
   /** @type {Tool} */
   let selected_tool = default_tool;
-  /** @type {Tool[]} */
-  let selected_tools = [selected_tool];
 
-  /** @type {Tool[]} */
-  let return_to_tools = [selected_tool];
+  let return_to_tool=selected_tool;
 
   /** @type {{foreground: string | CanvasPattern, background: string | CanvasPattern, ternary: string | CanvasPattern}} */
   let selected_colors = {
@@ -198,8 +195,7 @@ export function defaultState() {
     fill_color,
     pick_color_slot,
     selected_tool,
-    selected_tools,
-    return_to_tools,
+    return_to_tool,
     selected_colors,
     selection,
     helper_layer,

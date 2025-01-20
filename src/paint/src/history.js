@@ -310,9 +310,7 @@ export function cancel(going_to_history_node) {
   PaintJSState.history_node_to_cancel_to = history_node_to_cancel_to;
 
   console.log("after pointup!");
-  for (const selected_tool of PaintJSState.selected_tools) {
-    selected_tool.cancel?.();
-  }
+  PaintJSState.selected_tool.cancel?.();
 
   console.log("after tool.cancel!");
   if (!going_to_history_node) {
