@@ -33,7 +33,7 @@
     });
 
     drawjs.onchangeLayer((newLayer) => {
-      menuState.layers = newLayer;
+      menuState.layers = newLayer.reverse();
       console.log("newLayer:", newLayer);
     });
 
@@ -52,6 +52,9 @@
     });
 
     await drawjs.create(".canvas-area");
+
+    menuState.activeLayerId = drawjs.state.activeLayerId;
+  console.log('menuState.activeLayerId',menuState.activeLayerId)
   });
 </script>
 
