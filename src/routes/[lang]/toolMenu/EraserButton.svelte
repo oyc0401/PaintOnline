@@ -1,5 +1,5 @@
 <script>
-  import { TOOL_ERASER } from "$paint/src/tools";
+  import { TOOL_ERASER } from "$paint";
   import EraserIcon from "$lib/images/eraser.svelte";
   import EraserPickIcon from "$lib/images/eraser_pick.svelte";
 

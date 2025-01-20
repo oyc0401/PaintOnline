@@ -2,10 +2,14 @@
    import UndoIcon from "$lib/images/undo.svelte";
 
    import { menuState } from "$store/menuState.svelte.js";
+   import { drawjs } from "$store/paintStore";
    import "./menu.css";
    import "../toolsMenu.css";
 
-   import { undo } from "$paint/src/history.js";
+   function undo() {
+      drawjs.undo();
+   }
+   
 </script>
 
 <button

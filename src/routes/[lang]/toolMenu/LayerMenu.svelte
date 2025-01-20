@@ -6,43 +6,18 @@
   import CheckBoxIcon from "$lib/images/check_box.svelte";
   import AddIcon from "$lib/images/add.svelte";
 
-  import { changeTool, quickClickMenu } from "$store/paintFunction.js";
+  import { quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
-  import { onMount } from "svelte";
-  import { reaction } from "mobx";
 
-  import { PaintJSState, PaintMobXState } from "$paint/state";
-  import { addLayer } from "$paint/layer";
-
-  // let layersPreview = {};
-
-  let layers = [];
-
-  onMount(() => {
-    reaction(
-      () => PaintMobXState.lastChanged, // 감시할 상태
-      (newValue) => {
-        menuState.lastChanged = newValue;
-        
-        layers = [];
-        for (let key in PaintJSState.layerStore) {
-          let { layerId, name, imageUrl } = PaintJSState.layerStore[key];
-          layers.push({
-            layerId,
-            name,
-            url: imageUrl,
-          });
-        }
-
-        console.log("newValue:", newValue);
-      },
-    );
-  });
+  import { drawjs } from "$store/paintStore";
 
   function clickLayer(id) {
-    PaintJSState.activeLayerId = id;
-    console.log("select:", PaintJSState.layerStore[id]);
+    drawjs.setLayer(id);
+  }
+
+  function addLayer() {
+    drawjs.addLayer();
   }
 
   const MENU_NUMBER = 7;
@@ -71,7 +46,7 @@
             <AddIcon />
           </button>
         </div>
-        {#each layers as layer}
+        {#each menuState.layers as layer}
           <button
             class="layer-box"
             onclick={() => {

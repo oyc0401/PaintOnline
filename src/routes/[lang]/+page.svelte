@@ -1,13 +1,14 @@
 <script>
   import Canvas from "./Canvas.svelte";
   import { onMount } from "svelte";
-  import { getDrawjs } from "$paint/main";
+  import { Drawjs } from "$paint";
   import { i18n, localize } from "$src/localize/localize";
   import ToolsAbove from "./ToolsAbove.svelte";
   import ToolsBelow from "./ToolsBelow.svelte";
   import ToolsMenuHelper from "./ToolsMenuHelper.svelte";
   import Position from "./Position.svelte";
   import { setDrawjs } from "$store/paintStore";
+  import { menuState } from "$store/menuState.svelte.js";
 
   let { data } = $props();
   const { lang } = data;
@@ -23,9 +24,34 @@
   const baseUrl = "https://paintonline365.com";
 
   onMount(async () => {
-    const drawjs = getDrawjs();
+    const drawjs = new Drawjs();
     setDrawjs(drawjs);
-    drawjs.create();
+
+    drawjs.onchangeHistory((undoLength, redoLength) => {
+      menuState.undoLength = undoLength;
+      menuState.redoLength = redoLength;
+    });
+
+    drawjs.onchangeLayer((newLayer) => {
+      menuState.layers = newLayer;
+      console.log("newLayer:", newLayer);
+    });
+
+    drawjs.onchangeMousePosition((active, position) => {
+      menuState.position_mouse_active = active;
+      menuState.position_mouse = position;
+    });
+
+    drawjs.onchangeCanvasPosition((active, position) => {
+      menuState.position_canvas_active = active;
+      menuState.position_canvas = position;
+    });
+    drawjs.onchangeObjectPosition((active, position) => {
+      menuState.position_object_active = active;
+      menuState.position_object = position;
+    });
+
+    await drawjs.create(".canvas-area");
   });
 </script>
 

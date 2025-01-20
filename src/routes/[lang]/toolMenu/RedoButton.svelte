@@ -3,9 +3,12 @@
    import { menuState } from "$store/menuState.svelte.js";
    import "./menu.css";
    import "../toolsMenu.css";
-   import { redo } from "$paint/src/history.js";
-</script>
+   import { drawjs } from "$store/paintStore";
 
+   function redo() {
+      drawjs.redo();
+   }
+</script>
 
 <button
    class="menu-button"
@@ -14,4 +17,3 @@
 >
    <RedoIcon />
 </button>
-

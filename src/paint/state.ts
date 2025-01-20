@@ -7,8 +7,17 @@ export const PaintMobXState = observable({
   redo_length: 0,
   activeLayerId: "",
   lastChanged: 0,
+  
+  position_mouse_active: false,
+    position_mouse_x: 0,
+    position_mouse_y: 0,
+    position_canvas_active: false,
+    position_canvas_x: 0,
+    position_canvas_y: 0,
+    position_object_active: false,
+    position_object_x: 0,
+    position_object_y: 0,
 });
-
 
 function getMainCanvas() {
   return PaintJSState.layerStore[PaintJSState.activeLayerId].canvas;
@@ -22,7 +31,7 @@ function getDrawLayer() {
   return canvas;
 }
 
-const handler:ProxyHandler<State> = {
+const handler: ProxyHandler<State> = {
   get(target, prop) {
     // 특정 속성('undos', 'redos')은 PaintMobXState에서 가져옴
     if (["main_canvas"].includes(prop)) {
@@ -50,23 +59,21 @@ const handler:ProxyHandler<State> = {
   },
 };
 
-
-
 export const PaintJSState = makeState();
 
-function makeState() {
+function makeState(): State {
   const isBrowser = typeof window !== "undefined";
   if (!isBrowser) {
     return {};
   } else {
     console.log("window있음");
-    const state:State = defaultState();
+    const state: State = defaultState();
     const proxy = new Proxy(state, handler);
     return proxy;
   }
 }
 
-interface State{
+interface State {
   default_magnification: number;
   default_tool;
   default_canvas_width: number;

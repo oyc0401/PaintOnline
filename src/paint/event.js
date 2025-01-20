@@ -25,6 +25,8 @@ import {
   update_helper_layer,
   update_magnified_canvas_size,
   view_bitmap,
+  setCanvasPosition,
+  setMousePosition,
 } from "./src/functions.js";
 
 import { cancel, redo, undo } from "./src/history.js";
@@ -76,10 +78,11 @@ export function setEvent() {
     update_canvas_rect();
     update_disable_aa();
     update_magnified_canvas_size();
-
-    PaintJSState.position_canvas_active = true;
-    PaintJSState.position_canvas_x = PaintJSState.main_canvas.width;
-    PaintJSState.position_canvas_y = PaintJSState.main_canvas.height;
+    setCanvasPosition(
+      true,
+      PaintJSState.paint.width,
+      PaintJSState.paint.height,
+    );
   });
 
   dragAndDropEvent();
@@ -658,9 +661,8 @@ function pointerEvent() {
     if (!PaintJSState.pointer_active) {
       const pointer = to_canvas_coords(e);
 
-      PaintJSState.position_mouse_active = true;
-      PaintJSState.position_mouse_x = pointer.x;
-      PaintJSState.position_mouse_y = pointer.y;
+      setMousePosition(true, pointer.x, pointer.y);
+
       return;
     }
 
@@ -669,10 +671,7 @@ function pointerEvent() {
 
       const pointer = to_canvas_coords(e);
       PaintJSState.pointer = pointer;
-
-      PaintJSState.position_mouse_active = true;
-      PaintJSState.position_mouse_x = pointer.x;
-      PaintJSState.position_mouse_y = pointer.y;
+      setMousePosition(true, pointer.x, pointer.y);
     }
   }
 

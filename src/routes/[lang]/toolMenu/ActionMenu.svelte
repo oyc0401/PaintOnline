@@ -7,24 +7,25 @@
 
   import { menuState } from "$store/menuState.svelte.js";
   import { quickClickMenu, closeDropdown } from "$store/paintFunction.js";
-  import { file_save, file_new, file_open } from "$paint/src/functions.js";
   import { i18n, localize } from "$src/localize/localize";
+  import { drawjs } from "$store/paintStore";
+
   import "./menu.css";
   import "../toolsMenu.css";
   const MENU_NUMBER = 0;
 
   function saveFile() {
-    file_save();
+    drawjs.downloadFile();
     closeDropdown();
   }
 
   function newFile() {
-    file_new();
+    drawjs.newFile();
     closeDropdown();
   }
 
   function openFile() {
-    file_open();
+    drawjs.openFile();
     closeDropdown();
   }
 </script>

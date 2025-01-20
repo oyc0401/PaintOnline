@@ -1,5 +1,5 @@
 <script>
-  import { TOOL_PENCIL, TOOL_AIRBRUSH, TOOL_BRUSH } from "$paint/src/tools";
+  import { TOOL_PENCIL, TOOL_AIRBRUSH, TOOL_BRUSH } from "$paint";
   import BrushIcon from "$lib/images/brush.svelte";
   import PenIcon from "$lib/images/pen.svelte";
   import SprayIcon from "$lib/images/spray.svelte";

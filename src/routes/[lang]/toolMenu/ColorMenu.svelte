@@ -1,15 +1,15 @@
 <script>
   import { menuState } from "$store/menuState.svelte.js";
   import TransparantIcon from "$lib/images/transparent_icon.png";
-  import {PaintJSState} from '$paint/state';
   import ColorIcon from "$lib/images/color.svelte";
-  
-  import { changeTool, quickClickMenu } from "$store/paintFunction.js";
+
+  import { quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
+  import { drawjs } from "$store/paintStore";
 
   const MENU_NUMBER = 6;
-  
+
   const palette1 = [
     "rgb(0,0,0)", // Black
     "rgb(128,128,128)", // Dark Gray
@@ -70,29 +70,30 @@
   function selectColor(color) {
     if (menuState.selectedColor == 0) {
       menuState.foregroundColor = color;
-      PaintJSState.selected_colors.foreground = color;
+      drawjs.setForegroundColor(color);
     } else {
       menuState.backgroundColor = color;
-      PaintJSState.selected_colors.background = color;
+      drawjs.setBackgroundColor(color);
     }
   }
 
   function setBackgroundColor(color) {
     menuState.backgroundColor = color;
-    PaintJSState.selected_colors.background = color;
+    drawjs.setBackgroundColor(color);
   }
 </script>
 
 <div>
-  <button class="menu-button" 
-    class:selected-menu={menuState.toolMenuId === MENU_NUMBER} 
-    onclick={()=>quickClickMenu(MENU_NUMBER)}>
-     <ColorIcon color={menuState.foregroundColor} />
-   </button>
+  <button
+    class="menu-button"
+    class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
+    onclick={() => quickClickMenu(MENU_NUMBER)}
+  >
+    <ColorIcon color={menuState.foregroundColor} />
+  </button>
 
   {#if menuState.showDropdown && menuState.dropdownId == MENU_NUMBER}
     <div class="dropdown-area large-dropdown menu-bottom">
-
       <div class="color-menu">
         <div class="flex">
           <button
@@ -187,13 +188,9 @@
           </div>
         </div>
       </div>
-      
     </div>
   {/if}
-
 </div>
-
-
 
 <style>
   .color-menu {

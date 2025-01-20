@@ -12,6 +12,7 @@ import {
 	set_magnification,
 	show_error_message,
 	update_helper_layer,
+	setObjectPosition,
 } from "./functions.js";
 import { undoable } from "./history.js";
 import { PaintJSState } from "../state";
@@ -147,9 +148,7 @@ function FREE_FORM_SELECT() {
 			// $status_size.text(
 			// 	`${this.x_max - this.x_min}x${this.y_max - this.y_min}`,
 			// );
-			PaintJSState.position_object_active = true;
-			PaintJSState.position_object_x = this.x_max - this.x_min;
-			PaintJSState.position_object_y = this.y_max - this.y_min;
+			setObjectPosition(true, this.x_max - this.x_min, this.y_max - this.y_min);
 		},
 		ffs_paint_iteration(x, y) {
 			// Constrain the inversion paint brush position to the canvas
@@ -975,9 +974,7 @@ function CURVE() {
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
 			// I don't know how helpful this is, might be more useful to show the number of points:
 			// $status_size.text(`${this.points.length} / 4 points`);
-			PaintJSState.position_object_active = true;
-			PaintJSState.position_object_x = signed_width;
-			PaintJSState.position_object_y = signed_height;
+			setObjectPosition(true, signed_width, signed_height);
 		},
 		drawPreviewUnderGrid(
 			ctx,
@@ -1186,9 +1183,7 @@ function POLYGON() {
 			const signed_width = x_max - x_min || 1;
 			const signed_height = y_max - y_min || 1;
 			//$status_size.text(`${signed_width} x ${signed_height}px`);
-			PaintJSState.position_object_active = true;
-			PaintJSState.position_object_x = signed_width;
-			PaintJSState.position_object_y = signed_height;
+			setObjectPosition(true, signed_width, signed_height);
 		},
 		reset() {
 			//$status_size.text("");
@@ -1270,9 +1265,7 @@ function setting_selectBox(tool) {
 				) - rect_y;
 			//$status_size.text(`${rect_width} x ${rect_height}px`); // note that OnCanvasObject/OnCanvasTextBox/OnCanvasSelection also manages this status text
 			//if(rect_width > 1 && rect_height > 1){
-			PaintJSState.position_object_active = true;
-			PaintJSState.position_object_x = rect_width;
-			PaintJSState.position_object_y = rect_height;
+			setObjectPosition(true, rect_width, rect_height);
 			//}
 		};
 		tool.pointerup = () => {

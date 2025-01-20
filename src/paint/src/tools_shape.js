@@ -6,10 +6,10 @@ import {
   set_magnification,
   show_error_message,
   update_helper_layer,
+  setMousePosition,
+  setObjectPosition,
 } from "./functions.js";
-import {
-  undoable
-} from "./history.js";
+import { undoable } from "./history.js";
 import { PaintJSState } from "../state";
 import {
   get_icon_for_tool,
@@ -86,9 +86,7 @@ class ShapeTool {
 
     // Update status and position
     // $status_size.text(`${signed_width} x ${signed_height}px`);
-    PaintJSState.position_object_active = true;
-    PaintJSState.position_object_x = signed_width;
-    PaintJSState.position_object_y = signed_height;
+    setObjectPosition(true, signed_width, signed_height);
   }
 
   pointerup() {

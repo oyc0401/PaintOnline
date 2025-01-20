@@ -27,30 +27,8 @@ export function getPaintjs(){
     return paintjsSingleton;
 }
 
-///
-drawjs.create('.canvas-area');
 
-drawjs.undo();
-drawjs.redo();
-drawjs.changeTool('PENCIL');
-drawjs.onchangeHistory((undoCount, redoCount)=>{
-    
-})
-
-drawjs.save();
-
-drawjs.onchangeLayer((layers)=>{
-    
-});
-
-drawjs.setLayer('key');
-drawjs.hideLayer('key');
-drawjs.addLayer();
 drawjs.switchLayer('layer1', 'layer2');
-
-drawjs.download();
-drawjs.new();
-drawjs.open();
 
 
 

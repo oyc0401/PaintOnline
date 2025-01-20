@@ -6,7 +6,7 @@
     TOOL_POLYGON,
     TOOL_RECTANGLE,
     TOOL_ROUNDED_RECTANGLE,
-  } from "$paint/src/tools";
+  } from "$paint";
   import ShapeIcon from "$lib/images/shape.svelte";
   import RectangleIcon from "$lib/images/rectangle.svelte";
   import CircleIcon from "$lib/images/circle.svelte";

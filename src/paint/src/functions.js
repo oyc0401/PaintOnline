@@ -12,6 +12,7 @@ import {
 	make_canvas,
 	to_canvas_coords_magnification,
 	drawcopy,
+	make_css_cursor,
 } from "./helpers.js";
 import {
 	apply_image_transformation,
@@ -37,6 +38,24 @@ import { PaintJSState, PaintMobXState } from "../state";
 import { newLocalFile } from "../session.js";
 
 import { reset_history, undoable, cancel } from "./history.js";
+
+export function setMousePosition(move, x, y) {
+	PaintMobXState.position_mouse_active = move;
+	PaintMobXState.position_mouse_x = x;
+	PaintMobXState.position_mouse_y = y;
+}
+
+export function setCanvasPosition(move, x, y) {
+	PaintMobXState.position_canvas_active = move;
+	PaintMobXState.position_canvas_x = x;
+	PaintMobXState.position_canvas_y = y;
+}
+
+export function setObjectPosition(move, x, y) {
+	PaintMobXState.position_object_active = move;
+	PaintMobXState.position_object_x = x;
+	PaintMobXState.position_object_y = y;
+}
 
 function update_magnified_canvas_size() {
 	PaintJSState.$layer_area.css(
@@ -1767,6 +1786,9 @@ function get_tool_by_id(id) {
  */
 function select_tool(tool) {
 	deselect();
+	PaintJSState.$canvas.css({
+		cursor: make_css_cursor(...tool.cursor),
+	});
 
 	if (!PaintJSState.selected_tool.deselect) {
 		PaintJSState.return_to_tool = PaintJSState.selected_tool;

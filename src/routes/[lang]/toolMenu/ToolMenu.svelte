@@ -1,5 +1,5 @@
 <script>
-  import { TOOL_FILL, TOOL_MAGNIFIER, TOOL_PICK_COLOR } from "$paint/src/tools";
+  import { TOOL_FILL, TOOL_MAGNIFIER, TOOL_PICK_COLOR } from "$paint";
   import ToolsIcon from "$lib/images/tools.svelte";
   import PickColorIcon from "$lib/images/pick_color.svelte";
   import FillColorIcon from "$lib/images/fill_color.svelte";

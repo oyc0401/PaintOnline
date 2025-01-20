@@ -1,5 +1,5 @@
 <script>
-  import { TOOL_FREE_FORM_SELECT, TOOL_SELECT } from "$paint/src/tools";
+  import { TOOL_FREE_FORM_SELECT, TOOL_SELECT } from "$paint";
   import SelectRectangleIcon from "$lib/images/select_rectangle.svelte";
   import SelectFreeIcon from "$lib/images/select_free.svelte";
   import { menuState } from "$store/menuState.svelte.js";

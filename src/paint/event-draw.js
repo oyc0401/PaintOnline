@@ -2,6 +2,7 @@ import {
   select_tool,
   update_canvas_rect,
   update_helper_layer,
+  setObjectPosition,
 } from "./src/functions.js";
 import { cancel } from "./src/history.js";
 
@@ -34,7 +35,7 @@ export function setDrawEvent() {
  */
 function handleCanvasPointerDown(e) {
   // 드래그로 오브젝트 위치를 옮기는 상태가 아니라면 false
-  PaintJSState.position_object_active = false;
+  setObjectPosition(false);
   update_canvas_rect();
 
   // 첫 번째 포인터(터치/마우스)로 그림을 시작할지 여부

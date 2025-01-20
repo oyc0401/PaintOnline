@@ -1,7 +1,5 @@
 import { menuState } from "./menuState.svelte.js";
-import { get_tool_by_id, select_tool } from "../paint/src/functions.js";
-import { make_css_cursor } from "../paint/src/helpers.js";
-import { PaintJSState } from "../paint/state";
+import { drawjs } from "./paintStore";
 
 // 도구를 해당 메뉴의 클릭으로 바꾼다..?
 export function changeTool(toolId, menuId) {
@@ -11,11 +9,7 @@ export function changeTool(toolId, menuId) {
   menuState.selectedTool = toolId;
   menuState.toolHistory[menuId] = toolId;
 
-  const toolObj = get_tool_by_id(toolId);
-  select_tool(toolObj);
-  PaintJSState.$canvas.css({
-    cursor: make_css_cursor(...toolObj.cursor),
-  });
+  drawjs.selectTool(toolId);
 }
 
 // 도구를 바꾸고 드롭다운을 닫는다.
@@ -42,7 +36,7 @@ export const quickClickMenu = (id) => {
   // 메뉴와 색깔은 누르면 바로 드롭다운이 열림
   if (menuState.dropdownId == id) {
     toggleDropdown();
-  }else{
+  } else {
     menuState.dropdownId = id;
     openDropdown();
   }
