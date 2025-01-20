@@ -1,6 +1,7 @@
-import { get_tool_by_id, make_history_node } from "./src/functions.js";
+import { get_tool_by_id } from "./src/functions.js";
 import { TOOL_PENCIL } from "./src/tools.js";
 import { make_canvas } from "./src/helpers.js";
+import {make_history_node } from "./src/history.js";
 import $ from "jquery";
 
 export function defaultState() {

@@ -1,5 +1,4 @@
 import {
-  cancel,
   clear,
   delete_selection,
   deselect,
@@ -17,18 +16,18 @@ import {
   open_from_file,
   paste,
   paste_image_from_file,
-  redo,
   select_all,
   set_magnification,
   show_error_message,
   show_resource_load_error_message,
-  undo,
   update_canvas_rect,
   update_disable_aa,
   update_helper_layer,
   update_magnified_canvas_size,
   view_bitmap,
 } from "./src/functions.js";
+
+import { cancel, redo, undo } from "./src/history.js";
 import $ from "jquery";
 import {
   TAU,

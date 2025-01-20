@@ -5,9 +5,11 @@ import {
   meld_selection_into_canvas,
   set_magnification,
   show_error_message,
-  undoable,
   update_helper_layer,
 } from "./functions.js";
+import {
+  undoable
+} from "./history.js";
 import { PaintJSState } from "../state";
 import {
   get_icon_for_tool,

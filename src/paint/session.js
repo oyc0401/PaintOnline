@@ -11,8 +11,10 @@ import {
   reset_file,
   reset_selected_colors,
   set_magnification,
-  reset_history,
 } from "./src/functions.js";
+import {
+  reset_history,
+} from "./src/history.js";
 
 import {
   crateDefaultPaint,

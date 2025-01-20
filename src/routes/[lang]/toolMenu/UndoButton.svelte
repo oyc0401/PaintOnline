@@ -5,7 +5,7 @@
    import "./menu.css";
    import "../toolsMenu.css";
 
-   import { undo } from "$paint/src/functions.js";
+   import { undo } from "$paint/src/history.js";
 </script>
 
 <button

@@ -3,10 +3,8 @@ console.log("JS 실행:", "OnCanvasSelection.js");
 /* global $canvas_area, $status_position, $status_size, main_canvas, PaintJSState.main_ctx, PaintJSState.selected_colors, tool_transparent_mode, transparency */
 import { Handles } from "./Handles.js";
 import { OnCanvasObject } from "./OnCanvasObject.js";
-import {
-	get_tool_by_id,
-	undoable,
-} from "./functions.js";
+import { get_tool_by_id } from "./functions.js";
+import { undoable } from "./history.js";
 import {
 	get_icon_for_tool,
 	get_rgba_from_color,
@@ -30,7 +28,6 @@ class OnCanvasSelection extends OnCanvasObject {
 	constructor(x, y, width, height, image_source) {
 		// 화면을 늘리고 사진을 붙여넣기 하면 비율이 깨짐..
 
-		
 		super(x, y, width, height, true);
 
 		this.$el.addClass("selection");
@@ -58,10 +55,10 @@ class OnCanvasSelection extends OnCanvasObject {
 	 */
 	instantiate(image_source) {
 		// 움직여야지만 히스토리 기록되게
-		console.log('instantiate')
-		
-		this.moved=false;
-		
+		console.log("instantiate");
+
+		this.moved = false;
+
 		this.$el.css({
 			cursor: make_css_cursor("move", [8, 8], "move"),
 			touchAction: "none",
@@ -137,10 +134,10 @@ class OnCanvasSelection extends OnCanvasObject {
 			let mox, moy;
 			const pointermove = (e) => {
 				// 움직였으니깐 선택 종료하면 히스토리 생김
-				this.moved=true;
-				
+				this.moved = true;
+
 				console.log("끄는중");
-				
+
 				const m = to_canvas_coords(e);
 				this.x = Math.max(
 					Math.min(m.x - mox, PaintJSState.main_canvas.width),
@@ -156,7 +153,7 @@ class OnCanvasSelection extends OnCanvasObject {
 				// 	this.draw();
 				// }
 			};
-			
+
 			this.canvas_pointerdown = (e) => {
 				e.preventDefault();
 				// 핀지줌을 할때 선택이 안되게 하기
@@ -176,7 +173,6 @@ class OnCanvasSelection extends OnCanvasObject {
 					$(window).off("pointermove", pointermove);
 					this.dragging = false;
 					//update_helper_layer(); // for thumbnail, which draws selection outline if it's not being dragged
-				
 
 					undoable(
 						{
@@ -188,7 +184,7 @@ class OnCanvasSelection extends OnCanvasObject {
 							this.update_draw_layer();
 						},
 					);
-					
+
 					$(window).triggerHandler("session-update"); // 옮기면 저장
 				});
 				if (e.shiftKey) {
@@ -332,7 +328,7 @@ class OnCanvasSelection extends OnCanvasObject {
 		this.replace_source_canvas(new_source_canvas);
 	}
 	draw() {
-			PaintJSState.main_ctx.drawImage(this.canvas, this.x, this.y);
+		PaintJSState.main_ctx.drawImage(this.canvas, this.x, this.y);
 	}
 	destroy() {
 		super.destroy();

@@ -3,7 +3,7 @@
    import { menuState } from "$store/menuState.svelte.js";
    import "./menu.css";
    import "../toolsMenu.css";
-   import { redo } from "$paint/src/functions.js";
+   import { redo } from "$paint/src/history.js";
 </script>
 
 

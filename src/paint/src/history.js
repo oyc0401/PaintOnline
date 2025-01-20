@@ -1,3 +1,60 @@
+import { OnCanvasSelection } from "./OnCanvasSelection.js";
+import { localize } from "../../localize/localize.js";
+
+import { get_help_folder_icon, drawcopy } from "./helpers.js";
+
+import { TOOL_FREE_FORM_SELECT, TOOL_SELECT } from "./tools.js";
+import $ from "jquery";
+
+import { PaintJSState, PaintMobXState } from "../state";
+
+import {
+  deselect,
+  get_tool_by_id,
+  show_error_message,
+  update_helper_layer,
+  update_title,
+} from "./functions.js";
+
+export function make_history_node({
+  parent = null, // the state before this state (its basis), or null if this is the first state
+  futures = [], // the states branching off from this state (its children)
+  timestamp = Date.now(), // when this state was created
+  soft = false, // indicates that undo should skip this state; it can still be accessed with the History window
+  selection_image_data = null, // the image data for the selection, if any
+  selection_x, // the x position of the selection, if any
+  selection_y, // the y position of the selection, if any
+  text_tool_font = null, // the font of the Text tool (important to restore a textbox-containing state, but persists without a textbox)
+  tool_transparent_mode = false, // whether transparent mode is on for Select/Free-Form Select/Text tools; otherwise box is opaque
+  foreground_color, // selected foreground color (left click)
+  background_color, // selected background color (right click)
+  ternary_color, // selected ternary color (ctrl+click)
+  name, // the name of the operation, shown in the history window, e.g. localize("Resize Canvas")
+  icon = null, // an Image representation of the operation type, shown in the history window, e.g. get_help_folder_icon("p_blank.png")
+  activeLayerId = null,
+  layerStore = {},
+}) {
+  return {
+    parent,
+    futures,
+    timestamp,
+    soft,
+    //layers,
+    selection_image_data,
+    selection_x,
+    selection_y,
+    text_tool_font,
+    tool_transparent_mode,
+    foreground_color,
+    background_color,
+    ternary_color,
+    name,
+    icon,
+    activeLayerId,
+    layerStore,
+  };
+}
+
 export function reset_history() {
   PaintJSState.undos.length = 0;
   PaintJSState.redos.length = 0;
@@ -42,45 +99,6 @@ export function reset_history() {
   PaintJSState.current_history_node.layerStore = layerStore;
   PaintJSState.$canvas_area.trigger("resize");
   // $(window).triggerHandler("history-update"); // update history view
-}
-
-function make_history_node({
-  parent = null, // the state before this state (its basis), or null if this is the first state
-  futures = [], // the states branching off from this state (its children)
-  timestamp = Date.now(), // when this state was created
-  soft = false, // indicates that undo should skip this state; it can still be accessed with the History window
-  selection_image_data = null, // the image data for the selection, if any
-  selection_x, // the x position of the selection, if any
-  selection_y, // the y position of the selection, if any
-  text_tool_font = null, // the font of the Text tool (important to restore a textbox-containing state, but persists without a textbox)
-  tool_transparent_mode = false, // whether transparent mode is on for Select/Free-Form Select/Text tools; otherwise box is opaque
-  foreground_color, // selected foreground color (left click)
-  background_color, // selected background color (right click)
-  ternary_color, // selected ternary color (ctrl+click)
-  name, // the name of the operation, shown in the history window, e.g. localize("Resize Canvas")
-  icon = null, // an Image representation of the operation type, shown in the history window, e.g. get_help_folder_icon("p_blank.png")
-  activeLayerId = "",
-  layerStore = {},
-}) {
-  return {
-    parent,
-    futures,
-    timestamp,
-    soft,
-    //layers,
-    selection_image_data,
-    selection_x,
-    selection_y,
-    text_tool_font,
-    tool_transparent_mode,
-    foreground_color,
-    background_color,
-    ternary_color,
-    name,
-    icon,
-    activeLayerId,
-    layerStore,
-  };
 }
 
 function go_to_history_node(target_history_node, canceling) {
@@ -149,7 +167,7 @@ function go_to_history_node(target_history_node, canceling) {
   $(window).triggerHandler("session-update"); // autosave
 }
 
-function undoable({ name, icon, soft }, callback) {
+export function undoable({ name, icon, soft }, callback) {
   const before_callback_history_node = PaintJSState.current_history_node;
   callback?.();
 
@@ -233,7 +251,7 @@ function undoable({ name, icon, soft }, callback) {
   $(window).triggerHandler("session-update"); // autosave
 }
 
-function undo() {
+export function undo() {
   console.log("undo!");
   if (PaintJSState.undos.length < 1) {
     return false;
@@ -254,7 +272,7 @@ function undo() {
   return true;
 }
 
-function redo() {
+export function redo() {
   console.log("redo!");
   if (PaintJSState.redos.length < 1) {
     return false;
@@ -278,16 +296,7 @@ function redo() {
   return true;
 }
 
-function get_history_ancestors(node) {
-  const ancestors = [];
-  for (node = node.parent; node; node = node.parent) {
-    ancestors.push(node);
-  }
-  return ancestors;
-}
-
-
-function cancel(going_to_history_node, discard_document_state) {
+export function cancel(going_to_history_node) {
   if (!PaintJSState.history_node_to_cancel_to) {
     return;
   }

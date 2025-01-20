@@ -3,13 +3,7 @@ import libtess from "../lib/libtess.min.js";
 import $ from "jquery";
 import { PaintJSState } from "../state";
 import { localize } from "../../localize/localize.js";
-import {
-	cancel,
-	deselect,
-	show_error_message,
-	undoable,
-	update_title,
-} from "./functions.js";
+import { deselect, show_error_message, update_title } from "./functions.js";
 import {
 	TAU,
 	get_help_folder_icon,
@@ -18,6 +12,7 @@ import {
 	memoize_synchronous_function,
 	drawcopy,
 } from "./helpers.js";
+import { undoable, cancel } from "./history.js";
 
 const fill_threshold = 1; // 1 is just enough for a workaround for Brave browser's farbling: https://github.com/1j01/jspaint/issues/184
 

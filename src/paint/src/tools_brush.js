@@ -1,5 +1,5 @@
 import { localize } from "../../localize/localize.js";
-import { undoable } from "./functions.js";
+import { undoable } from "./history.js";
 import { PaintJSState } from "../state";
 
 import {

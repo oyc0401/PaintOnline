@@ -1,9 +1,10 @@
 import {
-  cancel,
   select_tools,
   update_canvas_rect,
   update_helper_layer,
 } from "./src/functions.js";
+import { cancel } from "./src/history.js";
+
 import $ from "jquery";
 import { TAU, to_canvas_coords } from "./src/helpers.js";
 
