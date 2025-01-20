@@ -10,7 +10,7 @@ import { TAU, to_canvas_coords } from "./src/helpers.js";
 
 import { TOOL_CURVE, TOOL_LINE } from "./src/tools.js";
 
-import { PaintJSState } from "./state.js";
+import { PaintJSState } from "./state";
 
 import { tool_go } from "./event.js";
 

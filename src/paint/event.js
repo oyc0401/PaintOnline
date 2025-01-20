@@ -53,7 +53,7 @@ import {
   TOOL_ROUNDED_RECTANGLE,
 } from "./src/tools.js";
 
-import { PaintJSState } from "./state.js";
+import { PaintJSState } from "./state";
 
 import { setDrawEvent } from "./event-draw.js";
 

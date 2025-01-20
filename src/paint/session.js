@@ -1,6 +1,6 @@
 import $ from "jquery";
 
-import { PaintJSState, PaintMobXState } from "./state.js";
+import { PaintJSState, PaintMobXState } from "./state";
 import { keyStore } from "./repository/keyStorage.js";
 import { layerRepository } from "./repository/layerRepository.js";
 import { paintRepository } from "./repository/paintRepository.js";

@@ -4,7 +4,7 @@ import $ from "jquery";
 import { make_css_cursor } from "./src/helpers.js";
 import { init_webgl_stuff } from "./src/image-manipulation.js";
 import { setEvent } from "./event.js";
-import { PaintJSState } from "./state.js";
+import { PaintJSState } from "./state";
 import { getDBCanvas } from "./session.js";
 
 export async function initApp(canvasAreaQuery) {

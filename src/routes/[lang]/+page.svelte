@@ -1,12 +1,13 @@
 <script>
   import Canvas from "./Canvas.svelte";
   import { onMount } from "svelte";
-  import { PaintJS } from "$paint/main";
+  import { getDrawjs } from "$paint/main";
   import { i18n, localize } from "$src/localize/localize";
   import ToolsAbove from "./ToolsAbove.svelte";
   import ToolsBelow from "./ToolsBelow.svelte";
   import ToolsMenuHelper from "./ToolsMenuHelper.svelte";
   import Position from "./Position.svelte";
+  import { setDrawjs } from "$store/paintStore";
 
   let { data } = $props();
   const { lang } = data;
@@ -22,7 +23,9 @@
   const baseUrl = "https://paintonline365.com";
 
   onMount(async () => {
-    PaintJS.create();
+    const drawjs = getDrawjs();
+    setDrawjs(drawjs);
+    drawjs.create();
   });
 </script>
 

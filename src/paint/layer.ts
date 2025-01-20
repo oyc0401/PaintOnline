@@ -1,6 +1,6 @@
 import { make_canvas } from "./src/helpers.js";
 
-import { PaintJSState, PaintMobXState } from "./state.js";
+import { PaintJSState, PaintMobXState } from "./state";
 import $ from "jquery";
 
 async function make_layer(

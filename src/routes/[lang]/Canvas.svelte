@@ -1,18 +1,5 @@
 <script>
-  //let canvasList=[];
 
-  import { onMount } from "svelte";
-  import { PaintJSState } from "$paint/state";
-  import { menuState } from "$store/menuState.svelte.js";
-  import { reaction } from "mobx";
-  // onMount(() => {
-  //  reaction(
-  //     () => PaintJSState.layerId.length,
-  //     (newValue) => {
-  //       menuState.position_mouse.x = newValue;
-  //     },
-  //   );
-  // }
 
     
 </script>

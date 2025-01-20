@@ -1,7 +1,7 @@
 import { menuState } from "./menuState.svelte.js";
 import { get_tool_by_id, select_tool } from "../paint/src/functions.js";
 import { make_css_cursor } from "../paint/src/helpers.js";
-import { PaintJSState } from "../paint/state.js";
+import { PaintJSState } from "../paint/state";
 
 // 도구를 해당 메뉴의 클릭으로 바꾼다..?
 export function changeTool(toolId, menuId) {

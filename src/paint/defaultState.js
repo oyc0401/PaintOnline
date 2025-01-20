@@ -170,7 +170,7 @@ export function defaultState() {
   let position_object_y;
 
   let paint = {};
-  let LayerStore = {};
+  let layerStore = {};
   let activeLayerId = 0;
 
   return {
@@ -245,7 +245,7 @@ export function defaultState() {
 
     $layer_area,
     paint,
-    LayerStore,
+    layerStore,
     activeLayerId,
 
     //getSortedLayers
