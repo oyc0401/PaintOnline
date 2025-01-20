@@ -238,7 +238,7 @@ function make_canvas(width, height) {
 }
 
 export function drawcopy(ctx, image) {
-	console.log(image);
+	//console.log(image);
 	const canvas = ctx.canvas;
 
 	// @ts-ignore

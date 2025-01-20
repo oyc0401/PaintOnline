@@ -424,15 +424,19 @@ export function reset_history() {
 		make_history_node({
 			name: localize("New"),
 			icon: get_help_folder_icon("p_blank.png"),
+			activeLayerId: PaintJSState.activeLayerId,
 		});
 	PaintJSState.history_node_to_cancel_to = null;
 
 	console.log("히스토리 현재 레이어로 리셋!");
 
 	// 히스토리
-	let layers = [];
-	for (let i = 0; i < PaintJSState.getLayers().length; i++) {
-		const layer = PaintJSState.getLayers()[i];
+
+	let layerStore = {};
+	let sortedLayers = PaintJSState.getLayers();
+
+	for (let i = 0; i < sortedLayers.length; i++) {
+		const layer = sortedLayers[i];
 
 		// 오프스크린 캔버스 생성
 		const offscreenCanvas = new OffscreenCanvas(
@@ -441,43 +445,28 @@ export function reset_history() {
 		);
 		const offscreenCtx = offscreenCanvas.getContext("2d");
 		offscreenCanvas.ctx = offscreenCtx;
-		
+
 		// 메인 캔버스 내용을 오프스크린 캔버스로 복사
 		offscreenCtx.drawImage(layer.canvas, 0, 0);
-
-		layers.push({ offscreenCanvas, id: layer.layerId, name: layer.name });
+		const offLayer = {
+			offscreenCanvas,
+			layerId: layer.layerId,
+			name: layer.name,
+		};
+		layerStore[layer.layerId] = offLayer;
 	}
-	PaintJSState.current_history_node.layers = layers;
 
+	PaintJSState.current_history_node.layerStore = layerStore;
 	PaintJSState.$canvas_area.trigger("resize");
 	// $(window).triggerHandler("history-update"); // update history view
 }
 
-// TODO: fix inconsistent use of ancestry metaphor (parent vs futures); could use the term "basis" for the parent, or "children" for the futures
-/**
- * @param {object} options
- * @param {HistoryNode | null=} options.parent - the state before this state (its basis), or null if this is the first state
- * @param {HistoryNode[]=} options.futures - the states branching off from this state (its children)
- * @param {number=} options.timestamp - when this state was created
- * @param {boolean=} options.soft - indicates that undo should skip this state; it can still be accessed with the History window
- * @param {ImageData | null=} options.image_data - the image data for the canvas (TODO: region updates)
- * @param {ImageData | null=} options.selection_image_data - the image data for the selection, if any
- * @param {number=} options.selection_x - the x position of the selection, if any
- * @param {number=} options.selection_y - the y position of the selection, if any
- * @param {boolean=} options.tool_transparent_mode - whether transparent mode is on for Select/Free-Form Select/Text tools; otherwise box is opaque
- * @param {string | CanvasPattern=} options.foreground_color - selected foreground color (left click)
- * @param {string | CanvasPattern=} options.background_color - selected background color (right click)
- * @param {string | CanvasPattern=} options.ternary_color - selected ternary color (ctrl+click)
- * @param {string=} options.name - the name of the operation, shown in the history window, e.g. localize("Resize Canvas")
- * @param {HTMLImageElement |HTMLCanvasElement | null=} options.icon - a visual representation of the operation type, shown in the history window, e.g. get_help_folder_icon("p_blank.png")
- * @returns {HistoryNode}
- */
 function make_history_node({
 	parent = null, // the state before this state (its basis), or null if this is the first state
 	futures = [], // the states branching off from this state (its children)
 	timestamp = Date.now(), // when this state was created
 	soft = false, // indicates that undo should skip this state; it can still be accessed with the History window
-	layers = [], // the image data for the canvas (TODO: region updates)
+	//layers = [], // the image data for the canvas (TODO: region updates)
 	selection_image_data = null, // the image data for the selection, if any
 	selection_x, // the x position of the selection, if any
 	selection_y, // the y position of the selection, if any
@@ -488,14 +477,15 @@ function make_history_node({
 	ternary_color, // selected ternary color (ctrl+click)
 	name, // the name of the operation, shown in the history window, e.g. localize("Resize Canvas")
 	icon = null, // an Image representation of the operation type, shown in the history window, e.g. get_help_folder_icon("p_blank.png")
-	activeLayerId = 1, // 기본은 레이어 두개가 제공되기 때문에 가장 위에있는것, 1임
+	activeLayerId = "",
+	layerStore = {},
 }) {
 	return {
 		parent,
 		futures,
 		timestamp,
 		soft,
-		layers,
+		//layers,
 		selection_image_data,
 		selection_x,
 		selection_y,
@@ -507,6 +497,7 @@ function make_history_node({
 		name,
 		icon,
 		activeLayerId,
+		layerStore,
 	};
 }
 
@@ -872,16 +863,18 @@ async function confirm_overwrite_capability() {
 function file_save() {
 	deselect();
 
-	saveLayer(PaintJSState.getLayers(), localize("untitled"));
+	downloadPaint(localize("untitled"));
 	return;
 }
 
-function saveLayer(layers, name) {
-	const length = layers.length;
-	const topCanvas = layers[length - 1].canvas;
+function downloadPaint(name) {
+	const sortedLayer = PaintJSState.getLayers();
+
+	const length = sortedLayer.length;
+	const topCanvas = sortedLayer[length - 1].canvas;
 	const canvas = make_canvas(topCanvas.width, topCanvas.height);
 
-	for (const layer of layers) {
+	for (const layer of sortedLayer) {
 		canvas.ctx.drawImage(layer.canvas, 0, 0);
 	}
 
@@ -1398,7 +1391,10 @@ function paste(img_or_canvas) {
  * @param {boolean=} canceling
  */
 function go_to_history_node(target_history_node, canceling) {
-	if (!target_history_node.layers || target_history_node.layers.length == 0) {
+	if (
+		!target_history_node.layerStore ||
+		Object.keys(target_history_node.layerStore).length == 0
+	) {
 		if (!canceling) {
 			show_error_message("History entry has no image data.");
 			window.console?.log(
@@ -1410,8 +1406,8 @@ function go_to_history_node(target_history_node, canceling) {
 	}
 
 	PaintJSState.current_history_node = target_history_node;
-	PaintJSState.activeLayerId=target_history_node.activeLayerId;
-	
+	PaintJSState.activeLayerId = target_history_node.activeLayerId;
+
 	console.log("target_history_node:", target_history_node);
 	deselect(true);
 	if (!canceling) {
@@ -1421,11 +1417,16 @@ function go_to_history_node(target_history_node, canceling) {
 	update_title();
 
 	// 이미지 그리기
-	if (target_history_node.layers) {
-		let layers = target_history_node.layers;
-		for (let i = 0; i < layers.length; i++) {
-			const layer = layers[i];
-			drawcopy(PaintJSState.getLayers()[i].ctx, layer.offscreenCanvas);
+	if (target_history_node.layerStore) {
+		let sortedLayers = Object.values(target_history_node.layerStore).sort(
+			(a, b) => a.priority - b.priority,
+		);
+
+		for (let layer of sortedLayers) {
+			const { layerId, offscreenCanvas } = layer;
+			//console.log('layerId',layerId)
+			//console.log(PaintJSState.layerStore[layerId])
+			drawcopy(PaintJSState.layerStore[layerId].ctx, offscreenCanvas);
 		}
 	} else {
 		console.error("error!!!");
@@ -1450,6 +1451,7 @@ function go_to_history_node(target_history_node, canceling) {
 		);
 	}
 
+	console.log(PaintJSState.activeLayerId, PaintJSState.layerStore);
 	PaintJSState.$canvas_area.trigger("resize");
 	$(window).triggerHandler("session-update"); // autosave
 }
@@ -1471,10 +1473,12 @@ function undoable({ name, icon, soft }, callback) {
 	}
 
 	// 이미지 데이터 만들기
-	let layers = [];
+	//let layers = [];
+	let layerStore = {};
 
-	for (let i = 0; i < PaintJSState.getLayers().length; i++) {
-		const layer = PaintJSState.getLayers()[i];
+	const sortedLayers = PaintJSState.getLayers();
+	for (let i = 0; i < sortedLayers.length; i++) {
+		const layer = sortedLayers[i];
 
 		// 오프스크린 캔버스 생성
 		const offscreenCanvas = new OffscreenCanvas(
@@ -1487,7 +1491,12 @@ function undoable({ name, icon, soft }, callback) {
 		// 메인 캔버스 내용을 오프스크린 캔버스로 복사
 		offscreenCtx.drawImage(layer.canvas, 0, 0);
 
-		layers.push({ offscreenCanvas, id: layer.layerId, name: layer.name });
+		const offLayer = {
+			offscreenCanvas,
+			layerId: layer.layerId,
+			name: layer.name,
+		};
+		layerStore[layer.layerId] = offLayer;
 	}
 
 	/////
@@ -1498,7 +1507,7 @@ function undoable({ name, icon, soft }, callback) {
 	PaintMobXState.redo_length = PaintJSState.redos.length;
 
 	const new_history_node = make_history_node({
-		layers,
+		layerStore,
 		selection_image_data:
 			PaintJSState.selection &&
 			PaintJSState.selection.canvas.ctx.getImageData(
@@ -1518,7 +1527,7 @@ function undoable({ name, icon, soft }, callback) {
 		name,
 		icon,
 		soft,
-			activeLayerId: PaintJSState.activeLayerId,
+		activeLayerId: PaintJSState.activeLayerId,
 	});
 	PaintJSState.current_history_node.futures.push(new_history_node);
 	PaintJSState.current_history_node = new_history_node;
@@ -1819,7 +1828,7 @@ function edit_copy(execCommandFallback) {
  */
 function edit_cut(execCommandFallback) {
 	const ctrlOrCmd = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
-		? "⌘"
+		? "u��"
 		: "Ctrl";
 	const recommendationForClipboardAccess = `Please use the keyboard: ${ctrlOrCmd}+C to copy, ${ctrlOrCmd}+X to cut, ${ctrlOrCmd}+V to paste. If keyboard is not an option, try using Chrome version 76 or higher.`;
 
