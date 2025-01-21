@@ -162,7 +162,6 @@ const saveFileSoon = debounce(enqueueSave, 300);
 
 async function saveFileImmediately() {
   try {
-    return;
     // 1) 캔버스 정보 저장
     const paint = PaintJSState.paint;
 
