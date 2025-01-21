@@ -12,9 +12,7 @@ import {
   reset_selected_colors,
   set_magnification,
 } from "./src/functions.js";
-import {
-  reset_history,
-} from "./src/history.js";
+import { reset_history } from "./src/history.js";
 
 import {
   crateDefaultPaint,
@@ -164,18 +162,11 @@ const saveFileSoon = debounce(enqueueSave, 300);
 
 async function saveFileImmediately() {
   try {
+    return;
     // 1) 캔버스 정보 저장
     const paint = PaintJSState.paint;
-    const activeCanvas = PaintJSState.getLayers()[0]; // 예: 첫 번째 레이어가 배경 캔버스
-    if (!activeCanvas) {
-      console.error("No active canvas found in PaintJSState.layers.");
-      return;
-    }
 
-    await paintRepository.setPaint(currentPaintId, {
-      width: activeCanvas.canvas.width,
-      height: activeCanvas.canvas.height,
-    });
+    await paintRepository.setPaint(paint.paintId, paint);
 
     // 2) 레이어 메타데이터 저장
     const layerList = [];

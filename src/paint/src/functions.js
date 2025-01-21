@@ -103,11 +103,13 @@ function update_helper_layer(e) {
 	} else {
 		// window.console?.log("update_helper_layer");
 	}
-	helper_layer_update_queued = true;
-	requestAnimationFrame(() => {
-		helper_layer_update_queued = false;
-		update_helper_layer_immediately();
-	});
+
+	
+	// helper_layer_update_queued = true;
+	// requestAnimationFrame(() => {
+	// 	helper_layer_update_queued = false;
+	// 	update_helper_layer_immediately();
+	// });
 }
 
 let lastTime = 0;
@@ -162,7 +164,7 @@ function update_helper_layer_immediately() {
 	}
 
 	// TODO: 이거 나중에 꼭 지워야함!!
-	render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
+	//render_canvas_view(PaintJSState.helper_layer.canvas, 1, 0, 0, true);
 
 	if (
 		PaintJSState.thumbnail_canvas &&

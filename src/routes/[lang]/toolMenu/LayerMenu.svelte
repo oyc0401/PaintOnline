@@ -6,12 +6,15 @@
   import CheckBoxIcon from "$lib/images/check_box.svelte";
   import AddIcon from "$lib/images/add.svelte";
 
-  import { quickClickMenu } from "$store/paintFunction.js";
+ // import { quickClickMenu } from "$store/paintFunction.js";
   import "./menu.css";
   import "../toolsMenu.css";
 
   import { drawjs } from "$store/paintStore";
 
+  function toggleLayerMenu(){
+    menuState.showLayerMenu=!menuState.showLayerMenu;
+  }
   function clickLayer(id) {
     drawjs.setLayer(id);
     menuState.activeLayerId = id;
@@ -21,23 +24,20 @@
     drawjs.addLayer();
   }
 
-  const MENU_NUMBER = 7;
 </script>
 
 <div>
   <button
     class="menu-button"
-    class:selected-menu={menuState.toolMenuId === MENU_NUMBER}
-    onclick={() => quickClickMenu(MENU_NUMBER)}
+    class:selected-menu={menuState.showLayerMenu}
+    onclick={() => toggleLayerMenu()}
   >
     <LayerIcon />
   </button>
 
   <div
     class="dropdown-area medium-dropdown menu-bottom-right"
-    class:hide={!(
-      menuState.showDropdown && menuState.dropdownId == MENU_NUMBER
-    )}
+    class:hide={ !menuState.showLayerMenu }
   >
     <div class="layer-menu">
       <div class="layer-header">

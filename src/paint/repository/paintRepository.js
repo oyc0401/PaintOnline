@@ -1,6 +1,6 @@
 // paintRepository.js
 
-import { dbPromise } from './openDB.js';
+import { dbPromise } from "./openDB.js";
 
 export const paintRepository = {
   /**
@@ -10,7 +10,7 @@ export const paintRepository = {
    */
   async getPaint(paintId) {
     const db = await dbPromise;
-    const record = await db.get('paint', paintId);
+    const record = await db.get("paint", paintId);
     return record;
   },
 
@@ -20,9 +20,10 @@ export const paintRepository = {
    * @param {{ width: number, height: number }} canvasInfo
    * @returns {Promise<void>}
    */
-  async setPaint(paintId, canvasInfo) {
+  async setPaint(paintId, paintInfo) {
     const db = await dbPromise;
-    const record = { paintId, width: canvasInfo.width, height: canvasInfo.height };
-    await db.put('paint', record);
+    const { width, height, layerCount } = paintInfo;
+    const record = { paintId, width, height, layerCount };
+    await db.put("paint", record);
   },
 };

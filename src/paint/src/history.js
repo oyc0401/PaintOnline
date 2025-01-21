@@ -177,6 +177,10 @@ export function undoable({ name, icon, soft }, callback) {
     );
   }
 
+  asyncUndo({ name, icon, soft })
+}
+
+async function asyncUndo({ name, icon, soft }){
   // 이미지 데이터 만들기
   //let layers = [];
   let layerStore = {};

@@ -11,7 +11,7 @@ import {
     file_open,
 } from "../paint/src/functions.js";
 import { reaction } from "mobx";
-import { addLayer } from "../paint/layer";
+import { addLayer,setLayer } from "../paint/layer";
 
 export class Drawjs {
     constructor() {
@@ -92,18 +92,17 @@ export class Drawjs {
         );
     }
     setLayer(layerId) {
-        PaintJSState.activeLayerId = layerId;
-        console.log("select:", PaintJSState.layerStore[layerId]);
+        setLayer(layerId);
     }
 
     addLayer() {
         addLayer();
     }
 
-    setForegroundColor() {
+    setForegroundColor(color) {
         PaintJSState.selected_colors.foreground = color;
     }
-    setBackgroundColor() {
+    setBackgroundColor(color) {
         PaintJSState.selected_colors.background = color;
     }
 

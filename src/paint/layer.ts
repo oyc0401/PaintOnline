@@ -1,5 +1,6 @@
 import { make_canvas } from "./src/helpers.js";
-
+import { deselect } from "./src/functions";
+import { cancel } from "./src/history";
 import { PaintJSState, PaintMobXState } from "./state";
 import $ from "jquery";
 
@@ -89,10 +90,12 @@ export async function addLayer() {
   const paint: Paint = PaintJSState.paint;
   const { width, height } = paint;
 
+  paint.layerCount++;
+
   const newLayer = await make_layer(
     {
       layerId: generateLayerId(),
-      name: "NewLayer",
+      name: `Layer${paint.layerCount}`,
       priority,
       paintId: paint.paintId,
     },
@@ -106,11 +109,19 @@ export async function addLayer() {
   $(window).triggerHandler("session-update"); // 저장
 }
 
+export function setLayer(layerId) {
+  deselect();
+  cancel();
+
+  PaintJSState.activeLayerId = layerId;
+  console.log("select:", PaintJSState.layerStore[layerId]);
+}
+
 function switchLayer(layerId1, layerId2) {}
 
 export function make_paint(paintInfo: PaintInfo): Paint {
   console.log("페인트 만들기");
-  const { paintId, width, height } = paintInfo;
+  const { paintId, width, height, layerCount } = paintInfo;
   // layer 비우기
   PaintJSState.$layer_area.empty();
 
@@ -118,7 +129,9 @@ export function make_paint(paintInfo: PaintInfo): Paint {
     paintId,
     width,
     height,
+    layerCount,
   });
+  console.warn("layerCount:", layerCount);
 
   PaintJSState.paint = paint;
   PaintJSState.layerStore = {};
@@ -203,6 +216,7 @@ interface PaintInfo {
   paintId: string;
   width: number;
   height: number;
+  layerCount?: number;
 }
 
 //db에 저장되는 데이터
@@ -219,11 +233,13 @@ class Paint {
   paintId: string;
   width: number;
   height: number;
+  layerCount: number;
 
-  constructor({ paintId, width, height }) {
+  constructor({ paintId, width, height, layerCount }) {
     this.paintId = paintId;
     this.width = width;
     this.height = height;
+    this.layerCount = layerCount ?? 1;
   }
 
   setSize(width, height) {
