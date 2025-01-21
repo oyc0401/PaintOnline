@@ -104,10 +104,10 @@ function update_helper_layer(e) {
 		// window.console?.log("update_helper_layer");
 	}
 	helper_layer_update_queued = true;
-	requestAnimationFrame(() => {
-		helper_layer_update_queued = false;
-		update_helper_layer_immediately();
-	});
+	// requestAnimationFrame(() => {
+	// 	helper_layer_update_queued = false;
+	// 	update_helper_layer_immediately();
+	// });
 }
 
 let lastTime = 0;

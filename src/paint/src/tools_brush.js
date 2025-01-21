@@ -72,15 +72,14 @@ class DrawTool {
     const height = endY - startY + brush.size * 2;
 
     // 마스크 캔버스 초기화
-    const mask_canvas = this.mask_canvas;
-    const mask_ctx = this.mask_ctx;
-    mask_canvas.width = width;
-    mask_canvas.height = height;
-    mask_ctx.imageSmoothingEnabled = false;
+
+    this.mask_canvas.width = width;
+    this.mask_canvas.height = height;
+    this.mask_ctx.imageSmoothingEnabled = false;
 
     // 1. 임시 캔버스에 흰색으로 도형 그리기
-    mask_ctx.fillStyle = "black";
-    mask_ctx.globalCompositeOperation = "source-over";
+    this.mask_ctx.fillStyle = "black";
+    this.mask_ctx.globalCompositeOperation = "source-over";
 
     iterate_line(
       PaintJSState.pointer_previous.x - startX,
@@ -89,7 +88,7 @@ class DrawTool {
       PaintJSState.pointer.y - startY,
       (x, y) => {
         stamp_brush_canvas(
-          mask_ctx,
+          this.mask_ctx,
           x + brush.size,
           y + brush.size,
           brush.shape,
@@ -102,21 +101,26 @@ class DrawTool {
     // 이 작업을 왜하냐면 투명도 50인 색을 칠할때 지우지 않으면 겹쳐보임
     this.draw_canvas.ctx.globalCompositeOperation = "destination-out";
     this.draw_canvas.ctx.drawImage(
-      mask_canvas,
+      this.mask_canvas,
       startX - brush.size,
       startY - brush.size,
     );
 
     // 3. mask_canvas의 투명하지 않은 색을 원하는 색으로 바꾸기
     // 이렇게 하는 이유는 지우기를 할 땐 투명도가 0이여야하고 그리기를 할떈 투명도가 있어도 되기 때문
-    mask_ctx.globalCompositeOperation = "source-in";
-    mask_ctx.fillStyle = PaintJSState.stroke_color;
-    mask_ctx.fillRect(0, 0, mask_canvas.width, mask_canvas.height);
+    this.mask_ctx.globalCompositeOperation = "source-in";
+    this.mask_ctx.fillStyle = PaintJSState.stroke_color;
+    this.mask_ctx.fillRect(
+      0,
+      0,
+      this.mask_canvas.width,
+      this.mask_canvas.height,
+    );
 
     // 4. draw_canvas에 mask_canvas 그리기
     this.draw_canvas.ctx.globalCompositeOperation = "source-over";
     this.draw_canvas.ctx.drawImage(
-      mask_canvas,
+      this.mask_canvas,
       startX - brush.size,
       startY - brush.size,
     );
